@@ -1,0 +1,217 @@
+{
+  "locks": [
+    {
+      "id": "asg-report-schema",
+      "path": "research/agent-skills-guard-main/src-tauri/src/models/security.rs",
+      "must_contain": [
+        "pub struct SecurityReport",
+        "pub enum SecurityLevel",
+        "pub struct SecurityIssue",
+        "partial_scan",
+        "skipped_files"
+      ]
+    },
+    {
+      "id": "asg-scanner-core",
+      "path": "research/agent-skills-guard-main/src-tauri/src/security/scanner.rs",
+      "must_contain": [
+        "pub struct ScanOptions",
+        "skip_readme: bool",
+        "fn build_scan_lines",
+        "fn collect_matches_for_content",
+        "pub fn scan_directory_with_options",
+        "pub fn scan_file",
+        "fn calculate_score_weighted"
+      ]
+    },
+    {
+      "id": "asg-rules-core",
+      "path": "research/agent-skills-guard-main/src-tauri/src/security/rules.rs",
+      "must_contain": [
+        "pub struct PatternRule",
+        "pub static ref PATTERN_RULES",
+        "pub static ref HARD_TRIGGER_RULES",
+        "hard_trigger: bool",
+        "pub fn quick_match_into"
+      ]
+    },
+    {
+      "id": "asg-install-enforcement",
+      "path": "research/agent-skills-guard-main/src-tauri/src/services/skill_manager.rs",
+      "must_contain": [
+        "fn enforce_installable_report",
+        "report.partial_scan && !allow_partial_scan",
+        "ScanOptions { skip_readme: true }",
+        "pub async fn prepare_skill_installation",
+        "pub fn confirm_skill_installation"
+      ]
+    },
+    {
+      "id": "asg-frontmatter-limitation",
+      "path": "research/agent-skills-guard-main/src-tauri/src/services/skill_manager.rs",
+      "must_contain": [
+        "fn parse_frontmatter",
+        "strip_prefix(\"name:\")",
+        "strip_prefix(\"description:\")"
+      ]
+    },
+    {
+      "id": "asg-ui-report-consumption",
+      "path": "research/agent-skills-guard-main/src/types/security.ts",
+      "must_contain": [
+        "partial_scan: boolean",
+        "skipped_files: string[]"
+      ]
+    },
+    {
+      "id": "openclaw-skills-doc-precedence",
+      "path": "research/openclaw-main/docs/tools/skills.md",
+      "must_contain": [
+        "skills.load.extraDirs",
+        "<workspace>/skills` (highest)",
+        "`openclaw skills install <slug>` is different",
+        "skills.entries.*.env",
+        "single-line JSON object",
+        "`command-dispatch` — `tool`"
+      ]
+    },
+    {
+      "id": "openclaw-workspace-precedence",
+      "path": "research/openclaw-main/src/agents/skills/workspace.ts",
+      "must_contain": [
+        "source: \"openclaw-bundled\"",
+        "source: \"openclaw-extra\"",
+        "source: \"openclaw-managed\"",
+        "source: \"agents-skills-personal\"",
+        "source: \"agents-skills-project\"",
+        "source: \"openclaw-workspace\"",
+        "Precedence: extra < bundled < managed < agents-skills-personal < agents-skills-project < workspace",
+        "resolveContainedSkillPath",
+        "warnEscapedSkillPath",
+        "includeInAvailableSkillsPrompt: invocation.disableModelInvocation !== true"
+      ]
+    },
+    {
+      "id": "openclaw-frontmatter-runtime",
+      "path": "research/openclaw-main/src/agents/skills/frontmatter.ts",
+      "must_contain": [
+        "export function parseFrontmatter",
+        "return parseFrontmatterBlock(content);",
+        "export function resolveOpenClawMetadata",
+        "export function resolveSkillInvocationPolicy",
+        "user-invocable",
+        "disable-model-invocation",
+        "export function resolveSkillKey"
+      ]
+    },
+    {
+      "id": "openclaw-command-dispatch",
+      "path": "research/openclaw-main/src/agents/skills/command-specs.ts",
+      "must_contain": [
+        "command-dispatch",
+        "command-tool",
+        "command-arg-mode",
+        "Ignoring dispatch.",
+        "Falling back to raw."
+      ]
+    },
+    {
+      "id": "openclaw-skill-types",
+      "path": "research/openclaw-main/src/agents/skills/types.ts",
+      "must_contain": [
+        "skillKey?: string;",
+        "primaryEnv?: string;",
+        "requires?: {",
+        "install?: SkillInstallSpec[];",
+        "export type SkillEntry = {"
+      ]
+    },
+    {
+      "id": "openclaw-eligibility",
+      "path": "research/openclaw-main/src/agents/skills/config.ts",
+      "must_contain": [
+        "export function shouldIncludeSkill",
+        "return evaluateRuntimeEligibility({",
+        "skillConfig?.apiKey && entry.metadata?.primaryEnv === envName"
+      ]
+    },
+    {
+      "id": "openclaw-env-overrides",
+      "path": "research/openclaw-main/src/agents/skills/env-overrides.ts",
+      "must_contain": [
+        "isDangerousHostEnvVarName",
+        "isDangerousHostEnvOverrideVarName",
+        "function applySkillConfigEnvOverrides",
+        "path: `skills.entries.${skillKey}.apiKey`",
+        "pendingOverrides[normalizedPrimaryEnv] = resolvedApiKey;"
+      ]
+    },
+    {
+      "id": "openclaw-runtime-config",
+      "path": "research/openclaw-main/src/agents/skills/runtime-config.ts",
+      "must_contain": [
+        "function hasConfiguredSkillApiKeyRef",
+        "const runtimeHasRawSkillSecretRefs",
+        "const configHasRawSkillSecretRefs"
+      ]
+    },
+    {
+      "id": "openclaw-install-chain",
+      "path": "research/openclaw-main/src/agents/skills-install.ts",
+      "must_contain": [
+        "function findInstallSpec",
+        "dangerouslyForceUnsafeInstall",
+        "Warn when install is triggered from a non-bundled source.",
+        "Verify the install recipe is trusted."
+      ]
+    },
+    {
+      "id": "openclaw-skills-config-doc",
+      "path": "research/openclaw-main/docs/tools/skills-config.md",
+      "must_contain": [
+        "skills.entries.<skill>.env/apiKey",
+        "The sandbox does **not** inherit the host `process.env`.",
+        "apply to **host** runs only."
+      ]
+    },
+    {
+      "id": "openclaw-gateway-protocol",
+      "path": "research/openclaw-main/docs/gateway/protocol.md",
+      "must_contain": [
+        "skills.status",
+        "skills.search",
+        "skills.detail",
+        "skills.install",
+        "metadata.openclaw.install",
+        "skills.update"
+      ]
+    },
+    {
+      "id": "openclaw-version-baseline",
+      "path": "research/openclaw-main/appcast.xml",
+      "must_contain": [
+        "<title>2026.4.20</title>",
+        "NODE_OPTIONS",
+        "MINIMAX_API_HOST",
+        "OPENCLAW_*",
+        "config mutation guard"
+      ]
+    },
+    {
+      "id": "openclaw-recent-changelog-signals",
+      "path": "research/openclaw-main/CHANGELOG.md",
+      "must_contain": [
+        "## 2026.4.21",
+        "## 2026.4.20",
+        "Skill Workshop plugin",
+        "strip common self-hosted LLM chat-template special-token literals",
+        "Control UI/Overview: fix false-positive \"missing\" alerts",
+        "unknown-tool stream guard",
+        "stop `--dangerously-force-unsafe-install` plugin installs from falling back",
+        "block MINIMAX_API_HOST workspace env injection",
+        "block all `OPENCLAW_*` keys from untrusted workspace `.env` files",
+        "extend the agent-facing `gateway` tool's config mutation guard"
+      ]
+    }
+  ]
+}

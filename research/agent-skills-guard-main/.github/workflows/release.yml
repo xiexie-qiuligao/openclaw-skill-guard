@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target universal-apple-darwin'
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Extract changelog
+        id: changelog
+        shell: bash
+        run: |
+          TAG="${{ github.ref_name }}"
+          # 从 CHANGELOG.md 提取当前版本的更新说明
+          # tag 格式: v0.9.6, CHANGELOG 格式: [0.9.6]
+          VERSION="${TAG#v}"  # 去掉 v 前缀
+          {
+            echo 'changelog<<EOF'
+            awk -v ver="$VERSION" '
+              BEGIN { found=0; printing=0 }
+              /^## \[/ {
+                if (found && printing) exit
+                if ($0 ~ "\\[" ver "\\]") { found=1; printing=1; next }
+              }
+              /^---$/ { if (printing) next }
+              { if (printing) print }
+            ' CHANGELOG.md
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Agent Skills Guard ${{ github.ref_name }}'
+          releaseBody: ${{ steps.changelog.outputs.changelog }}
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}

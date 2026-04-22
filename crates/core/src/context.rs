@@ -1,0 +1,66 @@
+use crate::consequence::ConsequenceAnalysis;
+use crate::install::InstallAnalysis;
+use crate::invocation::InvocationAnalysis;
+use crate::precedence::PrecedenceAnalysis;
+use crate::prompt_injection::PromptInjectionAnalysis;
+use crate::reachability::{SecretReachabilityAnalysis, ToolReachabilityAnalysis};
+use crate::types::{ContextAnalysis, ParsedSkill};
+
+pub fn build_context_analysis(
+    skills: &[ParsedSkill],
+    install: &InstallAnalysis,
+    invocation: &InvocationAnalysis,
+    tools: &ToolReachabilityAnalysis,
+    secrets: &SecretReachabilityAnalysis,
+    precedence: &PrecedenceAnalysis,
+    prompt: &PromptInjectionAnalysis,
+    consequence: &ConsequenceAnalysis,
+) -> ContextAnalysis {
+    let parsing_summary = if skills.is_empty() {
+        "No SKILL.md file was parsed from the current scan scope.".to_string()
+    } else {
+        let malformed = skills
+            .iter()
+            .filter(|skill| skill.frontmatter.present && !skill.frontmatter.parsed)
+            .count();
+        format!(
+            "Parsed {} skill file(s); malformed frontmatter detected in {} file(s).",
+            skills.len(),
+            malformed
+        )
+    };
+
+    let metadata_summary = if skills.is_empty() {
+        Some("No skill metadata was available in the current scan scope.".to_string())
+    } else {
+        let present = skills.iter().filter(|skill| skill.metadata.present).count();
+        let normalized = skills.iter().filter(|skill| skill.metadata.normalized).count();
+        Some(format!(
+            "metadata.openclaw present in {} skill(s) and normalized successfully in {} skill(s).",
+            present, normalized
+        ))
+    };
+
+    ContextAnalysis {
+        phase: "phase7_runtime_adapter".to_string(),
+        parsing_summary,
+        metadata_summary,
+        install_chain_summary: Some(install.summary.clone()),
+        invocation_summary: Some(invocation.summary.clone()),
+        tool_reachability_summary: Some(tools.summary.clone()),
+        reachable_tools: tools.reachable_tools.clone(),
+        secret_reachability_summary: Some(secrets.summary.clone()),
+        reachable_secret_scopes: secrets.reachable_secret_scopes.clone(),
+        precedence_summary: Some(format!(
+            "{} {}",
+            precedence.summary, precedence.root_resolution.summary
+        )),
+        naming_collisions: precedence.collisions.clone(),
+        host_vs_sandbox_assessment: Some(consequence.assessment.summary.clone()),
+        prompt_injection_summary: Some(prompt.summary.clone()),
+        notes: vec![
+            "Phase 7 runtime validation refines static conclusions with manifest-backed permission facts, guarded local checks, and explicit unknowns.".to_string(),
+            "Precedence analysis records known roots, missing roots, and scope limitations instead of assuming global completeness.".to_string(),
+        ],
+    }
+}

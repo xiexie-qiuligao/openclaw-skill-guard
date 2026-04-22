@@ -1,0 +1,6 @@
+errors:
+  file_not_found: "文件未找到: %{path}"
+  directory_not_exist: "目录不存在: %{path}"
+  path_not_file: "路径不是文件: %{path}"
+  read_failed: "读取文件失败 '%{path}': %{error}"
+  scan_failed: "扫描失败 '%{path}': %{error}"

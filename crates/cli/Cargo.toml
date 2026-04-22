@@ -1,0 +1,18 @@
+[package]
+name = "openclaw-skill-guard-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "openclaw-skill-guard"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+openclaw-skill-guard-core = { path = "../core" }
+openclaw-skill-guard-report = { path = "../report" }
+
+[dev-dependencies]
+serde_json = "1"
+tempfile = "3"
+

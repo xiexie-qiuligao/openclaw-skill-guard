@@ -1,0 +1,421 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Apple 官方风格 - 纯净、极简 */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    /* Apple 蓝 */
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 44%;
+
+    --accent: 211 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Apple 红 */
+    --destructive: 0 100% 59%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Apple 绿 */
+    --success: 120 100% 35%;
+    /* Apple 橙 */
+    --warning: 35 100% 50%;
+
+    --border: 0 0% 92%;
+    --input: 0 0% 100%;
+    --ring: 211 100% 50%;
+
+    --sidebar-bg: 0 0% 98%;
+
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.47059;
+    letter-spacing: -0.022em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body.macos-window {
+    background: transparent;
+    overflow: hidden;
+  }
+
+  /* Apple 风格动画 - 流畅、克制 */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+@layer components {
+  /* Apple 风格卡片 - 纯净、轻盈 */
+  .apple-card {
+    @apply bg-card rounded-2xl;
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.05),
+      0 2px 8px rgba(0, 0, 0, 0.04),
+      0 4px 16px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .apple-card:hover {
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.06),
+      0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  /* 兼容旧类名 */
+  .macos-card {
+    @apply apple-card;
+  }
+
+  .macos-window-frame {
+    border-radius: var(--radius-lg);
+  }
+
+  /* Apple 风格按钮 - 圆润、精致 */
+  .apple-button {
+    @apply h-9 px-5 rounded-full text-sm font-medium;
+    @apply transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    letter-spacing: -0.01em;
+  }
+
+  .apple-button-primary {
+    @apply apple-button text-white;
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .apple-button-primary:hover {
+    background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+    transform: scale(1.02);
+  }
+
+  .apple-button-primary:active {
+    transform: scale(0.98);
+  }
+
+  .apple-button-secondary {
+    @apply apple-button bg-secondary text-foreground;
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  }
+
+  .apple-button-secondary:hover {
+    @apply bg-muted;
+  }
+
+  .apple-button-destructive {
+    @apply apple-button text-white;
+    background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .apple-button-destructive:hover {
+    background: linear-gradient(180deg, #e11d48 0%, #be123c 100%);
+    transform: scale(1.02);
+  }
+
+  .apple-button-ghost {
+    @apply apple-button bg-transparent text-foreground;
+  }
+
+  .apple-button-ghost:hover {
+    @apply bg-secondary;
+  }
+
+  /* 兼容旧类名 */
+  .macos-button {
+    @apply apple-button;
+  }
+  .macos-button-primary {
+    @apply apple-button-primary;
+  }
+  .macos-button-secondary {
+    @apply apple-button-secondary;
+  }
+  .macos-button-destructive {
+    @apply apple-button-destructive;
+  }
+  .macos-button-ghost {
+    @apply apple-button-ghost;
+  }
+
+  /* Apple 风格输入框 */
+  .apple-input {
+    @apply h-10 px-4 rounded-xl text-sm bg-secondary border-0;
+    @apply focus:outline-none focus:ring-4 focus:ring-primary/20;
+    @apply transition-all duration-200;
+    @apply placeholder:text-muted-foreground;
+  }
+
+  .macos-input {
+    @apply apple-input;
+  }
+
+  /* Apple 风格分组标题 - 更大、更粗 */
+  .apple-section-title {
+    @apply text-[13px] font-semibold text-foreground mb-3;
+    letter-spacing: -0.01em;
+  }
+
+  .macos-section-title {
+    @apply apple-section-title;
+  }
+
+  /* Apple 风格状态标签 - 药丸形状 */
+  .apple-badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .apple-badge-success {
+    @apply apple-badge;
+    background: rgba(52, 199, 89, 0.12);
+    color: #248a3d;
+  }
+
+  .apple-badge-warning {
+    @apply apple-badge;
+    background: rgba(255, 149, 0, 0.12);
+    color: #c93400;
+  }
+
+  .apple-badge-danger {
+    @apply apple-badge;
+    background: rgba(255, 59, 48, 0.12);
+    color: #d70015;
+  }
+
+  /* 兼容旧类名 */
+  .status-safe {
+    @apply apple-badge-success;
+  }
+  .status-medium {
+    @apply apple-badge-warning;
+  }
+  .status-critical {
+    @apply apple-badge-danger;
+  }
+
+  /* Apple 风格侧边栏导航 */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium;
+    @apply text-muted-foreground transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    letter-spacing: -0.01em;
+  }
+
+  .sidebar-item:hover {
+    @apply bg-secondary text-foreground;
+  }
+
+  .sidebar-item-active {
+    @apply bg-primary text-white;
+  }
+
+  .sidebar-item-active:hover {
+    @apply bg-primary text-white;
+  }
+
+  /* Apple 风格统计卡片 */
+  .apple-stat-card {
+    @apply apple-card p-6;
+  }
+
+  .apple-stat-value {
+    @apply text-4xl font-semibold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  .apple-stat-label {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+
+  /* Apple 风格进度条 */
+  .apple-progress {
+    @apply h-1 bg-secondary rounded-full overflow-hidden;
+    position: relative;
+  }
+
+  .apple-progress-bar {
+    @apply h-full rounded-full transition-all duration-500;
+    background: linear-gradient(90deg, #34c759 0%, #30d158 100%);
+  }
+
+  @keyframes progressSheen {
+    0% {
+      transform: translate3d(-120%, 0, 0);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 0.85;
+    }
+    88% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate3d(120%, 0, 0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes progressIndeterminate {
+    0% {
+      transform: translate3d(-60%, 0, 0);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate3d(160%, 0, 0);
+      opacity: 0;
+    }
+  }
+
+  .apple-progress-active::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.35) 45%,
+      rgba(255, 255, 255, 0.7) 50%,
+      rgba(255, 255, 255, 0.35) 55%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    opacity: 0;
+    animation: progressSheen 2.2s linear infinite;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .apple-progress-indeterminate::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(
+      90deg,
+      rgba(59, 130, 246, 0) 0%,
+      rgba(59, 130, 246, 0.55) 50%,
+      rgba(59, 130, 246, 0) 100%
+    );
+    opacity: 0;
+    animation: progressIndeterminate 1.4s linear infinite;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .apple-progress-bar-active {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+      0 2px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Apple 风格分割线 */
+  .apple-divider {
+    @apply h-px bg-border;
+  }
+
+  /* Apple 风格列表项 */
+  .apple-list-item {
+    @apply px-5 py-4 transition-colors duration-150;
+  }
+
+  .apple-list-item:hover {
+    @apply bg-secondary/50;
+  }
+
+  .apple-list-item:not(:last-child) {
+    @apply border-b border-border;
+  }
+
+  .apple-tooltip {
+    @apply pointer-events-none absolute left-0 top-full z-30 mt-2 w-max max-w-xs rounded-xl bg-card/95 px-3 py-2 text-xs leading-5 text-foreground ring-1 ring-black/5 backdrop-blur-md opacity-0 translate-y-1 transition-all duration-150 whitespace-normal break-words;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Apple 风格文字 */
+  .text-headline {
+    @apply text-2xl font-semibold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  .text-title {
+    @apply text-lg font-semibold;
+    letter-spacing: -0.01em;
+  }
+
+  .text-body {
+    @apply text-sm;
+    letter-spacing: -0.01em;
+  }
+
+  .text-caption {
+    @apply text-xs text-muted-foreground;
+  }
+}

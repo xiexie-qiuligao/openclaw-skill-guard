@@ -1,0 +1,10 @@
+{
+  "execution_environment": "sandbox",
+  "permission_surface": {
+    "network": false,
+    "exec_allowed": false,
+    "process_allowed": false,
+    "writable_scope": "workspace_only",
+    "home_directory_access": false
+  }
+}

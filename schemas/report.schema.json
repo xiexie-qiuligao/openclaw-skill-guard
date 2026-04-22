@@ -1,0 +1,425 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/standalone-openclaw-skill-guard/report.schema.json",
+  "title": "Standalone OpenClaw Skill Guard Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "target",
+    "scan_mode",
+    "files_scanned",
+    "files_skipped",
+    "parse_errors",
+    "score",
+    "verdict",
+    "blocked",
+    "top_risks",
+    "findings",
+    "context_analysis",
+    "attack_paths",
+    "path_explanations",
+    "prompt_injection_summary",
+    "consequence_summary",
+    "host_vs_sandbox_split",
+    "runtime_manifest_summary",
+    "runtime_facts",
+    "runtime_assumption_status",
+    "validation_plan",
+    "validation_hooks",
+    "validation_results",
+    "path_validation_status",
+    "runtime_refinement_notes",
+    "constraint_effects",
+    "environment_blockers",
+    "environment_amplifiers",
+    "validation_score_adjustments",
+    "provenance_notes",
+    "confidence_factors",
+    "false_positive_mitigations",
+    "scoring_summary",
+    "openclaw_specific_risk_summary",
+    "scope_resolution_summary",
+    "audit_summary",
+    "suppression_matches",
+    "analysis_limitations",
+    "confidence_notes",
+    "recommendations",
+    "suppressions",
+    "scan_integrity_notes"
+  ],
+  "properties": {
+    "target": {
+      "type": "object",
+      "description": "Canonical scan target descriptor."
+    },
+    "scan_mode": {
+      "type": "string",
+      "description": "Requested target mode."
+    },
+    "files_scanned": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "files_skipped": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "parse_errors": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "score": {
+      "type": "integer"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "warn",
+        "block"
+      ]
+    },
+    "blocked": {
+      "type": "boolean"
+    },
+    "top_risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "context_analysis": {
+      "type": "object",
+      "description": "Metadata, install-chain, invocation, reachability, precedence, and host-vs-sandbox analysis.",
+      "required": [
+        "phase",
+        "parsing_summary",
+        "notes"
+      ],
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "parsing_summary": {
+          "type": "string"
+        },
+        "metadata_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "install_chain_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "invocation_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_reachability_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reachable_tools": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "secret_reachability_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reachable_secret_scopes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "precedence_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "naming_collisions": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "host_vs_sandbox_assessment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prompt_injection_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "attack_paths": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "path_explanations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prompt_injection_summary": {
+      "type": "string"
+    },
+    "consequence_summary": {
+      "type": "object",
+      "required": [
+        "execution_surface",
+        "file_system_consequences",
+        "credential_consequences",
+        "network_consequences",
+        "persistence_consequences",
+        "environment_assumptions",
+        "evidence_nodes",
+        "inferred_notes",
+        "impact_deltas",
+        "summary"
+      ],
+      "properties": {
+        "execution_surface": { "type": "string" },
+        "file_system_consequences": { "type": "array", "items": { "type": "string" } },
+        "credential_consequences": { "type": "array", "items": { "type": "string" } },
+        "network_consequences": { "type": "array", "items": { "type": "string" } },
+        "persistence_consequences": { "type": "array", "items": { "type": "string" } },
+        "environment_assumptions": { "type": "array", "items": { "type": "object" } },
+        "evidence_nodes": { "type": "array", "items": { "type": "object" } },
+        "inferred_notes": { "type": "array", "items": { "type": "string" } },
+        "impact_deltas": { "type": "array", "items": { "type": "object" } },
+        "summary": { "type": "string" }
+      }
+    },
+    "host_vs_sandbox_split": {
+      "type": "object",
+      "required": [
+        "host_effects",
+        "sandbox_effects",
+        "blocked_in_sandbox",
+        "residual_sandbox_risks",
+        "summary"
+      ],
+      "properties": {
+        "host_effects": { "type": "array", "items": { "type": "string" } },
+        "sandbox_effects": { "type": "array", "items": { "type": "string" } },
+        "blocked_in_sandbox": { "type": "array", "items": { "type": "string" } },
+        "residual_sandbox_risks": { "type": "array", "items": { "type": "string" } },
+        "summary": { "type": "string" }
+      }
+    },
+    "runtime_manifest_summary": {
+      "type": "string"
+    },
+    "runtime_facts": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "runtime_assumption_status": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "validation_plan": {
+      "type": "object",
+      "required": [
+        "summary",
+        "hooks"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "hooks": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "validation_hooks": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "validation_results": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "path_validation_status": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "runtime_refinement_notes": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "constraint_effects": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "environment_blockers": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "environment_amplifiers": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "validation_score_adjustments": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "provenance_notes": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "confidence_factors": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "false_positive_mitigations": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "scoring_summary": {
+      "type": "object",
+      "required": [
+        "base_score",
+        "compound_uplift",
+        "path_uplift",
+        "confidence_adjustment",
+        "final_score",
+        "score_rationale"
+      ],
+      "properties": {
+        "base_score": {
+          "type": "integer"
+        },
+        "compound_uplift": {
+          "type": "integer"
+        },
+        "path_uplift": {
+          "type": "integer"
+        },
+        "confidence_adjustment": {
+          "type": "integer"
+        },
+        "final_score": {
+          "type": "integer"
+        },
+        "score_rationale": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "openclaw_specific_risk_summary": {
+      "type": "string"
+    },
+    "scope_resolution_summary": {
+      "type": "object",
+      "required": [
+        "known_roots",
+        "missing_roots",
+        "scope_notes",
+        "summary"
+      ],
+      "properties": {
+        "known_roots": { "type": "array", "items": { "type": "object" } },
+        "missing_roots": { "type": "array", "items": { "type": "string" } },
+        "scope_notes": { "type": "array", "items": { "type": "object" } },
+        "summary": { "type": "string" }
+      }
+    },
+    "audit_summary": {
+      "type": "object",
+      "required": [
+        "summary",
+        "records",
+        "high_risk_suppressions",
+        "expired_suppressions",
+        "validation_aware_notes"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "records": { "type": "array", "items": { "type": "object" } },
+        "high_risk_suppressions": { "type": "integer" },
+        "expired_suppressions": { "type": "array", "items": { "type": "object" } },
+        "validation_aware_notes": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "suppression_matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lifecycle": {
+            "type": "string",
+            "enum": ["active", "expired"]
+          }
+        }
+      }
+    },
+    "analysis_limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommendations": {
+      "type": "object",
+      "description": "Immediate, short-term, hardening, and dynamic-validation guidance."
+    },
+    "suppressions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "scan_integrity_notes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

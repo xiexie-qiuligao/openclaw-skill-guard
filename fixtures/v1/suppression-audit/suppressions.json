@@ -1,0 +1,8 @@
+[
+  {
+    "finding_id": "baseline.curl_pipe_shell",
+    "reason": "Reviewed as inert release demo fixture",
+    "note": "Used only to demonstrate visible suppression and audit reporting",
+    "expires_on": "2026-12-31"
+  }
+]

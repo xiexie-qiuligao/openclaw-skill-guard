@@ -1,0 +1,6 @@
+errors:
+  file_not_found: "File not found: %{path}"
+  directory_not_exist: "Directory does not exist: %{path}"
+  path_not_file: "Path is not a file: %{path}"
+  read_failed: "Failed to read file '%{path}': %{error}"
+  scan_failed: "Failed to scan '%{path}': %{error}"

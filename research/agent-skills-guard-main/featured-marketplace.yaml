@@ -1,0 +1,1013 @@
+# Featured marketplaces configuration
+# 精选插件市场配置
+#
+# This file contains curated marketplaces and plugins recommended for Agent Skills Guard users.
+# 本文件包含为 Agent Skills Guard 用户推荐的精选 Marketplace 与插件。
+
+version: "1.0"
+last_updated: "2026-03-17"
+
+marketplace:
+  - id: "official"
+    name:
+      en: "Official"
+      zh: "官方推荐"
+    description:
+      en: ""
+      zh: ""
+    marketplaces:
+      - marketplace_name: "anthropic-agent-skills"
+        marketplace_repo: "anthropics/skills"
+        repository_url: "https://github.com/anthropics/skills"
+        marketplace_add_command: "claude plugin marketplace add anthropics/skills"
+        description:
+          en: "Anthropic's official marketplace with essential skills: document processing suite (Excel, Word, PowerPoint, PDF) and example skills for creation workflows, MCP building, design, and testing"
+          zh: "Anthropic 官方市场，提供核心技能：文档处理套件（Excel、Word、PowerPoint、PDF）与示例技能，涵盖创建工作流、MCP 构建、设计与测试场景"
+        owner:
+          name: "Keith Lazuka"
+          email: "klazuka@anthropic.com"
+        tags: ["official", "claude-code", "skills"]
+        featured: true
+        plugins:
+          - name: "document-skills"
+            install_command: "/plugin install document-skills@anthropic-agent-skills"
+            description:
+              en: "Document processing suite covering Excel, Word, PowerPoint, and PDF capabilities"
+              zh: "文档处理技能合集，涵盖 Excel、Word、PowerPoint 与 PDF 能力"
+            author:
+              name: "Keith Lazuka"
+              email: "klazuka@anthropic.com"
+            source: "./"
+            tags: ["documents", "office", "pdf"]
+            featured: true
+          - name: "example-skills"
+            install_command: "/plugin install example-skills@anthropic-agent-skills"
+            description:
+              en: "Example skills spanning creation workflows, MCP building, design, testing, and more"
+              zh: "示例技能合集，覆盖技能创建、MCP 构建、设计、测试等场景"
+            author:
+              name: "Keith Lazuka"
+              email: "klazuka@anthropic.com"
+            source: "./"
+            tags: ["examples", "creative", "mcp"]
+            featured: true
+      - marketplace_name: "superpowers-marketplace"
+        marketplace_repo: "obra/superpowers-marketplace"
+        repository_url: "https://github.com/obra/superpowers-marketplace"
+        marketplace_add_command: "claude plugin marketplace add obra/superpowers-marketplace"
+        description:
+          en: "Jesse Vincent's productivity suite: TDD, debugging, collaboration patterns, Chrome automation, writing guidance, episodic memory, CLI automation, development resources, and workflow automation"
+          zh: "Jesse Vincent 的效率工具合集，包含 TDD、调试、协作模式、Chrome 自动化、写作指南、跨会话记忆、交互式 CLI 自动化、开发资源与工作流自动化工具"
+        owner:
+          name: "Jesse Vincent"
+          email: "jesse@fsck.com"
+        tags: ["official", "verified", "superpowers"]
+        featured: true
+        plugins:
+          - name: "superpowers"
+            install_command: "/plugin install superpowers@superpowers-marketplace"
+            description:
+              en: "Core skills library: TDD, debugging, collaboration patterns, and proven techniques"
+              zh: "核心技能库：TDD、调试、协作模式与成熟实践"
+            version: "4.1.1"
+            author:
+              name: "Jesse Vincent"
+              email: "jesse@fsck.com"
+            source: "https://github.com/obra/superpowers.git"
+            tags: ["tdd", "workflow", "debugging"]
+            featured: true
+          - name: "superpowers-chrome"
+            install_command: "/plugin install superpowers-chrome@superpowers-marketplace"
+            description:
+              en: "BETA: VERY LIGHTLY TESTED - Direct Chrome DevTools Protocol access via 'browsing' skill. Skill mode (17 CLI commands) + MCP mode (single use_browser tool). Zero dependencies, auto-starts Chrome."
+              zh: "BETA：轻度测试 - 通过“browsing”技能直连 Chrome DevTools Protocol。支持技能模式（17 个 CLI 命令）与 MCP 模式（单个 use_browser 工具），零依赖并自动启动 Chrome。"
+            version: "1.6.3"
+            author:
+              name: "Jesse Vincent"
+              email: "jesse@fsck.com"
+            source: "https://github.com/obra/superpowers-chrome.git"
+            tags: ["browser", "cdp", "automation"]
+            featured: true
+          - name: "elements-of-style"
+            install_command: "/plugin install elements-of-style@superpowers-marketplace"
+            description:
+              en: "Writing guidance based on William Strunk Jr.'s The Elements of Style (1918) - foundational rules for clear, concise, grammatically correct writing"
+              zh: "基于 William Strunk Jr.《The Elements of Style》(1918) 的写作指南，强调清晰、简洁且语法正确的基础规则。"
+            version: "1.0.0"
+            author:
+              name: "Jesse Vincent"
+              email: "jesse@fsck.com"
+            source: "https://github.com/obra/the-elements-of-style.git"
+            tags: ["writing", "style", "guidance"]
+            featured: true
+          - name: "episodic-memory"
+            install_command: "/plugin install episodic-memory@superpowers-marketplace"
+            description:
+              en: "Semantic search for Claude Code conversations. Remember past discussions, decisions, and patterns across sessions. Gives you memory that persists between sessions."
+              zh: "对 Claude Code 对话进行语义搜索，记住跨会话的讨论、决策与模式，提供持久记忆。"
+            version: "1.0.15"
+            author:
+              name: "Jesse Vincent"
+              email: "jesse@fsck.com"
+            source: "https://github.com/obra/episodic-memory.git"
+            tags: ["memory", "search", "productivity"]
+            featured: true
+          - name: "superpowers-lab"
+            install_command: "/plugin install superpowers-lab@superpowers-marketplace"
+            description:
+              en: "Experimental skills for Superpowers: Control interactive CLI tools (vim, menuconfig, REPLs, git rebase -i) through tmux automation"
+              zh: "Superpowers 实验技能：通过 tmux 自动化控制交互式 CLI 工具（vim、menuconfig、REPL、git rebase -i）。"
+            version: "0.1.0"
+            author:
+              name: "Jesse Vincent"
+              email: "jesse@fsck.com"
+            source: "https://github.com/obra/superpowers-lab.git"
+            tags: ["tmux", "cli", "automation"]
+            featured: true
+          - name: "superpowers-developing-for-claude-code"
+            install_command: "/plugin install superpowers-developing-for-claude-code@superpowers-marketplace"
+            description:
+              en: "Skills and resources for developing Claude Code plugins, skills, MCP servers, and extensions. Includes comprehensive official documentation and self-update mechanism."
+              zh: "面向 Claude Code 插件、技能、MCP 服务器与扩展开发的技能与资源，包含完整官方文档与自更新机制。"
+            version: "0.3.1"
+            author:
+              name: "Jesse Vincent"
+              email: "jesse@fsck.com"
+            source: "https://github.com/obra/superpowers-developing-for-claude-code.git"
+            tags: ["development", "documentation", "mcp"]
+            featured: true
+          - name: "double-shot-latte"
+            install_command: "/plugin install double-shot-latte@superpowers-marketplace"
+            description:
+              en: "Stop 'Would you like me to continue?' interruptions. Automatically evaluates whether Claude should continue working using Claude-judged decision making."
+              zh: "停止“是否继续？”式打断，通过 Claude 判定自动决定是否继续工作。"
+            version: "1.1.5"
+            author:
+              name: "Jesse Vincent"
+              email: "jesse@fsck.com"
+            source: "https://github.com/obra/double-shot-latte.git"
+            tags: ["workflow", "automation", "productivity"]
+            featured: true
+
+  - id: "community"
+    name:
+      en: "Community"
+      zh: "社区精选"
+    description:
+      en: ""
+      zh: ""
+    marketplaces:
+      - marketplace_name: "baoyu-skills"
+        marketplace_repo: "JimLiu/baoyu-skills"
+        repository_url: "https://github.com/JimLiu/baoyu-skills"
+        marketplace_add_command: "claude plugin marketplace add JimLiu/baoyu-skills"
+        description:
+          en: "Jim Liu (宝玉)'s productivity toolkit: content generation and publishing, AI-powered generation backends, and utility tools for content processing"
+          zh: "Jim Liu（宝玉）的效率工具包，包含内容生成与发布、AI 生成后端以及内容处理实用工具"
+        owner:
+          name: "Jim Liu (宝玉)"
+          email: "junminliu@gmail.com"
+        tags: ["community", "productivity", "collection"]
+        featured: true
+        plugins:
+          - name: "content-skills"
+            install_command: "/plugin install content-skills@baoyu-skills"
+            description:
+              en: "Content generation and publishing skills"
+              zh: "内容生成与发布相关技能"
+            author:
+              name: "Jim Liu (宝玉)"
+              email: "junminliu@gmail.com"
+            source: "./"
+            tags: ["content", "publishing", "social"]
+            featured: true
+          - name: "ai-generation-skills"
+            install_command: "/plugin install ai-generation-skills@baoyu-skills"
+            description:
+              en: "AI-powered generation backends"
+              zh: "AI 生成能力相关后端技能"
+            author:
+              name: "Jim Liu (宝玉)"
+              email: "junminliu@gmail.com"
+            source: "./"
+            tags: ["ai", "generation", "backend"]
+            featured: true
+          - name: "utility-skills"
+            install_command: "/plugin install utility-skills@baoyu-skills"
+            description:
+              en: "Utility tools for content processing"
+              zh: "内容处理相关的实用工具技能"
+            author:
+              name: "Jim Liu (宝玉)"
+              email: "junminliu@gmail.com"
+            source: "./"
+            tags: ["utility", "content", "processing"]
+            featured: true
+      - marketplace_name: "ui-ux-pro-max-skill"
+        marketplace_repo: "nextlevelbuilder/ui-ux-pro-max-skill"
+        repository_url: "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill"
+        marketplace_add_command: "claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill"
+        description:
+          en: "Professional UI/UX design intelligence by nextlevelbuilder with extensive references for styles, color palettes, typography, and charts across multiple frameworks"
+          zh: "nextlevelbuilder 提供的专业 UI/UX 设计智能，包含丰富的样式、配色方案、字体与图表参考，覆盖多框架技术栈"
+        owner:
+          name: "nextlevelbuilder"
+        tags: ["ui-ux", "design", "frontend"]
+        featured: true
+        plugins:
+          - name: "ui-ux-pro-max"
+            install_command: "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill"
+            description:
+              en: "Professional UI/UX design intelligence across multiple stacks and frameworks"
+              zh: "覆盖多技术栈与框架的专业 UI/UX 设计智能"
+            version: "2.0.1"
+            author:
+              name: "nextlevelbuilder"
+            source: "./"
+            tags: ["ui", "ux", "design"]
+            featured: true
+      - marketplace_name: "n8n-mcp-skills"
+        marketplace_repo: "czlonkowski/n8n-skills"
+        repository_url: "https://github.com/czlonkowski/n8n-skills"
+        marketplace_add_command: "claude plugin marketplace add czlonkowski/n8n-skills"
+        description:
+          en: "Romuald Członkowski's expert skills for building n8n workflows with MCP tooling integration"
+          zh: "Romuald Członkowski 提供的 n8n 工作流专家技能，集成 MCP 工具支持"
+        owner:
+          name: "Romuald Członkowski"
+        tags: ["n8n", "workflow-automation", "mcp"]
+        featured: true
+        plugins:
+          - name: "n8n-mcp-skills"
+            install_command: "/plugin install n8n-mcp-skills@n8n-mcp-skills"
+            description:
+              en: "Complete bundle of expert skills for n8n workflows with MCP tooling"
+              zh: "面向 n8n 工作流与 MCP 工具的专家技能合集"
+            version: "1.0.0"
+            author:
+              name: "Romuald Członkowski"
+            source: "./"
+            tags: ["n8n", "workflow", "automation"]
+            featured: true
+      - marketplace_name: "obsidian-skills"
+        marketplace_repo: "kepano/obsidian-skills"
+        repository_url: "https://github.com/kepano/obsidian-skills"
+        marketplace_add_command: "claude plugin marketplace add kepano/obsidian-skills"
+        description:
+          en: "Steph Ango's Claude skills for Obsidian note-taking and knowledge management"
+          zh: "Steph Ango 提供的 Obsidian 笔记与知识管理 Claude 技能"
+        owner:
+          name: "Steph Ango"
+        tags: ["obsidian", "markdown", "note-taking"]
+        featured: true
+        plugins:
+          - name: "obsidian"
+            install_command: "/plugin install obsidian@obsidian-skills"
+            description:
+              en: "Claude skills for Obsidian"
+              zh: "Obsidian 相关 Claude 技能"
+            version: "1.0.0"
+            author:
+              name: "Steph Ango"
+            source: "./"
+            tags: ["obsidian", "notes", "productivity"]
+            featured: true
+      - marketplace_name: "axton-obsidian-visual-skills"
+        marketplace_repo: "axtonliu/axton-obsidian-visual-skills"
+        repository_url: "https://github.com/axtonliu/axton-obsidian-visual-skills"
+        marketplace_add_command: "claude plugin marketplace add axtonliu/axton-obsidian-visual-skills"
+        description:
+          en: "Axton Liu's Obsidian visualization pack: generate Canvas, Excalidraw, and Mermaid diagrams from text"
+          zh: "Axton Liu 的 Obsidian 可视化技能包，支持从文本生成 Canvas、Excalidraw 与 Mermaid 图表"
+        owner:
+          name: "Axton Liu"
+          email: "hey@axtonliu.com"
+        tags: ["obsidian", "visualization", "diagram"]
+        featured: true
+        plugins:
+          - name: "obsidian-visual-skills"
+            install_command: "/plugin install obsidian-visual-skills@axton-obsidian-visual-skills"
+            description:
+              en: "Generate Canvas, Excalidraw, and Mermaid diagrams in Obsidian"
+              zh: "在 Obsidian 中生成 Canvas、Excalidraw 与 Mermaid 图表"
+            author:
+              name: "Axton Liu"
+              email: "hey@axtonliu.com"
+            source: "./"
+            tags: ["obsidian", "visualization", "diagram"]
+            featured: true
+      - marketplace_name: "marketingskills"
+        marketplace_repo: "coreyhaines31/marketingskills"
+        repository_url: "https://github.com/coreyhaines31/marketingskills"
+        marketplace_add_command: "claude plugin marketplace add coreyhaines31/marketingskills"
+        description:
+          en: "Corey Haines' marketing skills for Claude Code and AI agents: CRO, copywriting, SEO, analytics, and growth engineering"
+          zh: "Corey Haines 提供的营销技能合集，面向 Claude Code 与 AI 代理，涵盖 CRO、文案写作、SEO、数据分析与增长工程"
+        owner:
+          name: "Corey Haines"
+        tags: ["marketing", "claude-code", "cro", "seo", "copywriting", "analytics", "growth"]
+        featured: true
+        plugins:
+          - name: "marketing-skills"
+            install_command: "/plugin install marketing-skills"
+            description:
+              en: "Marketing skills bundle for Claude Code and AI agents covering CRO, copywriting, SEO, analytics, and growth engineering"
+              zh: "面向 Claude Code 与 AI 代理的营销技能合集，涵盖 CRO、文案写作、SEO、数据分析与增长工程"
+            author:
+              name: "Corey Haines"
+            source: "./"
+            tags: ["marketing", "cro", "seo", "copywriting", "analytics", "growth"]
+            featured: true
+      - marketplace_name: "supabase-agent-skills"
+        marketplace_repo: "supabase/agent-skills"
+        repository_url: "https://github.com/supabase/agent-skills"
+        marketplace_add_command: "claude plugin marketplace add supabase/agent-skills"
+        description:
+          en: "Official Supabase skills for AI-assisted development: Postgres performance optimization and best practices"
+          zh: "Supabase 官方技能，用于 AI 辅助开发，包含 Postgres 性能优化与最佳实践指南"
+        owner:
+          name: "Supabase"
+        tags: ["supabase", "postgres", "database", "best-practices", "performance"]
+        featured: true
+        plugins:
+          - name: "postgres-best-practices"
+            install_command: "/plugin install postgres-best-practices@supabase-agent-skills"
+            description:
+              en: "Postgres performance optimization guidelines from Supabase"
+              zh: "来自 Supabase 的 Postgres 性能优化最佳实践指南"
+            author:
+              name: "Supabase"
+            source: "./"
+            tags: ["supabase", "postgres", "performance", "database", "best-practices"]
+            featured: true
+      - marketplace_name: "makepad-skills-marketplace"
+        marketplace_repo: "ZhangHanDong/makepad-skills"
+        repository_url: "https://github.com/ZhangHanDong/makepad-skills"
+        marketplace_add_command: "claude plugin marketplace add ZhangHanDong/makepad-skills"
+        description:
+          en: "ZhangHanDong's Makepad UI framework assistant for Rust: cross-platform app development with auto-routing, widgets, shaders, animations, and production-ready patterns"
+          zh: "ZhangHanDong 的 Makepad UI 框架助手，用于 Rust 跨平台应用开发，包含自动路由、组件模式、着色器、动画与生产级实践模式"
+        owner:
+          name: "ZhangHanDong"
+        tags: ["makepad", "rust", "ui"]
+        featured: true
+        plugins:
+          - name: "makepad-skills"
+            install_command: "/plugin install makepad-skills@makepad-skills-marketplace"
+            description:
+              en: "Comprehensive Makepad UI framework assistant with auto-routing, widget patterns, shaders, animations, and production-ready Robius patterns from Robrix/Moly codebases"
+              zh: "覆盖自动路由、组件模式、着色器、动画与 Robrix/Moly 生产实践的 Makepad UI 框架助手"
+            version: "2.0.0"
+            author:
+              name: "ZhangHanDong"
+            source: "./"
+            tags: ["makepad", "rust", "ui"]
+            featured: true
+      - marketplace_name: "claude-scientific-skills"
+        marketplace_repo: "K-Dense-AI/claude-scientific-skills"
+        repository_url: "https://github.com/K-Dense-AI/claude-scientific-skills"
+        marketplace_add_command: "claude plugin marketplace add K-Dense-AI/claude-scientific-skills"
+        description:
+          en: "K-Dense Inc.'s scientific research skills for biology, chemistry, medicine, and data analysis"
+          zh: "K-Dense Inc. 提供的科学研究技能，涵盖生物学、化学、医学与数据分析领域"
+        owner:
+          name: "K-Dense Inc."
+          email: "contact@k-dense.ai"
+        tags: ["science", "research", "biology", "chemistry", "medicine", "data-analysis"]
+        featured: true
+        plugins:
+          - name: "scientific-skills"
+            install_command: "/plugin install scientific-skills@claude-scientific-skills"
+            description:
+              en: "Collection of scientific skills"
+              zh: "科学技能合集"
+            version: "2.18.0"
+            author:
+              name: "K-Dense Inc."
+            source: "./"
+            tags: ["science", "research", "datasets", "analysis"]
+            featured: true
+      - marketplace_name: "planning-with-files"
+        marketplace_repo: "OthmanAdi/planning-with-files"
+        repository_url: "https://github.com/OthmanAdi/planning-with-files"
+        marketplace_add_command: "claude plugin marketplace add OthmanAdi/planning-with-files"
+        description:
+          en: "Ahmad Othman Ammar Adi's Manus-style persistent markdown files for planning, progress tracking, and knowledge storage with hooks integration"
+          zh: "Ahmad Othman Ammar Adi 提供的 Manus 风格持久化 Markdown 文件，用于规划、进度追踪与知识沉淀，支持 hooks 集成"
+        owner:
+          name: "Ahmad Othman Ammar Adi"
+        tags: ["planning", "workflow", "markdown", "context-engineering", "task-management", "templates"]
+        featured: true
+        plugins:
+          - name: "planning-with-files"
+            install_command: "/plugin install planning-with-files@planning-with-files"
+            description:
+              en: "Manus-style persistent markdown files for planning, progress tracking, and knowledge storage. Now with hooks integration."
+              zh: "以 Manus 风格的持久化 Markdown 文件，用于规划、进度追踪与知识沉淀，并支持 hooks 集成。"
+            version: "2.13.0"
+            author:
+              name: "OthmanAdi"
+            source: "./"
+            tags: ["planning", "workflow", "markdown", "context-engineering"]
+            featured: true
+      - marketplace_name: "cloudflare/skills"
+        marketplace_repo: "cloudflare/skills"
+        repository_url: "https://github.com/cloudflare/skills"
+        marketplace_add_command: "claude plugin marketplace add cloudflare/skills"
+        description:
+          en: "Official Cloudflare skills for the Workers developer platform and Agents SDK"
+          zh: "Cloudflare 官方技能，面向 Workers 开发者平台与 Agents SDK"
+        owner:
+          name: "Cloudflare"
+          url: "https://workers.cloudflare.com"
+        tags: ["cloudflare", "workers", "agents-sdk", "developer-platform"]
+        featured: true
+        plugins:
+          - name: "cloudflare"
+            install_command: "/plugin install cloudflare@cloudflare"
+            description:
+              en: "Skills for the Cloudflare developer platform"
+              zh: "面向 Cloudflare 开发者平台的技能"
+            author:
+              name: "Cloudflare"
+            source: "./"
+            tags: ["cloudflare", "developer-platform"]
+            featured: true
+      - marketplace_name: "huggingface/skills"
+        marketplace_repo: "huggingface/skills"
+        repository_url: "https://github.com/huggingface/skills"
+        marketplace_add_command: "claude plugin marketplace add huggingface/skills"
+        description:
+          en: "Official Hugging Face skills for AI/ML workflows: dataset management, model training (TRL/SFT/DPO/GRPO), evaluation, paper publishing, CLI operations, compute jobs, and experiment tracking with Trackio"
+          zh: "Hugging Face 官方技能，用于 AI/ML 工作流：数据集管理、模型训练（TRL/SFT/DPO/GRPO）、评测、论文发布、CLI 操作、计算任务与 Trackio 实验跟踪"
+        owner:
+          name: "Hugging Face"
+        tags: ["huggingface", "machine-learning", "datasets", "training", "evaluation"]
+        featured: true
+        plugins:
+          - name: "hugging-face-model-trainer"
+            install_command: "/plugin install hugging-face-model-trainer@huggingface-skills"
+            description:
+              en: "Train or fine-tune language models using TRL on Hugging Face Jobs infrastructure. Covers SFT, DPO, GRPO and reward modeling training methods, plus GGUF conversion for local deployment. Includes hardware selection, cost estimation, Trackio monitoring, and Hub persistence."
+              zh: "在 Hugging Face Jobs 上使用 TRL 训练或微调语言模型，涵盖 SFT、DPO、GRPO 与奖励模型训练，并包含 GGUF 本地部署转换、硬件选择、成本估算、Trackio 监控与 Hub 持久化。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-model-trainer"
+            tags: ["huggingface", "training", "trl", "jobs"]
+            featured: true
+          - name: "hugging-face-paper-publisher"
+            install_command: "/plugin install hugging-face-paper-publisher@huggingface-skills"
+            description:
+              en: "Publish and manage research papers on Hugging Face Hub. Supports creating paper pages, linking papers to models/datasets, claiming authorship, and generating professional markdown-based research articles."
+              zh: "在 Hugging Face Hub 发布与管理研究论文，支持创建论文页面、关联模型/数据集、认领作者身份，并生成专业的 Markdown 研究文章。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-paper-publisher"
+            tags: ["huggingface", "papers", "publishing"]
+            featured: true
+          - name: "hugging-face-datasets"
+            install_command: "/plugin install hugging-face-datasets@huggingface-skills"
+            description:
+              en: "Create and manage datasets on Hugging Face Hub. Supports initializing repos, defining configs/system prompts, streaming row updates, and SQL-based dataset querying/transformation."
+              zh: "在 Hugging Face Hub 创建与管理数据集，支持初始化仓库、定义配置/系统提示词、流式更新行数据，以及基于 SQL 的查询与转换。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-datasets"
+            tags: ["huggingface", "datasets", "sql"]
+            featured: true
+          - name: "hugging-face-evaluation"
+            install_command: "/plugin install hugging-face-evaluation@huggingface-skills"
+            description:
+              en: "Add and manage evaluation results in Hugging Face model cards. Supports extracting eval tables from README content, importing scores from Artificial Analysis API, and running custom evaluations with vLLM/lighteval."
+              zh: "在 Hugging Face 模型卡中添加与管理评测结果，支持从 README 提取评测表格、从 Artificial Analysis API 导入分数，以及使用 vLLM/lighteval 进行自定义评测。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-evaluation"
+            tags: ["huggingface", "evaluation", "model-cards"]
+            featured: true
+          - name: "hugging-face-tool-builder"
+            install_command: "/plugin install hugging-face-tool-builder@huggingface-skills"
+            description:
+              en: "Build reusable scripts for Hugging Face API operations. Useful for chaining API calls or automating repeated tasks."
+              zh: "构建可复用的 Hugging Face API 操作脚本，适合串联 API 调用或自动化重复任务。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-tool-builder"
+            tags: ["huggingface", "api", "automation"]
+            featured: true
+          - name: "hugging-face-cli"
+            install_command: "/plugin install hugging-face-cli@huggingface-skills"
+            description:
+              en: "Execute Hugging Face Hub operations using the hf CLI. Download models/datasets, upload files, manage repos, and run cloud compute jobs."
+              zh: "使用 hf CLI 执行 Hugging Face Hub 操作，支持下载模型/数据集、上传文件、管理仓库与运行云端计算任务。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-cli"
+            tags: ["huggingface", "cli", "hub"]
+            featured: true
+          - name: "hugging-face-jobs"
+            install_command: "/plugin install hugging-face-jobs@huggingface-skills"
+            description:
+              en: "Run compute jobs on Hugging Face infrastructure. Execute Python scripts, manage scheduled jobs, and monitor job status."
+              zh: "在 Hugging Face 基础设施上运行计算任务，支持执行 Python 脚本、管理定时任务与监控任务状态。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-jobs"
+            tags: ["huggingface", "jobs", "compute"]
+            featured: true
+          - name: "hugging-face-trackio"
+            install_command: "/plugin install hugging-face-trackio@huggingface-skills"
+            description:
+              en: "Track and visualize ML training experiments with Trackio. Log metrics via Python API and retrieve them via CLI. Supports real-time dashboards synced to HF Spaces."
+              zh: "使用 Trackio 跟踪与可视化训练实验，支持 Python API 记录指标与 CLI 获取数据，并可同步到 HF Spaces 的实时仪表盘。"
+            author:
+              name: "Hugging Face"
+            source: "./skills/hugging-face-trackio"
+            tags: ["huggingface", "trackio", "experiments"]
+            featured: true
+      - marketplace_name: "trailofbits"
+        marketplace_repo: "trailofbits/skills"
+        repository_url: "https://github.com/trailofbits/skills"
+        marketplace_add_command: "claude plugin marketplace add trailofbits/skills"
+        description:
+          en: "Trail of Bits' comprehensive security toolkit: smart contract auditing, vulnerability scanning, static analysis (CodeQL/Semgrep), property-based testing, security review patterns, crypto analysis, and penetration testing tools"
+          zh: "Trail of Bits 的综合安全工具包，包含智能合约审计、漏洞扫描、静态分析（CodeQL/Semgrep）、性质驱动测试、安全评审模式、加密分析与渗透测试工具"
+        owner:
+          name: "Trail of Bits"
+          email: "opensource@trailofbits.com"
+        tags: ["security", "audit", "vulnerability", "smart-contracts", "semgrep"]
+        featured: true
+        plugins:
+          - name: "ask-questions-if-underspecified"
+            install_command: "/plugin install ask-questions-if-underspecified@trailofbits"
+            description:
+              en: "Clarify requirements before implementing. When doubting, ask questions."
+              zh: "在实现前澄清需求；有疑问就先提问。"
+            version: "1.0.0"
+            author:
+              name: "Kevin Valerio"
+              email: "opensource@trailofbits.com"
+              url: "https://github.com/trailofbits"
+            source: "./plugins/ask-questions-if-underspecified"
+            tags: ["requirements", "clarification", "workflow"]
+            featured: true
+          - name: "audit-context-building"
+            install_command: "/plugin install audit-context-building@trailofbits"
+            description:
+              en: "Build deep architectural context through ultra-granular code analysis before vulnerability hunting"
+              zh: "在漏洞挖掘前，通过超细粒度代码分析建立深度架构上下文"
+            version: "1.0.0"
+            author:
+              name: "Omar Inuwa"
+            source: "./plugins/audit-context-building"
+            tags: ["audit", "context", "analysis"]
+            featured: true
+          - name: "building-secure-contracts"
+            install_command: "/plugin install building-secure-contracts@trailofbits"
+            description:
+              en: "Comprehensive smart contract security toolkit based on Trail of Bits' Building Secure Contracts framework. Includes vulnerability scanners for 6 blockchains and 5 development guideline assistants."
+              zh: "基于 Trail of Bits Building Secure Contracts 框架的智能合约安全工具包，包含 6 条链的漏洞扫描与 5 类开发指南助手。"
+            version: "1.0.0"
+            author:
+              name: "Omar Inuwa"
+            source: "./plugins/building-secure-contracts"
+            tags: ["smart-contracts", "security", "toolkit"]
+            featured: true
+          - name: "burpsuite-project-parser"
+            install_command: "/plugin install burpsuite-project-parser@trailofbits"
+            description:
+              en: "Search and extract data from Burp Suite project files (.burp) for use in Claude"
+              zh: "从 Burp Suite 项目文件（.burp）中检索与提取数据供 Claude 使用"
+            version: "1.0.0"
+            author:
+              name: "Will Vandevanter"
+            source: "./plugins/burpsuite-project-parser"
+            tags: ["burpsuite", "parser", "security"]
+            featured: true
+          - name: "constant-time-analysis"
+            install_command: "/plugin install constant-time-analysis@trailofbits"
+            description:
+              en: "Detect compiler-induced timing side-channels in cryptographic code"
+              zh: "检测加密代码中由编译器引入的时间侧信道"
+            version: "0.1.0"
+            author:
+              name: "Scott Arciszewski"
+              email: "opensource@trailofbits.com"
+            source: "./plugins/constant-time-analysis"
+            tags: ["crypto", "side-channel", "analysis"]
+            featured: true
+          - name: "culture-index"
+            install_command: "/plugin install culture-index@trailofbits"
+            description:
+              en: "Interprets Culture Index survey results for individuals and teams"
+              zh: "解读个人与团队的 Culture Index 调研结果"
+            version: "1.0.0"
+            author:
+              name: "Dan Guido"
+            source: "./plugins/culture-index"
+            tags: ["culture", "survey", "analysis"]
+            featured: true
+          - name: "differential-review"
+            install_command: "/plugin install differential-review@trailofbits"
+            description:
+              en: "Security-focused differential review of code changes with git history analysis and blast radius estimation"
+              zh: "结合 Git 历史分析与影响面评估的安全差异评审"
+            version: "1.0.0"
+            author:
+              name: "Omar Inuwa"
+            source: "./plugins/differential-review"
+            tags: ["code-review", "security", "git"]
+            featured: true
+          - name: "firebase-apk-scanner"
+            install_command: "/plugin install firebase-apk-scanner@trailofbits"
+            description:
+              en: "Scan Android APKs for Firebase security misconfigurations including open databases, storage buckets, authentication issues, and exposed cloud functions. For authorized security research only."
+              zh: "扫描 Android APK 的 Firebase 安全错误配置（开放数据库、存储桶、认证问题与暴露的云函数），仅限授权安全研究使用。"
+            version: "2.1.0"
+            author:
+              name: "Nick Sellier"
+            source: "./plugins/firebase-apk-scanner"
+            tags: ["android", "firebase", "scanner"]
+            featured: true
+          - name: "fix-review"
+            install_command: "/plugin install fix-review@trailofbits"
+            description:
+              en: "Verify fix commits address audit findings without introducing bugs"
+              zh: "验证修复提交是否解决审计问题且不引入新 bug"
+            version: "0.1.0"
+            author:
+              name: "Trail of Bits"
+              email: "opensource@trailofbits.com"
+            source: "./plugins/fix-review"
+            tags: ["audit", "fixes", "review"]
+            featured: true
+          - name: "dwarf-expert"
+            install_command: "/plugin install dwarf-expert@trailofbits"
+            description:
+              en: "Interact with and understand the DWARF debugging format"
+              zh: "交互式理解与使用 DWARF 调试格式"
+            version: "1.0.0"
+            author:
+              name: "Evan Hellman"
+              email: "opensource@trailofbits.com"
+            source: "./plugins/dwarf-expert"
+            tags: ["debugging", "dwarf", "analysis"]
+            featured: true
+          - name: "entry-point-analyzer"
+            install_command: "/plugin install entry-point-analyzer@trailofbits"
+            description:
+              en: "Analyzes smart contract codebases to identify state-changing entry points for security auditing. Detects externally callable functions that modify state, categorizes them by access level, and generates structured audit reports."
+              zh: "分析智能合约代码库以识别更改状态的入口点，检测可外部调用的状态修改函数，按访问级别分类并生成结构化审计报告。"
+            version: "1.0.0"
+            author:
+              name: "Nicolas Donboly"
+              email: "opensource@trailofbits.com"
+              url: "https://github.com/trailofbits"
+            source: "./plugins/entry-point-analyzer"
+            tags: ["smart-contracts", "audit", "analysis"]
+            featured: true
+          - name: "property-based-testing"
+            install_command: "/plugin install property-based-testing@trailofbits"
+            description:
+              en: "Property-based testing guidance for multiple languages and smart contracts"
+              zh: "面向多语言与智能合约的性质驱动测试指南"
+            version: "1.0.0"
+            author:
+              name: "Henrik Brodin"
+              email: "opensource@trailofbits.com"
+            source: "./plugins/property-based-testing"
+            tags: ["testing", "property-based", "smart-contracts"]
+            featured: true
+          - name: "semgrep-rule-creator"
+            install_command: "/plugin install semgrep-rule-creator@trailofbits"
+            description:
+              en: "Create custom Semgrep rules for detecting bug patterns and security vulnerabilities"
+              zh: "创建用于检测 bug 模式与安全漏洞的自定义 Semgrep 规则"
+            version: "1.0.0"
+            author:
+              name: "Maciej Domanski"
+            source: "./plugins/semgrep-rule-creator"
+            tags: ["semgrep", "rules", "security"]
+            featured: true
+          - name: "semgrep-rule-variant-creator"
+            install_command: "/plugin install semgrep-rule-variant-creator@trailofbits"
+            description:
+              en: "Creates language variants of existing Semgrep rules with proper applicability analysis and test-driven validation"
+              zh: "基于适用性分析与测试驱动验证，为既有 Semgrep 规则生成语言变体"
+            version: "1.0.0"
+            author:
+              name: "Maciej Domanski"
+              email: "opensource@trailofbits.com"
+            source: "./plugins/semgrep-rule-variant-creator"
+            tags: ["semgrep", "rules", "analysis"]
+            featured: true
+          - name: "sharp-edges"
+            install_command: "/plugin install sharp-edges@trailofbits"
+            description:
+              en: "Identify error-prone APIs, dangerous configurations, and footgun designs that enable security mistakes"
+              zh: "识别易错 API、危险配置与“脚枪式”设计导致的安全错误"
+            version: "1.0.0"
+            author:
+              name: "Scott Arciszewski"
+              email: "opensource@trailofbits.com"
+              url: "https://github.com/trailofbits"
+            source: "./plugins/sharp-edges"
+            tags: ["security", "api", "configuration"]
+            featured: true
+          - name: "static-analysis"
+            install_command: "/plugin install static-analysis@trailofbits"
+            description:
+              en: "Static analysis toolkit with CodeQL, Semgrep, and SARIF parsing for security vulnerability detection"
+              zh: "包含 CodeQL、Semgrep 与 SARIF 解析的静态分析工具包，用于安全漏洞检测"
+            version: "1.0.1"
+            author:
+              name: "Axel Mierczuk"
+            source: "./plugins/static-analysis"
+            tags: ["static-analysis", "codeql", "sarif"]
+            featured: true
+          - name: "spec-to-code-compliance"
+            install_command: "/plugin install spec-to-code-compliance@trailofbits"
+            description:
+              en: "Specification-to-code compliance checker for blockchain audits with evidence-based alignment analysis"
+              zh: "用于区块链审计的规范-代码一致性检查器，提供基于证据的对齐分析"
+            version: "1.0.0"
+            author:
+              name: "Omar Inuwa"
+            source: "./plugins/spec-to-code-compliance"
+            tags: ["blockchain", "compliance", "audit"]
+            featured: true
+          - name: "testing-handbook-skills"
+            install_command: "/plugin install testing-handbook-skills@trailofbits"
+            description:
+              en: "Skills from the Trail of Bits Application Security Testing Handbook (appsec.guide)"
+              zh: "来自 Trail of Bits《应用安全测试手册》（appsec.guide）的技能"
+            version: "1.0.0"
+            author:
+              name: "Paweł Płatek"
+            source: "./plugins/testing-handbook-skills"
+            tags: ["appsec", "testing", "handbook"]
+            featured: true
+          - name: "variant-analysis"
+            install_command: "/plugin install variant-analysis@trailofbits"
+            description:
+              en: "Find similar vulnerabilities and bugs across codebases using pattern-based analysis"
+              zh: "通过模式分析在代码库间查找相似漏洞与 bug"
+            version: "1.0.0"
+            author:
+              name: "Axel Mierczuk"
+            source: "./plugins/variant-analysis"
+            tags: ["analysis", "vulnerabilities", "bugs"]
+            featured: true
+          - name: "modern-python"
+            install_command: "/plugin install modern-python@trailofbits"
+            description:
+              en: "Modern Python best practices. Use when creating new Python projects, and writing Python scripts, or migrating existing projects from legacy tools."
+              zh: "现代 Python 最佳实践，用于新项目、脚本编写或从旧工具迁移。"
+            version: "1.2.0"
+            author:
+              name: "William Tan"
+              email: "opensource@trailofbits.com"
+              url: "https://github.com/trailofbits"
+            source: "./plugins/modern-python"
+            tags: ["python", "best-practices", "migration"]
+            featured: true
+          - name: "insecure-defaults"
+            install_command: "/plugin install insecure-defaults@trailofbits"
+            description:
+              en: "Detects and verifies insecure default configurations including hardcoded credentials, fallback secrets, weak authentication defaults, and dangerous configuration values that remain active in production"
+              zh: "检测并验证不安全默认配置，包括硬编码凭据、后备密钥、弱认证默认值，以及生产环境仍启用的危险配置。"
+            version: "1.0.0"
+            author:
+              name: "Trail of Bits"
+              email: "opensource@trailofbits.com"
+              url: "https://github.com/trailofbits"
+            source: "./plugins/insecure-defaults"
+            tags: ["security", "defaults", "configuration"]
+            featured: true
+      - marketplace_name: "sentry-skills"
+        marketplace_repo: "getsentry/skills"
+        repository_url: "https://github.com/getsentry/skills"
+        marketplace_add_command: "claude plugin marketplace add getsentry/skills"
+        description:
+          en: "Official Sentry team's skills for development workflows, code review, and engineering practices"
+          zh: "Sentry 官方团队的开发工作流、代码评审与工程实践技能"
+        owner:
+          name: "Sentry"
+        tags: ["sentry", "code-review", "workflow", "development"]
+        featured: true
+        plugins:
+          - name: "sentry-skills"
+            install_command: "claude plugin install sentry-skills@sentry-skills"
+            description:
+              en: "Sentry development skills bundle"
+              zh: "Sentry 开发流程技能合集"
+            author:
+              name: "Sentry"
+            source: "./.claude/plugins/sentry-skills"
+            tags: ["sentry", "engineering", "workflow"]
+            featured: true
+      - marketplace_name: "rust-skills-marketplace"
+        marketplace_repo: "ZhangHanDong/rust-skills"
+        repository_url: "https://github.com/ZhangHanDong/rust-skills"
+        marketplace_add_command: "claude plugin marketplace add ZhangHanDong/rust-skills"
+        description:
+          en: "ZhangHanDong's Rust development assistant with meta-cognition framework: 38 skills covering ownership, concurrency, error handling, unsafe code, LSP code intelligence, and domain-specific patterns for FinTech, ML, Cloud-Native, IoT, Web, CLI, and Embedded systems"
+          zh: "ZhangHanDong 的 Rust 开发助手，采用元认知框架：38 个技能涵盖所有权、并发、错误处理、unsafe 代码、LSP 代码智能以及 FinTech、ML、Cloud-Native、IoT、Web、CLI 与嵌入式系统的领域特定模式"
+        owner:
+          name: "ZhangHanDong"
+        tags: ["rust", "development", "meta-cognition", "ownership", "concurrency"]
+        featured: true
+        plugins:
+          - name: "rust-skills"
+            install_command: "/plugin install rust-skills@rust-skills"
+            description:
+              en: "38 skills covering ownership, concurrency, error handling, unsafe code, LSP code intelligence, and domain-specific patterns for Rust development across FinTech, ML, Cloud-Native, IoT, Web, CLI, and Embedded systems"
+              zh: "38 个技能，涵盖所有权、并发、错误处理、unsafe 代码、LSP 代码智能以及 Rust 开发的领域特定模式，覆盖 FinTech、ML、Cloud-Native、IoT、Web、CLI 与嵌入式系统"
+            version: "2.0.9"
+            author:
+              name: "ZhangHanDong"
+            source: "./"
+            tags: ["rust", "ownership", "concurrency", "error-handling", "unsafe"]
+            featured: true
+      - marketplace_name: "claude-mem"
+        marketplace_repo: "thedotmack/claude-mem"
+        repository_url: "https://github.com/thedotmack/claude-mem"
+        marketplace_add_command: "claude plugin marketplace add thedotmack/claude-mem"
+        description:
+          en: "Alex Newman's persistent memory compression system for Claude Code: automatically captures tool usage observations, generates semantic summaries with AI, and intelligently injects relevant context into future sessions through progressive disclosure and skill-based search"
+          zh: "Alex Newman 的 Claude Code 持久记忆压缩系统：自动捕获工具使用观察，使用 AI 生成语义摘要，并通过渐进式披露与技能搜索智能地将相关上下文注入未来的会话"
+        owner:
+          name: "Alex Newman"
+          email: "alex@newman.au"
+        tags: ["memory", "context", "search", "productivity", "compression"]
+        featured: true
+        plugins:
+          - name: "claude-mem"
+            install_command: "/plugin install claude-mem"
+            description:
+              en: "Persistent memory system with automatic context capture, AI-powered semantic compression, progressive disclosure retrieval, web viewer UI at localhost:37777, MCP search tools, and privacy control with <private> tags"
+              zh: "持久记忆系统，具备自动上下文捕获、AI 驱动语义压缩、渐进式披露检索、localhost:37777 Web 查看器 UI、MCP 搜索工具以及 <private> 标签隐私控制"
+            version: "9.0.12"
+            author:
+              name: "Alex Newman"
+              email: "alex@newman.au"
+            source: "./plugin"
+            tags: ["memory", "context", "search", "compression", "productivity"]
+            featured: true
+      - marketplace_name: "impeccable"
+        marketplace_repo: "pbakaus/impeccable"
+        repository_url: "https://github.com/pbakaus/impeccable"
+        marketplace_add_command: "claude plugin marketplace add pbakaus/impeccable"
+        description:
+          en: "Paul Bakaus' design fluency toolkit for AI harnesses: an enhanced frontend-design skill, 17 steering commands, and curated anti-patterns for more intentional frontend design"
+          zh: "Paul Bakaus 提供的 AI 设计增强工具包：包含强化版 frontend-design 技能、17 个引导命令，以及帮助前端设计更克制更到位的反模式清单"
+        owner:
+          name: "Paul Bakaus"
+          email: "paul@paulbakaus.com"
+        tags: ["design", "frontend", "ui", "ux", "commands"]
+        featured: true
+        plugins:
+          - name: "impeccable"
+            install_command: "/plugin install impeccable@impeccable"
+            description:
+              en: "Design vocabulary and frontend design skillset with 17 commands such as /polish, /distill, /audit, /bolder, and /quieter, plus curated anti-patterns"
+              zh: "面向前端设计的词汇与技能包，包含 /polish、/distill、/audit、/bolder、/quieter 等 17 个命令，并附带精选反模式清单"
+            version: "1.3.0"
+            author:
+              name: "Paul Bakaus"
+              email: "paul@paulbakaus.com"
+            source: "./"
+            tags: ["design", "frontend", "ui", "ux", "commands"]
+            featured: true
+
+repositories:
+  version: "1.0"
+  last_updated: "2026-03-17"
+  categories:
+    - id: "community"
+      name:
+        en: "Community"
+        zh: "社区精选"
+      description:
+        en: "High-quality community-contributed skill repositories"
+        zh: "社区贡献的高质量技能仓库"
+      repositories:
+        - url: "https://github.com/bruc3van/bruce-doc-converter"
+          name: "bruc3van"
+          description:
+            en: "Bidirectional document conversion skill for Claude Code. Converts Word/Excel/PPT/PDF to AI-friendly Markdown and exports Markdown to professionally formatted Word documents with auto-dependency installation."
+            zh: "为 Claude Code 添加双向文档转换能力。将 Word/Excel/PPT/PDF 转换为 AI 友好的 Markdown 格式，并将 Markdown 导出为排版精美的 Word 文档，支持自动依赖安装。"
+          tags: ["conversion", "office", "pdf", "markdown"]
+          featured: true
+        - url: "https://github.com/joeseesun/qiaomu-design-advisor"
+          name: "joeseesun"
+          description:
+            en: "Uncompromising UI/UX design advisor skill for Claude Code, combining Jobs-style product intuition with Rams-style functional purism. Delivers three-tiered design solutions through a structured diagnosis-proposal-implementation workflow."
+            zh: "偏执型设计顾问 Claude Code 技能，融合 Jobs 式产品直觉与 Rams 式功能纯粹主义。通过诊断、提案、实施三阶段工作流，提供渐进优化、结构重设计和理想方案三层设计解决方案。"
+          tags: ["design", "ui-ux", "product-design"]
+          featured: true
+        - url: "https://github.com/op7418/Humanizer-zh"
+          name: "op7418"
+          description:
+            en: "Chinese version of Humanizer - a Claude Code skill that removes AI-generated traces from text, making it sound more natural and human-written. Detects and fixes 24 AI writing patterns across content, language, style, and communication categories."
+            zh: "来自歸藏的 Humanizer 中文版 - 用于去除文本中 AI 生成的痕迹，使文本更自然、更像人类书写。可检测并修复 24 种 AI 写作模式，涵盖内容、语言、风格和交流四大类别。"
+          tags: ["writing", "text-processing", "humanizer"]
+          featured: true
+        - url: "https://github.com/GBSOSS/skill-from-masters"
+          name: "GBSOSS"
+          description:
+            en: "Create AI skills built on proven methodologies from domain experts across 15+ fields"
+            zh: "基于各领域专家经验方法论的 AI 技能创建工具，覆盖 15+ 专业领域"
+          tags: ["methodology", "experts", "framework"]
+          featured: true
+        - url: "https://github.com/vercel-labs/agent-skills"
+          name: "vercel-labs"
+          description:
+            en: "A collection of skills for AI coding agents that follow the Agent Skills format."
+            zh: "面向 AI 编程代理的技能集合，遵循 Agent Skills 格式。"
+          tags: ["agent-skills", "ai-agents", "collection"]
+          featured: true
+        - url: "https://github.com/yangliu2060/smith--skills"
+          name: "yangliu2060"
+          description:
+            en: "From Visual Workflows to AI-Native Skills: Empower your Claude Code with 14+ elite automation templates ported directly from n8n. Instantly equip your AI agent with expert-level capabilities in Marketing, SEO, and Market Research."
+            zh: "从可视化工作流到 AI 原生技能：一键将 14 款精选 n8n 自动化模板导入 Claude Code，让你的 AI 助手瞬间掌握营销、SEO 和市场调研的专家级实战能力。"
+          tags: ["n8n", "workflow", "automation"]
+          featured: true
+        - url: "https://github.com/zarazhangrui/frontend-slides"
+          name: "zarazhangrui"
+          description:
+            en: "Claude Code skill for creating animation-rich HTML presentations from scratch or by converting PowerPoint files."
+            zh: "用于从零创建或将 PowerPoint 转换为网页演示文稿的 Claude Code 技能，生成动画丰富的 HTML 幻灯片。"
+          tags: ["slides", "presentation", "design"]
+          featured: true
+        - url: "https://github.com/Shpigford/skills"
+          name: "Shpigford"
+          description:
+            en: "Agent Skills collection for common tasks, compatible with Claude Code and other Agent Skills Standard tools."
+            zh: "面向常见任务的 Agent Skills 合集，兼容 Claude Code 等符合 Agent Skills Standard 的工具。"
+          tags: ["agent-skills", "productivity", "automation"]
+          featured: true
+        - url: "https://github.com/carmahhawwari/ui-design-brain"
+          name: "carmahhawwari"
+          description:
+            en: "UI component knowledge skill for AI agents with best practices, layout patterns, design-system conventions, aliases, and anti-patterns for 60+ interface components, grounded in component.gallery."
+            zh: "面向 AI 代理的 UI 组件知识技能，基于 component.gallery，覆盖 60+ 界面组件的最佳实践、布局模式、设计系统约定、别名与反模式。"
+          tags: ["design", "ui", "components", "cursor"]
+          featured: true
+        - url: "https://github.com/Leonxlnx/taste-skill"
+          name: "Leonxlnx"
+          description:
+            en: "Frontend design skill pack for AI tools with three focused skills: premium UI generation from scratch, redesign guidance for existing interfaces, and stricter output discipline to avoid incomplete code."
+            zh: "面向 AI 工具的前端设计技能包，包含三个重点技能：从零生成高质量界面、对现有界面做重设计指导，以及强化输出约束以避免半成品代码。"
+          tags: ["frontend", "design", "ui-ux", "output-quality"]
+          featured: true
+        - url: "https://github.com/lijigang/ljg-skills"
+          name: "lijigang"
+          description:
+            en: "A collection of 10 creative skills for Claude Code, including visual card generation (ljg-card), concept learning, academic paper reading, vocabulary analysis, writing engine, and structured roundtable discussion framework."
+            zh: "为 Claude Code 提供 10 个创意技能合集，包含图卡生成（ljg-card）、概念学习、学术论文解读、词汇深度分析、写作引擎及结构化圆桌讨论框架等。"
+          tags: ["card", "learning", "writing", "visualization", "analysis"]
+          featured: true
+        - url: "https://github.com/shaom/infocard-skills"
+          name: "shaom"
+          description:
+            en: "A Claude Code skill that generates editorial-style information cards from natural-language input, converting source material into screenshot-ready HTML cards with optional PNG output."
+            zh: "从自然语言输入生成编辑风格信息卡片的 Claude Code 技能，将原始内容转换为可截图的 HTML 卡片，支持导出为 PNG。"
+          tags: ["card", "infocard", "html", "design", "screenshot"]
+          featured: true
+        - url: "https://github.com/bruc3van/bruce-drawio"
+          name: "bruc3van"
+          description:
+            en: "Cross-platform draw.io diagram generator for Claude Code, supporting flowcharts, architecture diagrams, UML (sequence/class), ER diagrams, mind maps, and network topology. Works on macOS, Windows, and Linux."
+            zh: "跨平台 draw.io 图形生成技能，支持流程图、架构图、UML（时序/类图）、ER 图、思维导图及网络拓扑图，兼容 macOS、Windows 和 Linux。"
+          tags: ["diagram", "drawio", "uml", "flowchart", "visualization"]
+          featured: true
+        - url: "https://github.com/rookie-ricardo/erduo-skills"
+          name: "rookie-ricardo"
+          description:
+            en: "A productivity skill pack for Claude Code with 5 skills: daily news report generation, RSS digest with scoring filter, voice transcript polishing, multilingual translation workflow (ZH↔EN/ZH↔JA), and Gemini watermark removal."
+            zh: "面向 Claude Code 的效率技能包，包含 5 个技能：每日资讯报告生成、RSS 精选摘要（带评分过滤）、语音转录润色、多语言翻译工作流（中英/中日互译）及 Gemini 水印去除。"
+          tags: ["news", "rss", "translation", "transcript", "productivity"]
+          featured: true
+        - url: "https://github.com/dontbesilent2025/dbskill"
+          name: "dontbesilent2025"
+          description:
+            en: "Business diagnosis toolkit derived from 12,000+ tweets. Includes skills for business model diagnosis, benchmark analysis, content creation, short-video hooks, Xiaohongshu title formulas, execution analysis, and concept deconstruction."
+            zh: "从 12,000+ 条推文提炼的商业诊断工具箱。包含商业模式诊断、对标分析、内容创作、短视频开头优化、小红书标题公式、执行力诊断和概念拆解等技能。"
+          tags: ["business", "diagnosis", "content-creation", "marketing"]
+          featured: true
+        - url: "https://github.com/slowmist/slowmist-agent-security"
+          name: "slowmist"
+          description:
+            en: "Comprehensive security review framework for AI agents in adversarial environments. Covers skill/MCP installation safety, GitHub repo audits, URL/document analysis, on-chain address AML checks, and social engineering detection."
+            zh: "面向对抗环境中 AI 代理的综合安全审查框架。涵盖技能/MCP 安装安全检测、GitHub 仓库审计、URL/文档分析、链上地址 AML 风险评估和社会工程攻击检测。"
+          tags: ["security", "audit", "blockchain", "aml"]
+          featured: true
+        - url: "https://github.com/MiniMax-AI/skills"
+          name: "MiniMax-AI"
+          description:
+            en: "Official MiniMax development skills for AI coding agents. Covers frontend, fullstack, Android, iOS, React Native, Flutter, and shader development. Includes MiniMax API integration for multimodal content generation (image, video, audio, TTS)."
+            zh: "MiniMax 官方开发技能集，面向 AI 编程代理。涵盖前端、全栈、Android、iOS、React Native、Flutter 和着色器开发。集成 MiniMax API 用于多模态内容生成（图像、视频、音频、语音合成）。"
+          tags: ["minimax", "frontend", "mobile", "multimodal", "api"]
+          featured: true

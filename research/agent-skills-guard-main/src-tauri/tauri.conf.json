@@ -1,0 +1,60 @@
+{
+  "productName": "Agent Skills Guard",
+  "version": "1.0.2",
+  "identifier": "com.agent-skills-guard.app",
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJEM0VGNkNFQTk0Nzg5MDAKUldRQWlVZXB6dlkrdmN2YjBHUVJoQzdUYldXVGNZMFRDY25jSTJSZmV1V1FZZXhqM2RId1I4cDAK",
+      "endpoints": [
+        "https://github.com/bruc3van/agent-skills-guard/releases/latest/download/latest.json"
+      ]
+    }
+  },
+  "build": {
+    "beforeDevCommand": "pnpm dev:renderer",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "pnpm build:renderer",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "dmg", "app"],
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Agent Skills Guard",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "center": true
+      }
+    ],
+    "macOSPrivateApi": true,
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost https://avatars.githubusercontent.com https://raw.githubusercontent.com data:; connect-src 'self' ipc: http://ipc.localhost https://api.github.com https://github.com https://raw.githubusercontent.com https://codeload.github.com"
+    },
+    "withGlobalTauri": true
+  }
+}

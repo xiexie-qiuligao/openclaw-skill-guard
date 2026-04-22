@@ -1,0 +1,9 @@
+[package]
+name = "openclaw-skill-guard-report"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+openclaw-skill-guard-core = { path = "../core" }
+serde_json = "1"
+

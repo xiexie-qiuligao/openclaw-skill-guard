@@ -316,6 +316,7 @@ mod tests {
             &[PathValidationStatus {
                 path_id: "path.direct_privileged_action".to_string(),
                 status: PathValidationDisposition::Validated,
+                guard_status: crate::types::PathGuardStatus::Supported,
                 validated_constraints: Vec::new(),
                 missing_constraints: Vec::new(),
                 note: String::new(),

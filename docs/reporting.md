@@ -6,7 +6,7 @@ This document describes the v1 public report contract.
 
 The canonical v1 output is:
 
-- [report.schema.json](D:/漏扫skill/standalone-openclaw-skill-guard/schemas/report.schema.json)
+- [report.schema.json](../schemas/report.schema.json)
 
 JSON is the source-of-truth contract. Markdown and HTML renderers may be added later, but they should be derived from the same `ScanReport`.
 

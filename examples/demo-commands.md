@@ -5,41 +5,53 @@ All commands below are safe demonstration commands for the included inert fixtur
 ## Benign sample
 
 ```powershell
-C:\Users\29345\.cargo\bin\cargo.exe run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\benign\SKILL.md --format json
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\benign\SKILL.md --format json
+```
+
+Release EXE equivalent:
+
+```powershell
+.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\benign\SKILL.md --format json
 ```
 
 ## Obvious high-risk sample
 
 ```powershell
-C:\Users\29345\.cargo\bin\cargo.exe run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\high-risk\SKILL.md --format json
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\high-risk\SKILL.md --format json
 ```
 
 ## Install-risk sample
 
 ```powershell
-C:\Users\29345\.cargo\bin\cargo.exe run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\install-risk --format json
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\install-risk --format json
 ```
 
 ## Prompt/instruction-risk sample
 
 ```powershell
-C:\Users\29345\.cargo\bin\cargo.exe run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\prompt-risk\SKILL.md --format json
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\prompt-risk\SKILL.md --format json
+```
+
+Release EXE equivalent:
+
+```powershell
+.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\prompt-risk\SKILL.md --format json
 ```
 
 ## Precedence/shadowing hint sample
 
 ```powershell
-C:\Users\29345\.cargo\bin\cargo.exe run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\precedence-shadowing --format json
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\precedence-shadowing --format json
 ```
 
 ## Runtime refinement sample
 
 ```powershell
-C:\Users\29345\.cargo\bin\cargo.exe run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\runtime-refinement\SKILL.md --format json --runtime-manifest .\fixtures\v1\runtime-refinement\runtime-sandbox.json --validation-mode guarded
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\runtime-refinement\SKILL.md --format json --runtime-manifest .\fixtures\v1\runtime-refinement\runtime-sandbox.json --validation-mode guarded
 ```
 
 ## Suppression and audit sample
 
 ```powershell
-C:\Users\29345\.cargo\bin\cargo.exe run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\suppression-audit\SKILL.md --format json --suppressions .\fixtures\v1\suppression-audit\suppressions.json
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\suppression-audit\SKILL.md --format json --suppressions .\fixtures\v1\suppression-audit\suppressions.json
 ```

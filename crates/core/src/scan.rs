@@ -266,10 +266,15 @@ pub fn scan_path_with_options(
         );
     }
     analysis_limitations.extend(runtime_manifest.diagnostics.clone());
+    analysis_limitations.push(
+        "Guarded validation refines paths with runtime capabilities and scope constraints, but it still does not execute install chains, shell commands, or untrusted content."
+            .to_string(),
+    );
 
     let mut confidence_notes = attack_paths.confidence_notes;
     confidence_notes.extend(provenance_analysis.confidence_notes.clone());
     confidence_notes.extend(runtime_validation.confidence_notes.clone());
+    confidence_notes.push(runtime_validation.guarded_validation.summary.clone());
 
     Ok(ScanReport {
         target: inventory.target.clone(),
@@ -298,6 +303,7 @@ pub fn scan_path_with_options(
         consequence_summary: runtime_validation.refined_consequence,
         host_vs_sandbox_split: runtime_validation.refined_split,
         runtime_manifest_summary: runtime_validation.runtime_manifest_summary,
+        guarded_validation: runtime_validation.guarded_validation,
         runtime_facts: runtime_validation.runtime_facts,
         runtime_assumption_status: runtime_validation.runtime_assumption_status,
         validation_hooks: validation_plan.hooks.clone(),

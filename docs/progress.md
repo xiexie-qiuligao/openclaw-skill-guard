@@ -210,7 +210,7 @@ Date: 2026-04-22
 
 ### Verification
 
-- Executed root `cargo test` successfully with the local Rust toolchain at `C:\Users\29345\.cargo\bin\cargo.exe`.
+- Executed root `cargo test` successfully with the local Rust toolchain.
 - Current result:
   - `1` CLI integration test passed
   - `26` core tests passed
@@ -248,7 +248,7 @@ Date: 2026-04-22
 
 ### Verification
 
-- Executed root `cargo test` successfully with the local Rust toolchain at `C:\Users\29345\.cargo\bin\cargo.exe`.
+- Executed root `cargo test` successfully with the local Rust toolchain.
 - Current result:
   - `2` CLI integration tests passed
   - `37` core tests passed
@@ -330,3 +330,40 @@ Date: 2026-04-22
 ### Current recommendation
 
 - The project is suitable for a v1 release candidate tag if you want to freeze the current CLI-first scope and document the remaining non-blocking limitations as post-v1 work.
+
+## P8 Round 1
+
+Date: 2026-04-23
+
+### Completed
+
+- Added a first sandbox-backed guarded validator layer without executing untrusted content.
+- Expanded the runtime manifest model with finer permission, capability, scope, and privilege structures.
+- Added a small high-value false-positive corpus for localhost/RPC, benign child-process references, delegated local workflows, and pinned install guidance.
+- Wired guarded validation back into consequence refinement, path status, confidence, and reporting.
+
+### Verification
+
+- Root `cargo test` passed after integration.
+- Result:
+  - `3` CLI tests
+  - `53` core tests
+  - `1` report test
+  - `3` research-lock tests
+- Total: `60` tests green.
+
+## P8 Round 2
+
+Date: 2026-04-23
+
+### Completed
+
+- Folded the guarded-validator and refined runtime-schema work into release-facing docs.
+- Added Windows EXE packaging and usage guidance.
+- Added release-facing packaging notes for the final deliverable.
+- Revalidated the release build, EXE entrypoint, and key demo commands.
+
+### Next up
+
+- No new feature phase is required for the current delivery target.
+- The repository should now be treated as a final deliverable candidate unless a release blocker appears in final verification.

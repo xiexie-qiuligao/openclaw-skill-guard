@@ -1,7 +1,7 @@
 {
   "target": {
     "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
-    "canonical_path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+    "canonical_path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
     "target_kind": "file"
   },
   "scan_mode": "file",
@@ -28,7 +28,7 @@
       "hard_trigger": true,
       "evidence_kind": "text_pattern",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+        "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
         "line": 9,
         "column": null
       },
@@ -36,7 +36,7 @@
         {
           "kind": "text_pattern",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+            "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
             "line": 9,
             "column": null
           },
@@ -64,7 +64,7 @@
       "hard_trigger": false,
       "evidence_kind": "install_action",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+        "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -72,7 +72,7 @@
         {
           "kind": "install_action",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+            "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -100,7 +100,7 @@
       "hard_trigger": false,
       "evidence_kind": "structured_metadata",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+        "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -108,7 +108,7 @@
         {
           "kind": "structured_metadata",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+            "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -136,7 +136,7 @@
       "hard_trigger": false,
       "evidence_kind": "tool_dispatch",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+        "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -144,7 +144,7 @@
         {
           "kind": "tool_dispatch",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+            "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -225,7 +225,7 @@
         {
           "kind": "install_action",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+            "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -272,7 +272,7 @@
         {
           "kind": "tool_dispatch",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk\\SKILL.md",
+            "path": ".\\fixtures\\v1\\high-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -367,7 +367,7 @@
   "runtime_facts": [
     {
       "key": "home_directory_present",
-      "value": "C:\\Users\\29345",
+      "value": "<user-home>",
       "source_kind": "safe_local_check",
       "confirmed": true
     },
@@ -801,7 +801,7 @@
     "known_roots": [
       {
         "source": "unknown",
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\high-risk",
+        "path": ".\\fixtures\\v1\\high-risk",
         "present": true
       }
     ],

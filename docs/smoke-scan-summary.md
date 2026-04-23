@@ -8,7 +8,7 @@ This is a release-prep sampling pass, not a new benchmark phase. All samples bel
 
 ### `benign`
 
-- Scan target: [fixtures/v1/benign/SKILL.md](D:/漏扫skill/standalone-openclaw-skill-guard/fixtures/v1/benign/SKILL.md)
+- Scan target: [fixtures/v1/benign/SKILL.md](../fixtures/v1/benign/SKILL.md)
 - Expected conclusion: allow
 - Actual conclusion: allow
 - Notes:
@@ -19,7 +19,7 @@ This is a release-prep sampling pass, not a new benchmark phase. All samples bel
 
 ### `high-risk`
 
-- Scan target: [fixtures/v1/high-risk/SKILL.md](D:/漏扫skill/standalone-openclaw-skill-guard/fixtures/v1/high-risk/SKILL.md)
+- Scan target: [fixtures/v1/high-risk/SKILL.md](../fixtures/v1/high-risk/SKILL.md)
 - Expected conclusion: block
 - Actual conclusion: block
 - Notes:
@@ -28,7 +28,7 @@ This is a release-prep sampling pass, not a new benchmark phase. All samples bel
 
 ### `install-risk`
 
-- Scan target: [fixtures/v1/install-risk](D:/漏扫skill/standalone-openclaw-skill-guard/fixtures/v1/install-risk)
+- Scan target: [fixtures/v1/install-risk](../fixtures/v1/install-risk)
 - Expected conclusion: block or strong warn
 - Actual conclusion: block
 - Notes:
@@ -37,7 +37,7 @@ This is a release-prep sampling pass, not a new benchmark phase. All samples bel
 
 ### `prompt-risk`
 
-- Scan target: [fixtures/v1/prompt-risk/SKILL.md](D:/漏扫skill/standalone-openclaw-skill-guard/fixtures/v1/prompt-risk/SKILL.md)
+- Scan target: [fixtures/v1/prompt-risk/SKILL.md](../fixtures/v1/prompt-risk/SKILL.md)
 - Expected conclusion: block
 - Actual conclusion: block
 - Notes:
@@ -46,7 +46,7 @@ This is a release-prep sampling pass, not a new benchmark phase. All samples bel
 
 ### `precedence-shadowing`
 
-- Scan target: [fixtures/v1/precedence-shadowing](D:/漏扫skill/standalone-openclaw-skill-guard/fixtures/v1/precedence-shadowing)
+- Scan target: [fixtures/v1/precedence-shadowing](../fixtures/v1/precedence-shadowing)
 - Expected conclusion: local collision warning with elevated risk due to direct dispatch
 - Actual conclusion: block
 - Notes:
@@ -56,7 +56,7 @@ This is a release-prep sampling pass, not a new benchmark phase. All samples bel
 
 ### `runtime-refinement`
 
-- Scan target: [fixtures/v1/runtime-refinement/SKILL.md](D:/漏扫skill/standalone-openclaw-skill-guard/fixtures/v1/runtime-refinement/SKILL.md)
+- Scan target: [fixtures/v1/runtime-refinement/SKILL.md](../fixtures/v1/runtime-refinement/SKILL.md)
 - Expected conclusion: risky path remains visible, but runtime manifest should narrow or block parts of it
 - Actual conclusion: block with runtime blockers recorded
 - Notes:
@@ -66,7 +66,7 @@ This is a release-prep sampling pass, not a new benchmark phase. All samples bel
 
 ### `suppression-audit`
 
-- Scan target: [fixtures/v1/suppression-audit/SKILL.md](D:/漏扫skill/standalone-openclaw-skill-guard/fixtures/v1/suppression-audit/SKILL.md)
+- Scan target: [fixtures/v1/suppression-audit/SKILL.md](../fixtures/v1/suppression-audit/SKILL.md)
 - Expected conclusion: evidence remains visible, suppression and audit sections populated
 - Actual conclusion: block with visible suppression and audit output
 - Notes:

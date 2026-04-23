@@ -1,6 +1,6 @@
 # Runtime Consequences
 
-Phase 7 keeps the typed Phase 6 consequence model, then refines it with runtime-manifest-backed permission and environment facts.
+The current release keeps the typed Phase 6 consequence model, then refines it with runtime-manifest-backed permission, environment, and guarded-capability facts.
 
 ## Current modeled dimensions
 
@@ -38,7 +38,7 @@ Phase 7 keeps the typed Phase 6 consequence model, then refines it with runtime-
 
 ## Output shape
 
-Phase 6 writes:
+The current report writes:
 
 - `consequence_summary`
 - `host_vs_sandbox_split`
@@ -47,7 +47,7 @@ Phase 6 writes:
 
 The scanner keeps evidence and inference separate so the report can explain why host impact may exceed sandbox impact, and which missing runtime assumptions would weaken the path.
 
-## Phase 7 refinement
+## Runtime refinement
 
 Runtime refinement now adjusts consequence and host/sandbox split when facts are available:
 
@@ -67,3 +67,4 @@ This is still a controlled model, not a dynamic execution sandbox. The report th
 - environment blockers
 - environment amplifiers
 - remaining unknowns
+- guarded capability support versus guarded capability denial

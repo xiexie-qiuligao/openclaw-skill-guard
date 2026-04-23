@@ -83,6 +83,7 @@ fn cli_scan_supports_runtime_manifest_and_guarded_validation() {
 
     let json: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert!(json["runtime_manifest_summary"].as_str().unwrap().contains("Loaded runtime manifest"));
+    assert!(json["guarded_validation"]["summary"].as_str().unwrap().contains("Guarded validation"));
     assert!(json["validation_results"].as_array().unwrap().len() >= 1);
     assert!(json["path_validation_status"].as_array().unwrap().len() >= 1);
     assert!(json["validation_score_adjustments"].as_array().unwrap().len() >= 1);

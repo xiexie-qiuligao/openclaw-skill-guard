@@ -261,4 +261,49 @@ mod tests {
             .iter()
             .any(|signal| signal.kind == PromptSignalKind::SensitiveDataCoercion));
     }
+
+    #[test]
+    fn localhost_rpc_guidance_is_not_treated_as_secret_coercion() {
+        let skill = parse_skill_file(
+            Path::new("demo/SKILL.md"),
+            "---\nname: Demo\n---\nUse browser to inspect localhost RPC status on 127.0.0.1:8545.",
+            Vec::new(),
+        );
+        let extracted = extract_instruction_segments(&skill);
+        let analysis = analyze_instruction_segments(&extracted.segments);
+
+        assert!(!analysis
+            .signals
+            .iter()
+            .any(|signal| signal.kind == PromptSignalKind::SensitiveDataCoercion));
+    }
+
+    #[test]
+    fn delegated_local_workflow_without_bypass_stays_quiet() {
+        let skill = parse_skill_file(
+            Path::new("demo/SKILL.md"),
+            "---\nname: Demo\n---\nRead the generated workspace logs and summarize the local build status.",
+            Vec::new(),
+        );
+        let extracted = extract_instruction_segments(&skill);
+        let analysis = analyze_instruction_segments(&extracted.segments);
+
+        assert!(analysis.findings.is_empty());
+    }
+
+    #[test]
+    fn child_process_example_reference_is_not_treated_as_tool_coercion() {
+        let skill = parse_skill_file(
+            Path::new("demo/SKILL.md"),
+            "---\nname: Demo\n---\nExample:\n```js\nconst { exec } = require('child_process');\n```\nThis snippet explains local tooling only.",
+            Vec::new(),
+        );
+        let extracted = extract_instruction_segments(&skill);
+        let analysis = analyze_instruction_segments(&extracted.segments);
+
+        assert!(!analysis
+            .signals
+            .iter()
+            .any(|signal| signal.kind == PromptSignalKind::ToolCoercion));
+    }
 }

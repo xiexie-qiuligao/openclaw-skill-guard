@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use openclaw_skill_guard_core::{scan_path_with_options, ValidationExecutionMode};
 use openclaw_skill_guard_core::Verdict;
-use openclaw_skill_guard_report::render_json;
+use openclaw_skill_guard_core::{scan_path_with_options, ValidationExecutionMode};
+use openclaw_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
 
 #[derive(Debug, Parser)]
 #[command(name = "openclaw-skill-guard")]
@@ -27,7 +27,7 @@ enum Command {
             long,
             value_enum,
             default_value = "json",
-            help = "Output format. JSON is the canonical public contract in v1."
+            help = "Output format. JSON remains canonical; SARIF, Markdown, and HTML are derived exports."
         )]
         format: OutputFormat,
         #[arg(
@@ -53,6 +53,9 @@ enum Command {
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum OutputFormat {
     Json,
+    Sarif,
+    Markdown,
+    Html,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -95,6 +98,18 @@ fn run(args: Args) -> Result<i32, String> {
             match format {
                 OutputFormat::Json => {
                     let output = render_json(&report).map_err(|err| err.to_string())?;
+                    println!("{output}");
+                }
+                OutputFormat::Sarif => {
+                    let output = render_sarif(&report).map_err(|err| err.to_string())?;
+                    println!("{output}");
+                }
+                OutputFormat::Markdown => {
+                    let output = render_markdown(&report);
+                    println!("{output}");
+                }
+                OutputFormat::Html => {
+                    let output = render_html(&report);
                     println!("{output}");
                 }
             }

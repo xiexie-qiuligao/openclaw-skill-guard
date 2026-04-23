@@ -1,0 +1,63 @@
+- id: v2.threat.prompt_ignore_previous
+  category: prompt_injection
+  matcher:
+    kind: regex
+    pattern: '(?i)ignore\s+previous\s+instructions?'
+  description: Instruction attempts to bypass previous directives.
+  severity_hint: high
+  false_positive_notes:
+    - Quoted security guidance and rule descriptions should not escalate by themselves.
+  provenance:
+    source_name: cls-certify threat patterns
+    source_kind: adapted_reference
+    source_ref: references/threat-patterns.md
+    notes:
+      - Adapted into typed local corpus form for verifier-side use.
+
+- id: v2.threat.prompt_skip_confirmation
+  category: approval_bypass
+  matcher:
+    kind: regex
+    pattern: '(?i)(skip|bypass)\s+(confirmation|approval)|run\s+without\s+asking'
+  description: Instruction pressures execution without user confirmation.
+  severity_hint: high
+  false_positive_notes:
+    - Documentation about safety policy should be reviewed in context.
+  provenance:
+    source_name: cls-certify threat patterns
+    source_kind: adapted_reference
+    source_ref: references/threat-patterns.md
+    notes:
+      - Converted from shell-first pattern inventory into corpus entry.
+
+- id: v2.threat.agent_context_memory_write
+  category: agent_context
+  matcher:
+    kind: substring
+    value: '.claude/memory'
+  description: References to agent memory directories can indicate agent-context manipulation risk.
+  severity_hint: high
+  false_positive_notes:
+    - Benign explanatory documentation is a common false-positive source.
+  provenance:
+    source_name: cls-certify threat patterns
+    source_kind: adapted_reference
+    source_ref: references/threat-patterns.md
+    notes:
+      - Included as a typed seed for future analyzer families.
+
+- id: v2.threat.tool_chain_bash
+  category: tool_abuse
+  matcher:
+    kind: regex
+    pattern: '(?i)(use|invoke|call)\s+.*bash.*tool'
+  description: Tool-abuse phrasing that pressures the agent to invoke a shell tool.
+  severity_hint: high
+  false_positive_notes:
+    - Benign tool documentation may mention the same words without coercion.
+  provenance:
+    source_name: cls-certify threat patterns
+    source_kind: adapted_reference
+    source_ref: references/threat-patterns.md
+    notes:
+      - Preserved as corpus only in this round; not yet wired into core scanner logic.

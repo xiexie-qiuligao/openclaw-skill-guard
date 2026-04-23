@@ -15,7 +15,8 @@ pub fn parse_skill_file(path: &Path, content: &str, additional_files: Vec<String
     let name = get_field(&frontmatter_doc.frontmatter, "name")
         .map(ToString::to_string)
         .or_else(|| directory_name.clone());
-    let description = get_field(&frontmatter_doc.frontmatter, "description").map(ToString::to_string);
+    let description =
+        get_field(&frontmatter_doc.frontmatter, "description").map(ToString::to_string);
     let homepage = get_field(&frontmatter_doc.frontmatter, "homepage")
         .map(ToString::to_string)
         .or_else(|| normalized.metadata.homepage.clone());
@@ -34,11 +35,7 @@ pub fn parse_skill_file(path: &Path, content: &str, additional_files: Vec<String
             slug_candidates,
         },
         skill_file: path.display().to_string(),
-        skill_root: path
-            .parent()
-            .unwrap_or(path)
-            .display()
-            .to_string(),
+        skill_root: path.parent().unwrap_or(path).display().to_string(),
         body: frontmatter_doc.body,
         frontmatter: frontmatter_doc.frontmatter,
         raw_metadata,
@@ -51,7 +48,11 @@ pub fn parse_skill_file(path: &Path, content: &str, additional_files: Vec<String
 }
 
 fn infer_skill_source(path: &Path) -> SkillSource {
-    let lowered = path.display().to_string().replace('\\', "/").to_ascii_lowercase();
+    let lowered = path
+        .display()
+        .to_string()
+        .replace('\\', "/")
+        .to_ascii_lowercase();
     if lowered.contains("/plugins/") {
         SkillSource::PluginExtraDir
     } else if lowered.contains("/bundled/") {
@@ -77,7 +78,13 @@ fn build_slug_candidates(name: Option<&str>, directory_name: Option<&str>) -> Ve
         if let Some(value) = value {
             let slug = value
                 .chars()
-                .map(|ch| if ch.is_ascii_alphanumeric() { ch.to_ascii_lowercase() } else { '-' })
+                .map(|ch| {
+                    if ch.is_ascii_alphanumeric() {
+                        ch.to_ascii_lowercase()
+                    } else {
+                        '-'
+                    }
+                })
                 .collect::<String>()
                 .trim_matches('-')
                 .split('-')
@@ -110,7 +117,10 @@ mod tests {
 
         assert_eq!(parsed.descriptor.name.as_deref(), Some("Demo Skill"));
         assert_eq!(parsed.metadata.skill_key.as_deref(), Some("demo"));
-        assert_eq!(parsed.descriptor.slug_candidates, vec!["demo-skill", "demo"]);
+        assert_eq!(
+            parsed.descriptor.slug_candidates,
+            vec!["demo-skill", "demo"]
+        );
     }
 
     #[test]

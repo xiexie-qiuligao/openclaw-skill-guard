@@ -1,0 +1,9 @@
+[package]
+name = "dependency-audit-fixture"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = "*"
+custom = { git = "https://github.com/example/custom" }
+localdep = { path = "../localdep" }

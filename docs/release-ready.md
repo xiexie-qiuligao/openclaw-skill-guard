@@ -4,15 +4,15 @@ Date: 2026-04-23
 
 ## Scope
 
-This document captures the `v1.0.0-rc1` release-readiness pass for Standalone OpenClaw Skill Guard. It is intentionally focused on publication readiness for a CLI-first verifier release, not on opening a new feature phase.
+This document captures the final release-readiness pass for `openclaw-skill-guard` as a Windows-friendly deliverable with both GUI and CLI entry points. The goal of this pass is final packaging, validation, and submission readiness.
 
-## Product posture confirmed
+## Final product shape
 
-- project positioning is consistent as an OpenClaw-aware skill verifier
-- primary delivery is a Rust CLI, with a documented Windows EXE path
-- canonical output remains the v1 JSON report
-- runtime refinement remains guarded, non-executing, and evidence-preserving
-- the tool is presented as a verifier, not an exploit runner
+- GUI is the primary product surface for target selection, scan execution, result review, and export.
+- CLI remains available for automation, pipelines, and advanced-user workflows.
+- Both surfaces reuse the same core scanning and reporting logic.
+- JSON remains the canonical report contract.
+- SARIF, Markdown, and HTML remain derived exports from the same `ScanReport`.
 
 ## Checks performed
 
@@ -23,103 +23,78 @@ This document captures the `v1.0.0-rc1` release-readiness pass for Standalone Op
 - Result:
   - passed
 
-### 2. CLI help and common usage
+### 2. GUI product path
 
 - Verified:
-  - top-level help
-  - `scan --help`
-  - canonical JSON output mode
-  - suppression file option
-  - runtime manifest option
-  - validation mode option
-  - Windows release EXE invocation
+  - GUI crate tests
+  - GUI startup smoke validation
+  - benign sample scan through the GUI pipeline
+  - risky sample scan through the GUI pipeline
+  - GUI export coverage for JSON, SARIF, Markdown, and HTML
 - Result:
-  - help text is consistent and usable for v1 demos and release documentation
+  - GUI delivery path is ready for Windows handoff
 
-### 3. Demo commands
-
-Verified demo commands from [demo-commands.md](../examples/demo-commands.md):
-
-- benign sample
-- high-risk sample
-- install-risk sample
-- prompt-risk sample
-- precedence-shadowing sample
-- runtime-refinement sample
-- suppression-audit sample
-
-All commands produced JSON output successfully.
-
-### 3.1 Smoke scan review
-
-- Reviewed representative samples across:
-  - benign
-  - obvious high-risk
-  - install-risk
-  - prompt-risk
-  - precedence or shadowing hint
-  - runtime refinement
-  - suppression or audit
-- Result:
-  - one release-facing false positive was found in the benign sample
-  - it was fixed before release by suppressing clearly negated indirect, tool, and secret directives in the prompt analyzer
-  - no remaining publication blocker was found in the smoke-scan pass
-
-### 3.2 Windows EXE delivery
+### 3. CLI executable path
 
 - Verified:
-  - `cargo build --release`
-  - `target\release\openclaw-skill-guard.exe`
-  - benign sample via EXE
-  - risky sample via EXE
+  - release build for CLI binary
+  - release executable naming and path
+  - minimal CLI invocation
 - Result:
-  - Windows EXE delivery path is working for the current release candidate
+  - CLI delivery path is ready for automation and Windows handoff
 
-### 4. Canonical report output
+### 4. GUI executable path
 
-Checked that example outputs include the expected v1 sections:
+- Verified:
+  - release build for GUI binary
+  - release executable naming and path
+  - minimal GUI startup
+- Result:
+  - GUI delivery path is ready as the primary desktop entry point
 
-- `findings`
-- `context_analysis`
-- `attack_paths`
-- `scoring_summary`
-- `consequence_summary`
-- runtime validation fields
-- guarded validation fields
-- suppression and audit fields
-- `analysis_limitations`
+### 5. Report contract and UX consistency
 
-### 5. Schema and output consistency
+- Verified:
+  - CLI still emits canonical JSON output
+  - GUI exposes summary, findings, context, paths, validation, audit, and raw JSON views
+  - GUI can export JSON, SARIF, Markdown, and HTML from the same report pipeline
+- Result:
+  - CLI and GUI remain consistent with the same report contract
 
-- `report.schema.json` matches the current runtime-validation-era `ScanReport`
-- renderer test passes
-- example outputs deserialize as valid JSON and contain the expected top-level fields
+### 6. Documentation consistency
 
-### 6. Docs consistency
-
-Reviewed and updated release-facing wording in:
+Reviewed and updated:
 
 - [README.md](../README.md)
 - [README.zh-CN.md](../README.zh-CN.md)
-- [CHANGELOG.md](../CHANGELOG.md)
 - [packaging.md](./packaging.md)
-- [github-release-kit.md](./github-release-kit.md)
-- release-facing technical references:
-  - [runtime-manifest.md](./runtime-manifest.md)
-  - [validation-adapter.md](./validation-adapter.md)
-  - [reporting.md](./reporting.md)
+- [CHANGELOG.md](../CHANGELOG.md)
+- [demo-commands.md](../examples/demo-commands.md)
+
+### 7. Showcase materials
+
+Prepared:
+
+- GUI screenshots under [docs/gui-screenshots/](./gui-screenshots/)
+- sanitized example reports under [examples/reports/](../examples/reports/)
 
 ## Current blockers
 
-No release-text blocker or release-validation blocker was found during this pass.
+No release blocker was found during this final pass.
 
-## Known non-blocking limits
+## Known intentional limits
 
-- runtime validation is guarded and non-executing
-- precedence truth remains scope-dependent rather than globally complete
-- reputation, signing, SBOM, and AI-BOM are not part of `v1.0.0-rc1`
-- no GUI release surface is being shipped in this release candidate
+- the GUI remains a product surface over the existing verifier core, not a second analysis engine
+- runtime validation remains guarded and non-executing
+- the canonical public contract remains the JSON report
+- no online service layer, exploit execution, or plugin marketplace workflow is included in this release
 
 ## Recommendation
 
-The repository is in deliverable shape for a Windows-friendly `v1.0.0-rc1` CLI release and the publication copy is ready for direct GitHub use.
+`openclaw-skill-guard` is ready for final submission as a Windows-friendly release with:
+
+- a desktop GUI as the main product surface
+- a CLI EXE for automation and advanced workflows
+- a canonical JSON report contract with derived export formats
+- consistent docs, screenshots, and packaging guidance
+- root-level tests in passing state

@@ -1,74 +1,99 @@
 # Packaging Notes
 
-Standalone OpenClaw Skill Guard ships as a CLI-first Rust application. For Windows users, the primary release artifact is:
+`openclaw-skill-guard` ships with two Windows-friendly executables:
 
-```text
-target\release\openclaw-skill-guard.exe
-```
+- GUI EXE
+  - primary desktop product surface
+  - `target\release\openclaw-skill-guard-gui.exe`
+- CLI EXE
+  - automation and advanced-user entry point
+  - `target\release\openclaw-skill-guard.exe`
 
-The packaging goal is simple: deliver a usable verifier binary together with enough documentation to explain the JSON report contract, the guarded runtime-validation model, and the current release limits.
+Both executables front the same verifier core and the same canonical report pipeline.
 
-## Build the release executable
+## Build both executables
 
 ```powershell
-cargo build --release
+cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
 ```
 
-## Minimal Windows EXE usage
+## GUI EXE usage
+
+Launch the desktop app:
+
+```powershell
+.\target\release\openclaw-skill-guard-gui.exe
+```
+
+Minimal startup smoke validation:
+
+```powershell
+.\target\release\openclaw-skill-guard-gui.exe --smoke-test
+```
+
+Best for:
+
+- day-to-day desktop review
+- guided target selection and scan execution
+- overview-first result reading
+- findings, paths, validation, and audit review
+- exporting JSON, SARIF, Markdown, and HTML from the GUI
+
+## CLI EXE usage
+
+Show help:
 
 ```powershell
 .\target\release\openclaw-skill-guard.exe --help
-.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\benign\SKILL.md --format json
-.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\prompt-risk\SKILL.md --format json
 ```
 
-## Core runtime flags
+Scan a benign sample:
 
-- `scan <path>`
-- `--format json`
-- `--runtime-manifest <file>`
-- `--validation-mode planned|guarded`
-- `--suppressions <file>`
+```powershell
+.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\benign\SKILL.md --format json
+```
 
-## Files worth shipping with a release
+Best for:
 
+- automation
+- CI or review pipelines
+- direct canonical JSON consumption
+- scripted validation workflows
+- reproducible export generation
+
+## Files worth shipping
+
+- `openclaw-skill-guard-gui.exe`
 - `openclaw-skill-guard.exe`
 - `README.md`
 - `README.zh-CN.md`
-- `LICENSE`
 - `CHANGELOG.md`
 - `schemas/report.schema.json`
 - `docs/packaging.md`
 - `docs/release-ready.md`
-- `docs/github-release-kit.md`
 - optional demo and support materials:
   - `examples/`
   - `fixtures/`
   - `docs/reporting.md`
   - `docs/runtime-manifest.md`
   - `docs/validation-adapter.md`
+  - `docs/gui-screenshots/`
 
-## Files not worth shipping in a release bundle
-
-- `target/debug/`
-- incremental build caches
-- editor-specific metadata
-- local logs or temporary output
-- private or local-only scan output generated outside the repository
-
-## Packaging posture
+## Packaging intent
 
 The release bundle should remain:
 
-- small enough to hand over easily
-- complete enough to explain the verifier posture and report contract
-- safe enough that no local machine paths, usernames, or private runtime traces leak into shipped artifacts
+- clear about GUI as the primary product entry point
+- explicit about CLI as the auxiliary automation surface
+- safe to hand over without local-only artifacts
+- complete enough to explain the canonical JSON report contract
+- Windows-friendly for both desktop and terminal usage
 
-## What this release bundle is not
+## What this package is not
 
-- not a GUI package
+- not an exploit runner
 - not a dynamic malware sandbox
-- not an exploit execution environment
-- not a promise of globally complete runtime truth
+- not an online reputation service
+- not a second report protocol
 
-The artifact is a `v1.0.0-rc1` release-candidate verifier bundle for CLI use, JSON reporting, and Windows-friendly distribution.
+JSON remains the canonical report contract. SARIF, Markdown, and HTML remain derived outputs from the same `ScanReport`.

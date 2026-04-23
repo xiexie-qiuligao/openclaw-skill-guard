@@ -32,11 +32,7 @@ pub fn score_findings(
             rationale.push(ScoreRationaleItem {
                 source: finding.id.clone(),
                 delta: -penalty,
-                explanation: format!(
-                    "Finding `{}` contributes a {} severity penalty.",
-                    finding.title,
-                    severity_label(finding.severity)
-                ),
+                explanation: finding_score_explanation(finding, penalty),
             });
         }
         if finding.hard_trigger && finding.confidence == FindingConfidence::High {
@@ -49,7 +45,8 @@ pub fn score_findings(
         rationale.push(ScoreRationaleItem {
             source: "scan_integrity".to_string(),
             delta: -5,
-            explanation: "Scan integrity notes slightly reduce confidence in a clean result.".to_string(),
+            explanation: "Scan integrity notes slightly reduce confidence in a clean result."
+                .to_string(),
         });
     }
 
@@ -67,7 +64,10 @@ pub fn score_findings(
         });
     }
 
-    let path_uplift: i32 = attack_paths.iter().map(|path| path_penalty(path.severity)).sum();
+    let path_uplift: i32 = attack_paths
+        .iter()
+        .map(|path| path_penalty(path.severity))
+        .sum();
     for path in attack_paths {
         rationale.push(ScoreRationaleItem {
             source: path.path_id.clone(),
@@ -82,7 +82,8 @@ pub fn score_findings(
             source: "confidence_adjustment".to_string(),
             delta: confidence_adjustment,
             explanation: if confidence_adjustment > 0 {
-                "Scope-limited or lower-confidence context slightly reduced the overall escalation.".to_string()
+                "Scope-limited or lower-confidence context slightly reduced the overall escalation."
+                    .to_string()
             } else {
                 "High-confidence attack-path evidence increased overall risk.".to_string()
             },
@@ -104,7 +105,11 @@ pub fn score_findings(
         || severe_paths >= 2
     {
         Verdict::Block
-    } else if !attack_paths.is_empty() || !compound_hits.is_empty() || !findings.is_empty() || final_score <= 79 {
+    } else if !attack_paths.is_empty()
+        || !compound_hits.is_empty()
+        || !findings.is_empty()
+        || final_score <= 79
+    {
         Verdict::Warn
     } else {
         Verdict::Allow
@@ -170,7 +175,11 @@ fn path_penalty(severity: FindingSeverity) -> i32 {
     }
 }
 
-fn confidence_adjustment(findings: &[Finding], attack_paths: &[AttackPath], scope_limited: bool) -> i32 {
+fn confidence_adjustment(
+    findings: &[Finding],
+    attack_paths: &[AttackPath],
+    scope_limited: bool,
+) -> i32 {
     let low_confidence_paths = attack_paths
         .iter()
         .all(|path| path.confidence != FindingConfidence::High);
@@ -181,10 +190,9 @@ fn confidence_adjustment(findings: &[Finding], attack_paths: &[AttackPath], scop
 
     if scope_limited && (low_confidence_paths || low_confidence_findings) {
         5
-    } else if attack_paths
-        .iter()
-        .any(|path| path.confidence == FindingConfidence::High && path.severity >= FindingSeverity::High)
-    {
+    } else if attack_paths.iter().any(|path| {
+        path.confidence == FindingConfidence::High && path.severity >= FindingSeverity::High
+    }) {
         -3
     } else {
         0
@@ -202,13 +210,22 @@ fn build_recommendations(
 
     for finding in findings {
         immediate.insert(finding.remediation.clone());
-        short_term.insert(format!("Review and minimize {} behavior in the skill.", finding.category));
+        short_term.insert(format!(
+            "Review and minimize {} behavior in the skill.",
+            finding.category
+        ));
     }
     for path in attack_paths {
-        short_term.insert(format!("Break the `{}` attack path by removing one or more prerequisite steps.", path.path_type));
+        short_term.insert(format!(
+            "Break the `{}` attack path by removing one or more prerequisite steps.",
+            path.path_type
+        ));
     }
     for hit in compound_hits {
-        hardening.insert(format!("Review compound risk condition `{}` and reduce one of its inputs.", hit.rule_id));
+        hardening.insert(format!(
+            "Review compound risk condition `{}` and reduce one of its inputs.",
+            hit.rule_id
+        ));
     }
 
     if hardening.is_empty() {
@@ -232,6 +249,58 @@ fn severity_label(severity: FindingSeverity) -> &'static str {
         FindingSeverity::Medium => "medium",
         FindingSeverity::Low => "low",
         FindingSeverity::Info => "info",
+    }
+}
+
+fn finding_score_explanation(finding: &Finding, penalty: i32) -> String {
+    if finding.category == "threat_corpus" {
+        let corpus_entry = finding
+            .analyst_notes
+            .iter()
+            .find(|note| note.starts_with("corpus entry:"))
+            .cloned()
+            .unwrap_or_else(|| "corpus entry: unknown".to_string());
+        format!(
+            "Corpus-backed threat finding `{}` contributed a {}-point penalty at {} severity because {}.",
+            finding.title,
+            penalty,
+            severity_label(finding.severity),
+            corpus_entry
+        )
+    } else if finding.category == "sensitive_corpus" {
+        let category = finding
+            .analyst_notes
+            .iter()
+            .find(|note| note.starts_with("sensitive category:"))
+            .cloned()
+            .unwrap_or_else(|| "sensitive category: unknown".to_string());
+        format!(
+            "Inline sensitive-material finding `{}` contributed a {}-point penalty at {} severity because {}.",
+            finding.title,
+            penalty,
+            severity_label(finding.severity),
+            category
+        )
+    } else if finding.id.starts_with("dependency.") {
+        format!(
+            "Dependency audit finding `{}` contributed a {}-point penalty at {} severity due to supply-chain review risk.",
+            finding.title,
+            penalty,
+            severity_label(finding.severity)
+        )
+    } else if finding.id.starts_with("source.") || finding.id.starts_with("api.") {
+        format!(
+            "Source/API finding `{}` contributed a {}-point penalty at {} severity because the referenced external service needs stronger review or trust context.",
+            finding.title,
+            penalty,
+            severity_label(finding.severity)
+        )
+    } else {
+        format!(
+            "Finding `{}` contributes a {} severity penalty.",
+            finding.title,
+            severity_label(finding.severity)
+        )
     }
 }
 
@@ -271,7 +340,10 @@ mod tests {
             why_openclaw_specific: "OpenClaw".to_string(),
         }];
         let score = score_findings(&findings, &paths, &[], &[], false);
-        assert!(matches!(score.verdict, crate::types::Verdict::Warn | crate::types::Verdict::Block));
+        assert!(matches!(
+            score.verdict,
+            crate::types::Verdict::Warn | crate::types::Verdict::Block
+        ));
         assert!(score.scoring_summary.path_uplift > 0);
     }
 

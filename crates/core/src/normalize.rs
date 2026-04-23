@@ -129,7 +129,12 @@ fn decode_utf16(bytes: &[u8]) -> Option<String> {
     }
 
     let even_zeroes = bytes.iter().step_by(2).filter(|&&byte| byte == 0).count();
-    let odd_zeroes = bytes.iter().skip(1).step_by(2).filter(|&&byte| byte == 0).count();
+    let odd_zeroes = bytes
+        .iter()
+        .skip(1)
+        .step_by(2)
+        .filter(|&&byte| byte == 0)
+        .count();
 
     if odd_zeroes > bytes.len() / 4 {
         return String::from_utf16(
@@ -173,4 +178,3 @@ mod tests {
         assert_eq!(lines[1].text, "const cmd = 'a' 'b';");
     }
 }
-

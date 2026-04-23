@@ -5,35 +5,41 @@ use thiserror::Error;
 use crate::attack_paths::build_attack_paths;
 use crate::compound_rules::evaluate_compound_rules;
 use crate::consequence::analyze_consequences;
+use crate::corpus::{corpus_assets_used, load_builtin_corpora};
+use crate::corpus_findings::{analyze_sensitive_corpus, analyze_threat_corpus};
 use crate::context::build_context_analysis;
+use crate::dependency_audit::analyze_dependency_audit;
+use crate::install::{analyze_install_chain, InstallAnalysis};
 use crate::instruction::{extract_instruction_segments, InstructionAnalysis};
 use crate::inventory::{build_inventory, InventoryError};
-use crate::install::{analyze_install_chain, InstallAnalysis};
 use crate::invocation::{analyze_invocation_policy, InvocationAnalysis};
 use crate::normalize::{build_scan_lines, read_text_document};
 use crate::precedence::analyze_precedence;
-use crate::provenance::refine_findings_and_paths;
 use crate::prompt_injection::{analyze_instruction_segments, PromptInjectionAnalysis};
+use crate::provenance::refine_findings_and_paths;
 use crate::reachability::{
     analyze_secret_reachability, analyze_tool_reachability, SecretReachabilityAnalysis,
     ToolReachabilityAnalysis,
 };
+use crate::rules::evaluate_rules;
 use crate::runtime_manifest::load_runtime_manifest;
 use crate::runtime_validation::perform_runtime_validation;
-use crate::rules::evaluate_rules;
 use crate::scoring::score_findings;
 use crate::skill_parse::parse_skill_file;
 use crate::suppression::{apply_suppressions, load_suppression_rules};
 use crate::types::{
-    FileSkip, InstructionSegment, ParseError, ParsedSkill, ScanIntegrityNote, ScanReport,
-    ValidationExecutionMode, Verdict,
+    CorpusAssetUsage, FileSkip, InstructionSegment, ParseError, ParsedSkill, ProvenanceNote,
+    ScanIntegrityNote, ScanReport, TextArtifact, ValidationExecutionMode, Verdict,
 };
+use crate::url_classification::analyze_external_references;
 use crate::validation::build_validation_plan;
 
 #[derive(Debug, Error)]
 pub enum ScanError {
     #[error(transparent)]
     Inventory(#[from] InventoryError),
+    #[error(transparent)]
+    Corpus(#[from] crate::corpus::CorpusLoadError),
     #[error("{0}")]
     Suppression(String),
     #[error(transparent)]
@@ -48,7 +54,12 @@ pub fn scan_path_with_suppressions(
     path: &Path,
     suppression_path: Option<&Path>,
 ) -> Result<ScanReport, ScanError> {
-    scan_path_with_options(path, suppression_path, None, ValidationExecutionMode::Planned)
+    scan_path_with_options(
+        path,
+        suppression_path,
+        None,
+        ValidationExecutionMode::Planned,
+    )
 }
 
 pub fn scan_path_with_options(
@@ -57,6 +68,8 @@ pub fn scan_path_with_options(
     runtime_manifest_path: Option<&Path>,
     validation_mode: ValidationExecutionMode,
 ) -> Result<ScanReport, ScanError> {
+    let corpora = load_builtin_corpora()?;
+    let corpus_assets = corpus_assets_used(&corpora);
     let inventory = build_inventory(path)?;
     let mut files_skipped = inventory.files_skipped;
     let mut parse_errors = Vec::<ParseError>::new();
@@ -64,6 +77,7 @@ pub fn scan_path_with_options(
     let mut findings = Vec::new();
     let mut files_scanned = 0usize;
     let mut parsed_skills = Vec::<ParsedSkill>::new();
+    let mut text_artifacts = Vec::<TextArtifact>::new();
     let all_files = inventory.files.clone();
 
     for file in inventory.files {
@@ -71,13 +85,19 @@ pub fn scan_path_with_options(
             Ok(document) => {
                 files_scanned += 1;
                 let relative_path = file.display().to_string();
+                text_artifacts.push(TextArtifact {
+                    path: relative_path.clone(),
+                    content: document.content.clone(),
+                });
                 let lines = build_scan_lines(&document.content);
                 findings.extend(evaluate_rules(&relative_path, &lines));
 
                 if file.file_name().and_then(|name| name.to_str()) == Some("SKILL.md") {
                     let additional_files = all_files
                         .iter()
-                        .filter(|candidate| candidate.parent() == file.parent() && *candidate != &file)
+                        .filter(|candidate| {
+                            candidate.parent() == file.parent() && *candidate != &file
+                        })
                         .map(|candidate| candidate.display().to_string())
                         .collect();
                     let parsed_skill = parse_skill_file(&file, &document.content, additional_files);
@@ -125,6 +145,21 @@ pub fn scan_path_with_options(
     let precedence_analysis = analyze_precedence(&parsed_skills, inventory.target.target_kind);
     let instruction_analysis = aggregate_instruction_analysis(&parsed_skills);
     let prompt_analysis = aggregate_prompt_analysis(&instruction_analysis);
+    let mut pre_corpus_findings = findings.clone();
+    pre_corpus_findings.extend(install_analysis.findings.clone());
+    pre_corpus_findings.extend(invocation_analysis.findings.clone());
+    pre_corpus_findings.extend(tool_analysis.findings.clone());
+    pre_corpus_findings.extend(secret_analysis.findings.clone());
+    pre_corpus_findings.extend(precedence_analysis.findings.clone());
+    pre_corpus_findings.extend(prompt_analysis.findings.clone());
+    let threat_corpus_analysis =
+        analyze_threat_corpus(&text_artifacts, &corpora, &pre_corpus_findings);
+    let mut post_threat_findings = pre_corpus_findings.clone();
+    post_threat_findings.extend(threat_corpus_analysis.findings.clone());
+    let sensitive_corpus_analysis =
+        analyze_sensitive_corpus(&text_artifacts, &corpora, &post_threat_findings);
+    let dependency_audit = analyze_dependency_audit(&text_artifacts, &install_analysis);
+    let url_classification = analyze_external_references(&text_artifacts, &corpora);
     let compound_analysis = evaluate_compound_rules(
         &parsed_skills,
         &instruction_analysis,
@@ -152,12 +187,18 @@ pub fn scan_path_with_options(
     findings.extend(secret_analysis.findings.clone());
     findings.extend(precedence_analysis.findings.clone());
     findings.extend(prompt_analysis.findings.clone());
+    findings.extend(threat_corpus_analysis.findings.clone());
+    findings.extend(sensitive_corpus_analysis.findings.clone());
+    findings.extend(dependency_audit.findings.clone());
+    findings.extend(url_classification.findings.clone());
 
     findings.sort_by(|left, right| {
-        right
-            .severity
-            .cmp(&left.severity)
-            .then_with(|| left.location.as_ref().and_then(|location| location.line).cmp(&right.location.as_ref().and_then(|location| location.line)))
+        right.severity.cmp(&left.severity).then_with(|| {
+            left.location
+                .as_ref()
+                .and_then(|location| location.line)
+                .cmp(&right.location.as_ref().and_then(|location| location.line))
+        })
     });
 
     let static_consequence_analysis = analyze_consequences(
@@ -235,9 +276,7 @@ pub fn scan_path_with_options(
         &mut score_result.scoring_summary,
         &runtime_validation.validation_score_adjustments,
     );
-    if score_result.verdict == Verdict::Warn
-        && score_result.scoring_summary.final_score <= 35
-    {
+    if score_result.verdict == Verdict::Warn && score_result.scoring_summary.final_score <= 35 {
         score_result.verdict = Verdict::Block;
         score_result.blocked = true;
     } else if score_result.verdict == Verdict::Block
@@ -245,7 +284,9 @@ pub fn scan_path_with_options(
         && !suppression_application
             .active_findings
             .iter()
-            .any(|finding| finding.hard_trigger && finding.confidence == crate::types::FindingConfidence::High)
+            .any(|finding| {
+                finding.hard_trigger && finding.confidence == crate::types::FindingConfidence::High
+            })
     {
         score_result.verdict = Verdict::Warn;
         score_result.blocked = false;
@@ -295,6 +336,10 @@ pub fn scan_path_with_options(
             &secret_analysis,
             &precedence_analysis,
             &prompt_analysis,
+            &threat_corpus_analysis.summary,
+            &sensitive_corpus_analysis.summary,
+            &dependency_audit,
+            &url_classification,
             &static_consequence_analysis,
         ),
         attack_paths: suppression_application.paths,
@@ -315,9 +360,31 @@ pub fn scan_path_with_options(
         environment_blockers: runtime_validation.environment_blockers,
         environment_amplifiers: runtime_validation.environment_amplifiers,
         validation_score_adjustments: runtime_validation.validation_score_adjustments.clone(),
-        provenance_notes: provenance_analysis.provenance_notes,
-        confidence_factors: provenance_analysis.confidence_factors,
-        false_positive_mitigations: provenance_analysis.false_positive_mitigations,
+        corpus_assets_used: corpus_assets.clone(),
+        dependency_audit_summary: dependency_audit.summary,
+        api_classification_summary: url_classification.api_summary,
+        source_reputation_summary: url_classification.reputation_summary,
+        external_references: url_classification.external_references,
+        provenance_notes: {
+            let mut notes = provenance_analysis.provenance_notes;
+            notes.extend(threat_corpus_analysis.provenance_notes);
+            notes.extend(sensitive_corpus_analysis.provenance_notes);
+            notes.extend(url_classification.provenance_notes);
+            notes.extend(build_corpus_provenance_notes(&corpus_assets));
+            notes
+        },
+        confidence_factors: {
+            let mut factors = provenance_analysis.confidence_factors;
+            factors.extend(threat_corpus_analysis.confidence_factors);
+            factors.extend(sensitive_corpus_analysis.confidence_factors);
+            factors
+        },
+        false_positive_mitigations: {
+            let mut mitigations = provenance_analysis.false_positive_mitigations;
+            mitigations.extend(threat_corpus_analysis.false_positive_mitigations);
+            mitigations.extend(sensitive_corpus_analysis.false_positive_mitigations);
+            mitigations
+        },
         scoring_summary: score_result.scoring_summary,
         openclaw_specific_risk_summary: attack_paths.openclaw_specific_risk_summary,
         scope_resolution_summary: precedence_analysis.root_resolution,
@@ -329,6 +396,25 @@ pub fn scan_path_with_options(
         suppressions: suppression_application.records,
         scan_integrity_notes,
     })
+}
+
+fn build_corpus_provenance_notes(corpus_assets: &[CorpusAssetUsage]) -> Vec<ProvenanceNote> {
+    corpus_assets
+        .iter()
+        .map(|asset| ProvenanceNote {
+            subject_id: asset.asset_name.clone(),
+            subject_kind: "corpus_asset".to_string(),
+            source_layer: "corpus_asset".to_string(),
+            evidence_sources: asset.source_refs.clone(),
+            inferred_sources: Vec::new(),
+            recent_signal_class: "v2_builtin_corpus".to_string(),
+            long_term_pattern: "typed asset-backed verifier enrichment".to_string(),
+            note: format!(
+                "Loaded corpus asset `{}` with {} entry or entries.",
+                asset.asset_name, asset.entry_count
+            ),
+        })
+        .collect()
 }
 
 fn apply_runtime_score_adjustments(
@@ -363,10 +449,7 @@ fn parsing_finding(skill: &ParsedSkill) -> crate::types::Finding {
         EvidenceKind, EvidenceNode, Finding, FindingConfidence, FindingSeverity, SkillLocation,
     };
 
-    let excerpt = skill
-        .frontmatter
-        .diagnostics
-        .join(" | ");
+    let excerpt = skill.frontmatter.diagnostics.join(" | ");
     let location = SkillLocation {
         path: skill.skill_file.clone(),
         line: Some(1),
@@ -441,7 +524,8 @@ fn aggregate_invocation_analysis(skills: &[ParsedSkill]) -> InvocationAnalysis {
 
 fn aggregate_tool_reachability(skills: &[ParsedSkill]) -> ToolReachabilityAnalysis {
     let mut combined = ToolReachabilityAnalysis {
-        summary: "No high-confidence OpenClaw tool dependencies or dispatch targets were inferred.".to_string(),
+        summary: "No high-confidence OpenClaw tool dependencies or dispatch targets were inferred."
+            .to_string(),
         reachable_tools: Vec::new(),
         findings: Vec::new(),
     };
@@ -552,7 +636,10 @@ mod tests {
         assert_eq!(report.scan_mode, "file");
         assert_eq!(report.files_scanned, 1);
         assert!(!report.findings.is_empty());
-        assert!(matches!(report.verdict, crate::types::Verdict::Block | crate::types::Verdict::Warn));
+        assert!(matches!(
+            report.verdict,
+            crate::types::Verdict::Block | crate::types::Verdict::Warn
+        ));
     }
 
     #[test]
@@ -572,7 +659,10 @@ mod tests {
         assert!(report.context_analysis.install_chain_summary.is_some());
         assert!(report.context_analysis.invocation_summary.is_some());
         assert!(report.context_analysis.tool_reachability_summary.is_some());
-        assert!(report.context_analysis.secret_reachability_summary.is_some());
+        assert!(report
+            .context_analysis
+            .secret_reachability_summary
+            .is_some());
         assert!(report.context_analysis.prompt_injection_summary.is_some());
         assert!(report
             .context_analysis
@@ -626,7 +716,9 @@ mod tests {
         )
         .unwrap();
 
-        assert!(report.runtime_manifest_summary.contains("Loaded runtime manifest"));
+        assert!(report
+            .runtime_manifest_summary
+            .contains("Loaded runtime manifest"));
         assert!(!report.validation_results.is_empty());
         assert!(!report.path_validation_status.is_empty());
         assert!(!report.validation_score_adjustments.is_empty());

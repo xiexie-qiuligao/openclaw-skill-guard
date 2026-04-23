@@ -317,6 +317,66 @@ pub enum SuppressionLifecycle {
     Expired,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CorpusSourceKind {
+    FirstParty,
+    AdaptedReference,
+    InternalSeed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExternalReferenceCategory {
+    SourceRepository,
+    Documentation,
+    RawContent,
+    ApiEndpoint,
+    AuthEndpoint,
+    PackageRegistry,
+    ObjectStorage,
+    FileDownload,
+    Shortlink,
+    DynamicDns,
+    DirectIp,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExternalServiceKind {
+    SourceCodeHost,
+    PackageEcosystem,
+    CloudPlatform,
+    AiService,
+    GeneralApi,
+    ContentDelivery,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExternalReferenceReputation {
+    TrustedInfrastructure,
+    KnownPlatform,
+    ReviewNeeded,
+    Suspicious,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExternalRiskSignal {
+    Shortlink,
+    RawDownloadHost,
+    RawDownloadPath,
+    PureIp,
+    DynamicDnsSuffix,
+    SuspiciousTld,
+    NonHttps,
+    DirectFileDownload,
+    KnownSuspiciousSeed,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ScanTarget {
     pub path: String,
@@ -924,6 +984,12 @@ pub struct ParseError {
     pub message: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TextArtifact {
+    pub path: String,
+    pub content: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ScanIntegrityNote {
     pub kind: String,
@@ -958,6 +1024,70 @@ pub struct ScoringSummary {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CorpusProvenance {
+    pub source_name: String,
+    pub source_kind: CorpusSourceKind,
+    pub source_ref: String,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CorpusAssetUsage {
+    pub asset_name: String,
+    pub entry_count: usize,
+    pub source_refs: Vec<String>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ReferenceClassificationProvenance {
+    pub taxonomy_entry_id: Option<String>,
+    pub matched_seed_ids: Vec<String>,
+    pub asset_sources: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ExternalReference {
+    pub reference_id: String,
+    pub url: String,
+    pub host: String,
+    pub category: ExternalReferenceCategory,
+    pub service_kind: ExternalServiceKind,
+    pub reputation: ExternalReferenceReputation,
+    pub risk_signals: Vec<ExternalRiskSignal>,
+    pub locations: Vec<SkillLocation>,
+    pub evidence_excerpt: String,
+    pub rationale: String,
+    pub provenance: ReferenceClassificationProvenance,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DependencyAuditSummary {
+    pub summary: String,
+    pub manifests_discovered: Vec<String>,
+    pub lockfile_gaps: Vec<String>,
+    pub findings_count: usize,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ApiClassificationSummary {
+    pub summary: String,
+    pub total_references: usize,
+    pub category_counts: BTreeMap<String, usize>,
+    pub service_kind_counts: BTreeMap<String, usize>,
+    pub review_needed_count: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceReputationSummary {
+    pub summary: String,
+    pub suspicious_references: usize,
+    pub risk_signal_counts: BTreeMap<String, usize>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContextAnalysis {
     pub phase: String,
     pub parsing_summary: String,
@@ -972,6 +1102,11 @@ pub struct ContextAnalysis {
     pub naming_collisions: Vec<PrecedenceCollision>,
     pub host_vs_sandbox_assessment: Option<String>,
     pub prompt_injection_summary: Option<String>,
+    pub threat_corpus_summary: Option<String>,
+    pub sensitive_data_summary: Option<String>,
+    pub dependency_audit_summary: Option<String>,
+    pub api_classification_summary: Option<String>,
+    pub source_reputation_summary: Option<String>,
     pub notes: Vec<String>,
 }
 
@@ -1014,6 +1149,11 @@ pub struct ScanReport {
     pub environment_blockers: Vec<EnvironmentBlocker>,
     pub environment_amplifiers: Vec<EnvironmentAmplifier>,
     pub validation_score_adjustments: Vec<RuntimeScoreAdjustment>,
+    pub corpus_assets_used: Vec<CorpusAssetUsage>,
+    pub dependency_audit_summary: DependencyAuditSummary,
+    pub api_classification_summary: ApiClassificationSummary,
+    pub source_reputation_summary: SourceReputationSummary,
+    pub external_references: Vec<ExternalReference>,
     pub provenance_notes: Vec<ProvenanceNote>,
     pub confidence_factors: Vec<ConfidenceFactor>,
     pub false_positive_mitigations: Vec<FalsePositiveMitigation>,

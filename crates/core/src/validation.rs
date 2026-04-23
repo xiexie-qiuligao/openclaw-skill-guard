@@ -86,7 +86,11 @@ pub fn build_validation_plan(
                 "Scan additional OpenClaw roots to resolve precedence uncertainty: {}.",
                 precedence.root_resolution.missing_roots.join(", ")
             ),
-            related_findings: precedence.findings.iter().map(|finding| finding.id.clone()).collect(),
+            related_findings: precedence
+                .findings
+                .iter()
+                .map(|finding| finding.id.clone())
+                .collect(),
             related_paths: attack_paths
                 .iter()
                 .filter(|path| path.path_type == "trust_hijack")
@@ -96,10 +100,10 @@ pub fn build_validation_plan(
         });
     }
 
-    if attack_paths
-        .iter()
-        .any(|path| path.path_type == "instruction_secret_access" || path.path_type == "secret_exfiltration_potential")
-    {
+    if attack_paths.iter().any(|path| {
+        path.path_type == "instruction_secret_access"
+            || path.path_type == "secret_exfiltration_potential"
+    }) {
         hooks.push(ValidationHook {
             hook_id: "validation.secret.runtime_prerequisites".to_string(),
             title: "Confirm whether secret-bearing runtime prerequisites actually exist".to_string(),
@@ -159,7 +163,8 @@ mod tests {
         let consequence = analyze_consequences(&[skill.clone()], &install, &tools, &secrets);
         let precedence = analyze_precedence(&[skill], TargetKind::File);
 
-        let plan = build_validation_plan(&install.findings, &[], &install, &precedence, &consequence);
+        let plan =
+            build_validation_plan(&install.findings, &[], &install, &precedence, &consequence);
 
         assert!(plan
             .hooks
@@ -187,7 +192,11 @@ mod tests {
             remediation: String::new(),
             suppression_status: "not_suppressed".to_string(),
         };
-        let skill = parse_skill_file(Path::new("demo/SKILL.md"), "---\nname: Demo\n---\nBody", Vec::new());
+        let skill = parse_skill_file(
+            Path::new("demo/SKILL.md"),
+            "---\nname: Demo\n---\nBody",
+            Vec::new(),
+        );
         let install = analyze_install_chain(&skill);
         let tools = analyze_tool_reachability(&skill);
         let secrets = analyze_secret_reachability(&skill);

@@ -34,6 +34,11 @@
     "environment_blockers",
     "environment_amplifiers",
     "validation_score_adjustments",
+    "corpus_assets_used",
+    "dependency_audit_summary",
+    "api_classification_summary",
+    "source_reputation_summary",
+    "external_references",
     "provenance_notes",
     "confidence_factors",
     "false_positive_mitigations",
@@ -180,6 +185,36 @@
             "null"
           ]
         },
+        "threat_corpus_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sensitive_data_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dependency_audit_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "api_classification_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_reputation_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "notes": {
           "type": "array",
           "items": {
@@ -301,6 +336,63 @@
       "items": { "type": "object" }
     },
     "validation_score_adjustments": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "corpus_assets_used": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "dependency_audit_summary": {
+      "type": "object",
+      "required": [
+        "summary",
+        "manifests_discovered",
+        "lockfile_gaps",
+        "findings_count",
+        "notes"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "manifests_discovered": { "type": "array", "items": { "type": "string" } },
+        "lockfile_gaps": { "type": "array", "items": { "type": "string" } },
+        "findings_count": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "api_classification_summary": {
+      "type": "object",
+      "required": [
+        "summary",
+        "total_references",
+        "category_counts",
+        "service_kind_counts",
+        "review_needed_count"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "total_references": { "type": "integer", "minimum": 0 },
+        "category_counts": { "type": "object" },
+        "service_kind_counts": { "type": "object" },
+        "review_needed_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_reputation_summary": {
+      "type": "object",
+      "required": [
+        "summary",
+        "suspicious_references",
+        "risk_signal_counts",
+        "notes"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "suspicious_references": { "type": "integer", "minimum": 0 },
+        "risk_signal_counts": { "type": "object" },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "external_references": {
       "type": "array",
       "items": { "type": "object" }
     },

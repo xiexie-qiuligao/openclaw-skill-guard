@@ -43,14 +43,19 @@ pub fn parse_frontmatter(content: &str) -> FrontmatterDocument {
         if let Some((key, value)) = line.split_once(':') {
             fields.insert(key.trim().to_string(), value.trim().to_string());
         } else {
-            diagnostics.push(format!("Malformed frontmatter line {}: {}", index + 1, line));
+            diagnostics.push(format!(
+                "Malformed frontmatter line {}: {}",
+                index + 1,
+                line
+            ));
         }
     }
 
     let body = if let Some(start) = body_start {
         all_lines[start..].join("\n")
     } else {
-        diagnostics.push("Frontmatter opened with '---' but no closing delimiter was found.".to_string());
+        diagnostics
+            .push("Frontmatter opened with '---' but no closing delimiter was found.".to_string());
         normalized
     };
 
@@ -97,4 +102,3 @@ mod tests {
         assert!(!doc.frontmatter.diagnostics.is_empty());
     }
 }
-

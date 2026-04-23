@@ -2,8 +2,8 @@ use regex::Regex;
 
 use crate::normalize::build_scan_lines;
 use crate::types::{
-    EvidenceKind, EvidenceNode, Finding, FindingConfidence, FindingSeverity, InstallKind, InstallSpec,
-    ParsedSkill, SkillLocation,
+    EvidenceKind, EvidenceNode, Finding, FindingConfidence, FindingSeverity, InstallKind,
+    InstallSpec, ParsedSkill, SkillLocation,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -76,7 +76,11 @@ fn analyze_metadata_install_specs(skill: &ParsedSkill, specs: &[InstallSpec]) ->
             ));
         }
 
-        if matches!(spec.kind, InstallKind::Node | InstallKind::Go | InstallKind::Uv) && spec.package.is_some() {
+        if matches!(
+            spec.kind,
+            InstallKind::Node | InstallKind::Go | InstallKind::Uv
+        ) && spec.package.is_some()
+        {
             findings.push(make_install_finding(
                 "context.install.supply_chain",
                 "Installer metadata pulls an external package dependency",
@@ -100,11 +104,23 @@ fn analyze_metadata_install_specs(skill: &ParsedSkill, specs: &[InstallSpec]) ->
 fn extract_manual_install_specs(skill: &ParsedSkill) -> Vec<InstallSpec> {
     let patterns: [(InstallKind, &str); 6] = [
         (InstallKind::Brew, r"(?i)\bbrew\s+install\b"),
-        (InstallKind::Node, r"(?i)\b(?:npm|pnpm|yarn|bun)\s+(?:install|add)\b"),
+        (
+            InstallKind::Node,
+            r"(?i)\b(?:npm|pnpm|yarn|bun)\s+(?:install|add)\b",
+        ),
         (InstallKind::Go, r"(?i)\bgo\s+install\b"),
-        (InstallKind::Uv, r"(?i)\buv\s+(?:tool\s+install|pip\s+install)\b"),
-        (InstallKind::Download, r"(?i)\b(?:curl|wget|iwr|invoke-webrequest|certutil|bitsadmin)\b"),
-        (InstallKind::ManualCommand, r"(?i)\b(?:powershell(?:\.exe)?\b.*(?:-enc|-encodedcommand)\b|base64\b.*(?:-d|--decode)\b.*(?:\||;)\s*(?:sh|bash)\b|(?:mshta|regsvr32|rundll32)\b)"),
+        (
+            InstallKind::Uv,
+            r"(?i)\buv\s+(?:tool\s+install|pip\s+install)\b",
+        ),
+        (
+            InstallKind::Download,
+            r"(?i)\b(?:curl|wget|iwr|invoke-webrequest|certutil|bitsadmin)\b",
+        ),
+        (
+            InstallKind::ManualCommand,
+            r"(?i)\b(?:powershell(?:\.exe)?\b.*(?:-enc|-encodedcommand)\b|base64\b.*(?:-d|--decode)\b.*(?:\||;)\s*(?:sh|bash)\b|(?:mshta|regsvr32|rundll32)\b)",
+        ),
     ];
 
     let lines = build_scan_lines(&skill.body);
@@ -154,8 +170,10 @@ fn analyze_manual_specs(skill: &ParsedSkill, specs: &[InstallSpec]) -> Vec<Findi
                 "In OpenClaw skills, documentation commands are part of the operator-facing install surface and can influence real setup behavior.",
                 "Replace remote execution snippets with reviewed local scripts or pinned artifacts.",
             ));
-        } else if matches!(spec.kind, InstallKind::Brew | InstallKind::Node | InstallKind::Go | InstallKind::Uv)
-            && !spec.checksum_present
+        } else if matches!(
+            spec.kind,
+            InstallKind::Brew | InstallKind::Node | InstallKind::Go | InstallKind::Uv
+        ) && !spec.checksum_present
         {
             findings.push(make_install_finding(
                 "context.install.manual_supply_chain",
@@ -179,7 +197,13 @@ fn analyze_manual_specs(skill: &ParsedSkill, specs: &[InstallSpec]) -> Vec<Findi
 
 fn extract_package(line: &str) -> Option<String> {
     line.split_whitespace()
-        .find(|token| token.contains('@') || token.contains('/') || token.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == '.'))
+        .find(|token| {
+            token.contains('@')
+                || token.contains('/')
+                || token
+                    .chars()
+                    .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' || ch == '.')
+        })
         .map(ToString::to_string)
 }
 
@@ -209,10 +233,14 @@ fn looks_like_execute_after_download(line: &str) -> bool {
 }
 
 fn looks_like_remote_script(line: &str) -> bool {
-    Regex::new(r"(?i)\b(?:curl|wget)\b[^\n]*(?:\||;)\s*(?:sh|bash)\b").unwrap().is_match(line)
-        || Regex::new(r"(?i)\b(?:iwr|invoke-webrequest)\b[^\n]*(?:\||;)\s*(?:iex|invoke-expression)\b")
-            .unwrap()
-            .is_match(line)
+    Regex::new(r"(?i)\b(?:curl|wget)\b[^\n]*(?:\||;)\s*(?:sh|bash)\b")
+        .unwrap()
+        .is_match(line)
+        || Regex::new(
+            r"(?i)\b(?:iwr|invoke-webrequest)\b[^\n]*(?:\||;)\s*(?:iex|invoke-expression)\b",
+        )
+        .unwrap()
+        .is_match(line)
 }
 
 fn make_install_finding(

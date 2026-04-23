@@ -1,0 +1,4 @@
+--index-url https://packages.example.invalid/simple
+examplepkg>=1.0
+directpkg @ https://packages.example.invalid/directpkg.whl
+-e git+https://github.com/example/pytool.git#egg=pytool

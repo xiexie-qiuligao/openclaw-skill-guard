@@ -70,8 +70,8 @@ fn phase1_docs_exist_and_cover_required_topics() {
 
     for (relative, markers) in checks {
         let path = repo.join(relative);
-        let content =
-            fs::read_to_string(&path).unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
+        let content = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
         for marker in markers {
             assert!(
                 content.contains(marker),
@@ -130,8 +130,8 @@ fn phase2_docs_and_skeletons_exist_and_cover_required_topics() {
 
     for (relative, markers) in doc_checks {
         let path = repo.join(relative);
-        let content =
-            fs::read_to_string(&path).unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
+        let content = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
         for marker in markers {
             assert!(
                 content.contains(marker),
@@ -166,8 +166,8 @@ fn phase2_docs_and_skeletons_exist_and_cover_required_topics() {
 
     for (relative, markers) in skeleton_checks {
         let path = repo.join(relative);
-        let content =
-            fs::read_to_string(&path).unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
+        let content = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
         for marker in markers {
             assert!(
                 content.contains(marker),

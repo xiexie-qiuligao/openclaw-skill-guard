@@ -1,0 +1,142 @@
+- id: v2.api.github_repository
+  category: source_repository
+  host_patterns:
+    - github.com
+    - gitlab.com
+    - bitbucket.org
+  url_patterns:
+    - '/'
+  service_kind: source_code_host
+  description: Source code repository landing pages and repository roots.
+  reputation_hint: known_platform
+  provenance:
+    source_name: cls-certify api classification
+    source_kind: adapted_reference
+    source_ref: references/api-classification.md
+    notes:
+      - Repository hosts are separated from raw content and package registries.
+
+- id: v2.api.documentation_hosts
+  category: documentation
+  host_patterns:
+    - docs.github.com
+    - readthedocs.io
+    - developer.mozilla.org
+  url_patterns:
+    - '/docs/'
+  service_kind: content_delivery
+  description: Documentation and developer reference hosts.
+  reputation_hint: known_platform
+  provenance:
+    source_name: first-party v2 taxonomy
+    source_kind: first_party
+    source_ref: v2 round 2 taxonomy seed
+    notes:
+      - Used to avoid over-reporting benign documentation URLs.
+
+- id: v2.api.raw_content_hosts
+  category: raw_content
+  host_patterns:
+    - raw.githubusercontent.com
+    - gist.githubusercontent.com
+    - pastebin.com
+  url_patterns:
+    - '/raw/'
+  service_kind: content_delivery
+  description: Raw content hosts that often bypass repository review surfaces.
+  reputation_hint: review_needed
+  provenance:
+    source_name: cls-certify api classification
+    source_kind: adapted_reference
+    source_ref: references/api-classification.md
+    notes:
+      - Raw content is not inherently malicious but deserves review when execution is implied.
+
+- id: v2.api.npm_registry
+  category: package_registry
+  host_patterns:
+    - registry.npmjs.org
+    - registry.yarnpkg.com
+  url_patterns: []
+  service_kind: package_ecosystem
+  description: npm-compatible package registries.
+  reputation_hint: known_platform
+  provenance:
+    source_name: cls-certify api classification
+    source_kind: adapted_reference
+    source_ref: references/api-classification.md
+    notes: []
+
+- id: v2.api.pypi_registry
+  category: package_registry
+  host_patterns:
+    - pypi.org
+    - files.pythonhosted.org
+  url_patterns: []
+  service_kind: package_ecosystem
+  description: Python package index and distribution hosts.
+  reputation_hint: known_platform
+  provenance:
+    source_name: cls-certify api classification
+    source_kind: adapted_reference
+    source_ref: references/api-classification.md
+    notes: []
+
+- id: v2.api.crates_registry
+  category: package_registry
+  host_patterns:
+    - crates.io
+    - static.crates.io
+  url_patterns: []
+  service_kind: package_ecosystem
+  description: Rust crate registry and static crate artifact hosts.
+  reputation_hint: known_platform
+  provenance:
+    source_name: first-party v2 taxonomy
+    source_kind: first_party
+    source_ref: v2 round 2 taxonomy seed
+    notes: []
+
+- id: v2.api.openai_endpoint
+  category: api_endpoint
+  host_patterns:
+    - api.openai.com
+  url_patterns:
+    - '/v1/'
+  service_kind: ai_service
+  description: OpenAI API endpoint.
+  reputation_hint: trusted_infrastructure
+  provenance:
+    source_name: cls-certify api classification
+    source_kind: adapted_reference
+    source_ref: references/api-classification.md
+    notes: []
+
+- id: v2.api.anthropic_endpoint
+  category: api_endpoint
+  host_patterns:
+    - api.anthropic.com
+  url_patterns:
+    - '/v1/'
+  service_kind: ai_service
+  description: Anthropic API endpoint.
+  reputation_hint: trusted_infrastructure
+  provenance:
+    source_name: cls-certify api classification
+    source_kind: adapted_reference
+    source_ref: references/api-classification.md
+    notes: []
+
+- id: v2.api.object_storage_aws
+  category: object_storage
+  host_patterns:
+    - '*.amazonaws.com'
+  url_patterns: []
+  service_kind: cloud_platform
+  description: AWS object storage and related infrastructure hosts.
+  reputation_hint: trusted_infrastructure
+  provenance:
+    source_name: cls-certify api classification
+    source_kind: adapted_reference
+    source_ref: references/api-classification.md
+    notes: []

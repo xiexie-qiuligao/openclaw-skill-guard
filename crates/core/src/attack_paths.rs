@@ -30,11 +30,19 @@ pub fn build_attack_paths(
 ) -> AttackPathBuildResult {
     let mut paths = Vec::new();
 
-    if install.findings.iter().any(|finding| finding.id == "context.install.auto_remote_execution") {
+    if install
+        .findings
+        .iter()
+        .any(|finding| finding.id == "context.install.auto_remote_execution")
+    {
         paths.push(path_download_execute(install));
     }
 
-    if install.findings.iter().any(|finding| finding.id == "context.install.manual_remote_execution") {
+    if install
+        .findings
+        .iter()
+        .any(|finding| finding.id == "context.install.manual_remote_execution")
+    {
         paths.push(path_install_remote_script(install));
     }
 
@@ -42,10 +50,12 @@ pub fn build_attack_paths(
         .signals
         .iter()
         .any(|signal| signal.kind == PromptSignalKind::ToolCoercion)
-        && tools
-            .reachable_tools
-            .iter()
-            .any(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "write" | "edit" | "apply_patch"))
+        && tools.reachable_tools.iter().any(|tool| {
+            matches!(
+                tool.capability.as_str(),
+                "exec" | "process" | "write" | "edit" | "apply_patch"
+            )
+        })
     {
         paths.push(path_instruction_tool_execution(prompt, tools));
     }
@@ -60,20 +70,24 @@ pub fn build_attack_paths(
     }
 
     if !secrets.reachable_secret_scopes.is_empty()
-        && tools
-            .reachable_tools
-            .iter()
-            .any(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "write" | "gateway" | "web_fetch" | "browser"))
+        && tools.reachable_tools.iter().any(|tool| {
+            matches!(
+                tool.capability.as_str(),
+                "exec" | "process" | "write" | "gateway" | "web_fetch" | "browser"
+            )
+        })
     {
         paths.push(path_secret_exfiltration(tools, secrets));
     }
 
-    if skills.iter().any(|skill| skill.invocation_policy.command_dispatch == crate::types::InvocationDispatch::Tool)
-        && tools
-            .reachable_tools
-            .iter()
-            .any(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "write" | "apply_patch"))
-    {
+    if skills.iter().any(|skill| {
+        skill.invocation_policy.command_dispatch == crate::types::InvocationDispatch::Tool
+    }) && tools.reachable_tools.iter().any(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "exec" | "process" | "write" | "apply_patch"
+        )
+    }) {
         paths.push(path_direct_privileged_action(skills, tools));
     }
 
@@ -101,7 +115,10 @@ pub fn build_attack_paths(
         paths.push(path_delegated_misuse(prompt, tools, secrets));
     }
 
-    let explanations = paths.iter().map(|path| format!("{}: {}", path.path_type, path.explanation)).collect();
+    let explanations = paths
+        .iter()
+        .map(|path| format!("{}: {}", path.path_type, path.explanation))
+        .collect();
 
     let openclaw_specific_risk_summary = if paths.is_empty() {
         "No attack path met the current evidence threshold, but isolated findings may still require review.".to_string()
@@ -124,7 +141,11 @@ pub fn build_attack_paths(
         "Attack paths distinguish evidence-backed steps from inferred connectors.".to_string(),
         "Low-context or scope-limited scans can still produce warn-level paths without enough certainty for block.".to_string(),
     ];
-    if compounds.hits.iter().any(|hit| hit.rule_id == "compound.multi_surface_uplift") {
+    if compounds
+        .hits
+        .iter()
+        .any(|hit| hit.rule_id == "compound.multi_surface_uplift")
+    {
         confidence_notes.push("Multiple independent high-risk surfaces increased confidence in compound-risk interpretation.".to_string());
     }
 
@@ -189,13 +210,17 @@ fn path_install_remote_script(install: &InstallAnalysis) -> AttackPath {
     }
 }
 
-fn path_instruction_tool_execution(prompt: &PromptInjectionAnalysis, tools: &ToolReachabilityAnalysis) -> AttackPath {
+fn path_instruction_tool_execution(
+    prompt: &PromptInjectionAnalysis,
+    tools: &ToolReachabilityAnalysis,
+) -> AttackPath {
     let mut evidence = signal_evidence(prompt, PromptSignalKind::ToolCoercion);
-    if let Some(tool) = tools
-        .reachable_tools
-        .iter()
-        .find(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "write" | "edit" | "apply_patch"))
-    {
+    if let Some(tool) = tools.reachable_tools.iter().find(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "exec" | "process" | "write" | "edit" | "apply_patch"
+        )
+    }) {
         evidence.push(EvidenceNode {
             kind: crate::types::EvidenceKind::RuntimeContext,
             location: crate::types::SkillLocation {
@@ -231,7 +256,10 @@ fn path_instruction_tool_execution(prompt: &PromptInjectionAnalysis, tools: &Too
     }
 }
 
-fn path_instruction_secret(prompt: &PromptInjectionAnalysis, secrets: &SecretReachabilityAnalysis) -> AttackPath {
+fn path_instruction_secret(
+    prompt: &PromptInjectionAnalysis,
+    secrets: &SecretReachabilityAnalysis,
+) -> AttackPath {
     let mut evidence = signal_evidence(prompt, PromptSignalKind::SensitiveDataCoercion);
     for scope in secrets.reachable_secret_scopes.iter().take(2) {
         evidence.push(EvidenceNode {
@@ -265,7 +293,10 @@ fn path_instruction_secret(prompt: &PromptInjectionAnalysis, secrets: &SecretRea
     }
 }
 
-fn path_secret_exfiltration(tools: &ToolReachabilityAnalysis, secrets: &SecretReachabilityAnalysis) -> AttackPath {
+fn path_secret_exfiltration(
+    tools: &ToolReachabilityAnalysis,
+    secrets: &SecretReachabilityAnalysis,
+) -> AttackPath {
     let mut evidence = Vec::new();
     if let Some(secret) = secrets.reachable_secret_scopes.first() {
         evidence.push(EvidenceNode {
@@ -279,11 +310,12 @@ fn path_secret_exfiltration(tools: &ToolReachabilityAnalysis, secrets: &SecretRe
             direct: secret.direct,
         });
     }
-    if let Some(tool) = tools
-        .reachable_tools
-        .iter()
-        .find(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "write" | "gateway" | "web_fetch" | "browser"))
-    {
+    if let Some(tool) = tools.reachable_tools.iter().find(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "exec" | "process" | "write" | "gateway" | "web_fetch" | "browser"
+        )
+    }) {
         evidence.push(EvidenceNode {
             kind: crate::types::EvidenceKind::RuntimeContext,
             location: crate::types::SkillLocation {
@@ -319,7 +351,10 @@ fn path_secret_exfiltration(tools: &ToolReachabilityAnalysis, secrets: &SecretRe
     }
 }
 
-fn path_direct_privileged_action(skills: &[ParsedSkill], tools: &ToolReachabilityAnalysis) -> AttackPath {
+fn path_direct_privileged_action(
+    skills: &[ParsedSkill],
+    tools: &ToolReachabilityAnalysis,
+) -> AttackPath {
     let mut evidence = Vec::new();
     if let Some(skill) = skills.first() {
         evidence.push(EvidenceNode {
@@ -332,7 +367,11 @@ fn path_direct_privileged_action(skills: &[ParsedSkill], tools: &ToolReachabilit
             excerpt: format!(
                 "command-dispatch={:?}, command-tool={}",
                 skill.invocation_policy.command_dispatch,
-                skill.invocation_policy.command_tool.as_deref().unwrap_or("none")
+                skill
+                    .invocation_policy
+                    .command_tool
+                    .as_deref()
+                    .unwrap_or("none")
             ),
             direct: true,
         });
@@ -531,8 +570,8 @@ mod tests {
     use std::path::Path;
 
     use crate::compound_rules::evaluate_compound_rules;
-    use crate::instruction::extract_instruction_segments;
     use crate::install::analyze_install_chain;
+    use crate::instruction::extract_instruction_segments;
     use crate::invocation::analyze_invocation_policy;
     use crate::precedence::analyze_precedence;
     use crate::prompt_injection::analyze_instruction_segments;

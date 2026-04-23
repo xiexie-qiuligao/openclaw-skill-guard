@@ -1,10 +1,12 @@
 use crate::consequence::ConsequenceAnalysis;
+use crate::dependency_audit::DependencyAuditAnalysis;
 use crate::install::InstallAnalysis;
 use crate::invocation::InvocationAnalysis;
 use crate::precedence::PrecedenceAnalysis;
 use crate::prompt_injection::PromptInjectionAnalysis;
 use crate::reachability::{SecretReachabilityAnalysis, ToolReachabilityAnalysis};
 use crate::types::{ContextAnalysis, ParsedSkill};
+use crate::url_classification::UrlClassificationAnalysis;
 
 pub fn build_context_analysis(
     skills: &[ParsedSkill],
@@ -14,6 +16,10 @@ pub fn build_context_analysis(
     secrets: &SecretReachabilityAnalysis,
     precedence: &PrecedenceAnalysis,
     prompt: &PromptInjectionAnalysis,
+    threat_corpus_summary: &str,
+    sensitive_data_summary: &str,
+    dependency_audit: &DependencyAuditAnalysis,
+    url_classification: &UrlClassificationAnalysis,
     consequence: &ConsequenceAnalysis,
 ) -> ContextAnalysis {
     let parsing_summary = if skills.is_empty() {
@@ -34,7 +40,10 @@ pub fn build_context_analysis(
         Some("No skill metadata was available in the current scan scope.".to_string())
     } else {
         let present = skills.iter().filter(|skill| skill.metadata.present).count();
-        let normalized = skills.iter().filter(|skill| skill.metadata.normalized).count();
+        let normalized = skills
+            .iter()
+            .filter(|skill| skill.metadata.normalized)
+            .count();
         Some(format!(
             "metadata.openclaw present in {} skill(s) and normalized successfully in {} skill(s).",
             present, normalized
@@ -58,9 +67,16 @@ pub fn build_context_analysis(
         naming_collisions: precedence.collisions.clone(),
         host_vs_sandbox_assessment: Some(consequence.assessment.summary.clone()),
         prompt_injection_summary: Some(prompt.summary.clone()),
+        threat_corpus_summary: Some(threat_corpus_summary.to_string()),
+        sensitive_data_summary: Some(sensitive_data_summary.to_string()),
+        dependency_audit_summary: Some(dependency_audit.summary.summary.clone()),
+        api_classification_summary: Some(url_classification.api_summary.summary.clone()),
+        source_reputation_summary: Some(url_classification.reputation_summary.summary.clone()),
         notes: vec![
             "Phase 7 runtime validation refines static conclusions with manifest-backed permission facts, guarded local checks, and explicit unknowns.".to_string(),
             "Precedence analysis records known roots, missing roots, and scope limitations instead of assuming global completeness.".to_string(),
+            "V2 dependency, URL/API, and reputation signals are explainable overlays derived from built-in corpora and local heuristics rather than online trust services.".to_string(),
+            "Threat and sensitive-data corpus analyzers are additive explainable detectors; they do not replace baseline, prompt, or reachability analysis.".to_string(),
         ],
     }
 }

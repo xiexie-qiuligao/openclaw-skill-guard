@@ -130,4 +130,3 @@ mod tests {
         assert_eq!(inventory.files.len(), 2);
     }
 }
-

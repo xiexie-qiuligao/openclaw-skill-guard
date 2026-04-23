@@ -18,3 +18,18 @@ Included reports:
 - [precedence-shadowing.json](./precedence-shadowing.json)
 - [runtime-refinement.json](./runtime-refinement.json)
 - [suppression-audit.json](./suppression-audit.json)
+
+V2 demo reports are also included from the inert fixture under [fixtures/v2/report-demo](../../fixtures/v2/report-demo):
+
+- [v2-report-demo.json](./v2-report-demo.json)
+- [v2-report-demo.sarif](./v2-report-demo.sarif)
+- [v2-report-demo.md](./v2-report-demo.md)
+- [v2-report-demo.html](./v2-report-demo.html)
+
+The v2 demo is intended to show:
+
+- threat corpus findings
+- sensitive corpus findings
+- dependency audit findings
+- URL/API/source reputation summaries
+- canonical-report-first derived exports

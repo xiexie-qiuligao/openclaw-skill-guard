@@ -35,8 +35,10 @@ pub fn refine_findings_and_paths(
         provenance_notes.push(build_finding_provenance(finding));
         let mut delta = 0;
 
-        if matches!(finding.evidence_kind.as_str(), "structured_metadata" | "tool_dispatch" | "secret_reference")
-            && finding.evidence.iter().any(|node| node.direct)
+        if matches!(
+            finding.evidence_kind.as_str(),
+            "structured_metadata" | "tool_dispatch" | "secret_reference"
+        ) && finding.evidence.iter().any(|node| node.direct)
         {
             confidence_factors.push(ConfidenceFactor {
                 subject_id: finding.id.clone(),
@@ -47,7 +49,31 @@ pub fn refine_findings_and_paths(
             delta += 1;
         }
 
-        if is_example_or_quote_context(finding.location.as_ref(), &segments_by_line, &finding.evidence) {
+        if finding.category == "threat_corpus" || finding.category == "sensitive_corpus" {
+            confidence_factors.push(ConfidenceFactor {
+                subject_id: finding.id.clone(),
+                factor: "typed_corpus_provenance".to_string(),
+                delta: 1,
+                rationale: "Typed corpus entries carry explicit provenance and false-positive notes, which makes the finding easier to audit and explain.".to_string(),
+            });
+            delta += 1;
+        }
+
+        if finding.id.starts_with("dependency.") || finding.id.starts_with("source.") {
+            confidence_factors.push(ConfidenceFactor {
+                subject_id: finding.id.clone(),
+                factor: "local_explainable_signal".to_string(),
+                delta: 1,
+                rationale: "The finding is derived from local manifests, URLs, or typed seeds rather than an opaque online reputation score.".to_string(),
+            });
+            delta += 1;
+        }
+
+        if is_example_or_quote_context(
+            finding.location.as_ref(),
+            &segments_by_line,
+            &finding.evidence,
+        ) {
             mitigations.push(FalsePositiveMitigation {
                 subject_id: finding.id.clone(),
                 mitigation_kind: "example_or_quote_context".to_string(),
@@ -88,7 +114,10 @@ pub fn refine_findings_and_paths(
         }
 
         if finding.category == "tool_reachability"
-            && finding.evidence.iter().all(|node| node.excerpt.to_ascii_lowercase().contains("exec"))
+            && finding
+                .evidence
+                .iter()
+                .all(|node| node.excerpt.to_ascii_lowercase().contains("exec"))
             && finding.why_openclaw_specific.contains("metadata")
         {
             confidence_factors.push(ConfidenceFactor {
@@ -137,7 +166,8 @@ pub fn refine_findings_and_paths(
             });
             delta -= 1;
         }
-        if path.path_type == "secret_exfiltration_potential" && path.inferred_nodes.len() > path.evidence_nodes.len()
+        if path.path_type == "secret_exfiltration_potential"
+            && path.inferred_nodes.len() > path.evidence_nodes.len()
         {
             mitigations.push(FalsePositiveMitigation {
                 subject_id: path.path_id.clone(),
@@ -173,10 +203,12 @@ fn build_instruction_map(instructions: &InstructionAnalysis) -> BTreeMap<(String
         .segments
         .iter()
         .filter_map(|segment| {
-            segment
-                .location
-                .line
-                .map(|line| ((segment.location.path.clone(), line), format!("{:?}", segment.source)))
+            segment.location.line.map(|line| {
+                (
+                    (segment.location.path.clone(), line),
+                    format!("{:?}", segment.source),
+                )
+            })
         })
         .collect()
 }
@@ -186,11 +218,11 @@ fn build_finding_provenance(finding: &Finding) -> ProvenanceNote {
         subject_id: finding.id.clone(),
         subject_kind: "finding".to_string(),
         source_layer: finding.category.clone(),
-        evidence_sources: vec![finding.evidence_kind.clone()],
+        evidence_sources: finding_provenance_sources(finding),
         inferred_sources: finding.prerequisite_context.clone(),
         recent_signal_class: classify_recent_signal(&finding.category),
         long_term_pattern: classify_long_term_pattern(&finding.category, &finding.id),
-        note: "Finding provenance records where the signal originated and which longer-lived risk family it belongs to.".to_string(),
+        note: finding_provenance_note(finding),
     }
 }
 
@@ -217,7 +249,15 @@ fn classify_recent_signal(category: &str) -> String {
         "invocation_policy" | "tool_reachability" => "delegated_tool_authority".to_string(),
         "precedence" => "precedence_and_scope".to_string(),
         "secret_reachability" => "secret_injection_and_host_context".to_string(),
+        "threat_corpus" => "typed_threat_corpus".to_string(),
+        "sensitive_corpus" => "typed_sensitive_corpus".to_string(),
         "execution" | "obfuscation" | "destructive" => "baseline_execution_surface".to_string(),
+        _ if category.starts_with("dependency.") || category == "dependency_audit" => {
+            "dependency_source_review".to_string()
+        }
+        _ if category.starts_with("source.") || category.starts_with("api.") => {
+            "external_reference_review".to_string()
+        }
         _ => "scanner_boundary_and_fp_control".to_string(),
     }
 }
@@ -231,8 +271,49 @@ fn classify_long_term_pattern(category: &str, id: &str) -> String {
         "multi-root naming collision and trust hijack".to_string()
     } else if category == "secret_reachability" {
         "secret-bearing local runtime context".to_string()
+    } else if category == "threat_corpus" {
+        "corpus-backed instruction, tool, or agent-context risk".to_string()
+    } else if category == "sensitive_corpus" {
+        "inline secret or credential material packaged with skill content".to_string()
+    } else if id.starts_with("dependency.") {
+        "dependency manifest drift and supply-chain source review".to_string()
+    } else if id.starts_with("source.") || id.starts_with("api.") {
+        "external service trust, source credibility, and raw-fetch review".to_string()
     } else {
         "direct execution or control-surface exposure".to_string()
+    }
+}
+
+fn finding_provenance_sources(finding: &Finding) -> Vec<String> {
+    let mut sources = vec![finding.evidence_kind.clone()];
+    for note in &finding.analyst_notes {
+        if note.starts_with("corpus entry:")
+            || note.starts_with("asset:")
+            || note.starts_with("taxonomy match:")
+            || note.starts_with("reputation seeds:")
+            || note.starts_with("sensitive category:")
+        {
+            sources.push(note.clone());
+        }
+    }
+    sources
+}
+
+fn finding_provenance_note(finding: &Finding) -> String {
+    if finding.category == "threat_corpus" {
+        "Threat corpus provenance records the exact typed entry, asset file, and adapted reference that produced this additive finding."
+            .to_string()
+    } else if finding.category == "sensitive_corpus" {
+        "Sensitive-data corpus provenance records the exact typed entry and whether the analyzer treated the match as high-value inline material or example-like review content."
+            .to_string()
+    } else if finding.id.starts_with("dependency.") {
+        "Dependency provenance records which local manifest, lockfile, or install-chain artifact produced the explainable supply-chain signal."
+            .to_string()
+    } else if finding.id.starts_with("source.") || finding.id.starts_with("api.") {
+        "Source/API provenance records the local URL, taxonomy match, and seed-based hints behind the external-reference finding."
+            .to_string()
+    } else {
+        "Finding provenance records where the signal originated and which longer-lived risk family it belongs to.".to_string()
     }
 }
 
@@ -321,8 +402,8 @@ mod tests {
 
     use crate::attack_paths::build_attack_paths;
     use crate::compound_rules::evaluate_compound_rules;
-    use crate::instruction::extract_instruction_segments;
     use crate::install::analyze_install_chain;
+    use crate::instruction::extract_instruction_segments;
     use crate::invocation::analyze_invocation_policy;
     use crate::precedence::analyze_precedence;
     use crate::prompt_injection::analyze_instruction_segments;
@@ -367,8 +448,13 @@ mod tests {
             &compounds,
         );
 
-        let analysis =
-            refine_findings_and_paths(&prompt.findings, &paths.paths, &instructions, &precedence, TargetKind::File);
+        let analysis = refine_findings_and_paths(
+            &prompt.findings,
+            &paths.paths,
+            &instructions,
+            &precedence,
+            TargetKind::File,
+        );
 
         assert!(analysis
             .false_positive_mitigations
@@ -387,10 +473,18 @@ mod tests {
         let instructions = extract_instruction_segments(&skill);
         let precedence = analyze_precedence(&[skill], TargetKind::File);
 
-        let analysis =
-            refine_findings_and_paths(&invocation.findings, &[], &instructions, &precedence, TargetKind::File);
+        let analysis = refine_findings_and_paths(
+            &invocation.findings,
+            &[],
+            &instructions,
+            &precedence,
+            TargetKind::File,
+        );
 
-        assert!(analysis.findings.iter().any(|finding| finding.confidence == FindingConfidence::High));
+        assert!(analysis
+            .findings
+            .iter()
+            .any(|finding| finding.confidence == FindingConfidence::High));
     }
 
     #[test]

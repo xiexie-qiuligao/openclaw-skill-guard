@@ -1,255 +1,211 @@
-# Standalone OpenClaw Skill Guard
+# openclaw-skill-guard
 
 [中文说明](./README.zh-CN.md)
 
-**OpenClaw-aware skill verifier for CLI-first security review.**
-**面向 OpenClaw Skill 生态的命令行安全验证器。**
+**OpenClaw-aware verifier for security review of OpenClaw Skills.**
 
-Standalone OpenClaw Skill Guard is a Windows-friendly, Rust-based verifier that inspects `SKILL.md`, skill directories, skills roots, and broader workspaces. It is built for one concrete question: **can this skill plausibly become a real attack path under OpenClaw runtime conditions, and what evidence supports that conclusion?**
+`openclaw-skill-guard` is a Windows-friendly Rust project for verifying OpenClaw Skills before release or review. It scans `SKILL.md`, skill directories, skills roots, and broader workspaces to answer a practical question: under visible OpenClaw runtime conditions, can a skill plausibly become a real attack path, and what evidence supports that conclusion?
 
-Unlike a generic scanner, it does not stop at keyword hits or markdown linting. It combines structured OpenClaw context, attack-path reasoning, consequence modeling, and guarded runtime validation so operators can judge whether a finding is realistically reachable, policy-relevant, and worth acting on.
+This project is not a generic scanner and not an exploit runner. It combines baseline scanning, structured context analysis, frontmatter and `metadata.openclaw` parsing, install-chain and invocation-policy analysis, tool and secret reachability, precedence and shadowing analysis, prompt and instruction analysis, attack-path reasoning, compound scoring, host-vs-sandbox consequence modeling, guarded runtime validation, and suppression with audit visibility.
 
-OpenClaw-aware matters here because real risk is shaped by runtime semantics: `metadata.openclaw`, invocation policy, install-path asymmetry, tool and secret reachability, precedence and shadowing, permission boundaries, and sandbox constraints. This project exists to verify those runtime-shaped risks without turning the tool into an exploit runner.
+## Delivery surfaces
 
-## At a glance
+`openclaw-skill-guard` now ships with two Windows-friendly entry points:
 
-- Purpose
-  - verify whether an OpenClaw skill can form a realistic attack chain
-- Positioning
-  - CLI-first verifier, not a generic scanner and not a dynamic exploit harness
-- Canonical output
-  - JSON report with structured findings, context, attack paths, scoring, and audit notes
-- Runtime awareness
-  - uses guarded runtime validation and optional runtime manifests to refine reachability and consequence
-- Delivery
-  - Rust CLI with a documented Windows EXE release path
+- GUI
+  - the primary desktop product surface for target selection, scan execution, result review, and JSON export
+- CLI
+  - the automation and advanced-user entry point for pipelines and canonical output
 
-## Why this project exists
+The canonical public output remains the JSON report. The GUI does not replace the verifier logic; it reuses the same core scanning and report pipeline as the CLI.
 
-OpenClaw skills can look harmless in isolation yet become risky once install flow, invocation rules, tool authority, precedence behavior, and runtime permissions are considered together. A plain scanner can tell you that something suspicious appears in a file. This verifier aims to answer the more operational question: **does the repository content, plus visible OpenClaw context, support a believable attack path that should block release or require review?**
+## What it does
 
-## Why it is not a generic scanner
-
-The verifier reasons about OpenClaw-specific semantics that generic markdown or regex-driven tooling usually misses:
-
-- `metadata.openclaw`
-- `command-dispatch` and direct tool authority
-- `disable-model-invocation` and `user-invocable`
-- install-path versus installer-path asymmetry
-- tool reachability and secret reachability
-- precedence, shadowing, and trusted-name collisions
-- runtime permission and environment constraints
-
-It is designed to preserve technical credibility:
-
-- CLI-first workflow
-- canonical JSON report contract
-- structured context extraction
-- attack-path and compound-risk reasoning
+- baseline dangerous-pattern scanning
+- structured OpenClaw context extraction
+- frontmatter parsing
+- `metadata.openclaw` normalization and parsing
+- install-chain analysis
+- dependency audit
+- invocation-policy analysis
+- tool reachability
+- secret reachability
+- URL and API classification
+- source and domain reputation hints
+- precedence and shadowing analysis
+- prompt and instruction analysis
+- attack-path reasoning
+- compound scoring
+- host-vs-sandbox consequence modeling
 - guarded runtime validation
-- verifier posture rather than payload execution
-
-## Core capabilities
-
-- Baseline scanning
-  - stable dangerous-pattern rules inherited from the original research baseline
-- Structured OpenClaw context
-  - `SKILL.md` frontmatter parsing
-  - `metadata.openclaw` normalization
-  - invocation-policy analysis
-- Install, reachability, and precedence analysis
-  - install-chain extraction
-  - tool reachability
-  - secret reachability
-  - precedence and shadowing analysis
-- Instruction and prompt-risk analysis
-  - instruction extraction
-  - prompt injection
-  - indirect instruction
-  - tool and secret coercion
-- Attack-path reasoning
-  - toxic-flow paths
-  - compound risk rules
-  - path-aware scoring and verdicts
-- Runtime-aware refinement
-  - host-vs-sandbox consequence modeling
-  - runtime manifest ingestion
-  - guarded validation hooks
-  - sandbox-backed guarded validator checks
-  - controlled runtime refinement
-- Auditability
-  - provenance notes
-  - confidence shaping
-  - suppression matching
-  - audit reporting
+- suppression and audit support
 
 ## Quick start
 
-### Build
+### Build both release executables
 
 ```powershell
-cargo build
+cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
 ```
 
-### Build a Windows EXE
-
-```powershell
-cargo build --release
-```
-
-The release executable is:
+### Windows executables
 
 ```text
 target\release\openclaw-skill-guard.exe
+target\release\openclaw-skill-guard-gui.exe
 ```
 
-### Show CLI help
+### CLI usage
+
+Show help:
 
 ```powershell
 cargo run -p openclaw-skill-guard-cli -- --help
 ```
 
-### Scan a single `SKILL.md`
+Scan a benign sample:
+
+```powershell
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\benign\SKILL.md --format json
+```
+
+Scan a risky sample:
 
 ```powershell
 cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\prompt-risk\SKILL.md --format json
 ```
 
-### Scan a skill directory
+Export derived SARIF from the canonical report pipeline:
 
 ```powershell
-cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\install-risk --format json
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\suspicious-sources\SKILL.md --format sarif
 ```
 
-### Use a runtime manifest
+Use runtime validation inputs:
 
 ```powershell
 cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\runtime-refinement\SKILL.md --format json --runtime-manifest .\fixtures\v1\runtime-refinement\runtime-sandbox.json --validation-mode guarded
 ```
 
-### Use a suppression file
-
-```powershell
-cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\suppression-audit\SKILL.md --format json --suppressions .\fixtures\v1\suppression-audit\suppressions.json
-```
-
-### Run the Windows EXE directly
+Run the release CLI EXE directly:
 
 ```powershell
 .\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\benign\SKILL.md --format json
-.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\prompt-risk\SKILL.md --format json
 ```
 
-## How to read the report
+### GUI usage
 
-`JSON` is the canonical v1 report format.
+Run the GUI from Cargo:
 
-The main report sections are:
+```powershell
+cargo run -p openclaw-skill-guard-gui
+```
+
+Run the release GUI EXE directly:
+
+```powershell
+.\target\release\openclaw-skill-guard-gui.exe
+```
+
+Minimal GUI workflow:
+
+1. Choose a `SKILL.md` file or a directory.
+2. Start the scan from the main action area.
+3. Expand advanced options only if you need runtime manifest, suppression, or guarded validation inputs.
+4. Review the Overview page first for verdict, score, key risks, environment conclusions, and v2 summaries.
+5. Drill into Findings, Paths, Context, Validation, Audit, and Raw JSON as needed.
+6. Save the canonical JSON report.
+
+## GUI product shape
+
+The GUI is now shaped as the primary product surface instead of a thin CLI configuration shell. It supports:
+
+- Chinese-first desktop flow
+- target selection for a single `SKILL.md`, skill directory, skills root, or workspace
+- a simplified main scan path with collapsible advanced options
+- scan execution without freezing the whole window
+- an overview-first results home with verdict, score, key risks, and environment conclusions
+- findings, context, attack path, validation, audit, and raw JSON views
+- lightweight in-page filtering for findings and attack paths
+- basic cross-linking between findings, paths, and provenance-oriented audit notes
+- clear display of v2 summaries for threat corpus, sensitive corpus, dependency audit, API classification, and source reputation
+- JSON, SARIF, Markdown, and HTML export from the same canonical report pipeline
+
+It does not introduce a second analysis engine or a different report contract.
+
+## GUI screenshots
+
+Representative GUI screenshots are included under `docs/gui-screenshots/`:
+
+- `gui-home-empty.png`
+- `gui-overview-demo.png`
+- `gui-validation-demo.png`
+
+Preview:
+
+![GUI empty state](./docs/gui-screenshots/gui-home-empty.png)
+![GUI overview](./docs/gui-screenshots/gui-overview-demo.png)
+![GUI validation](./docs/gui-screenshots/gui-validation-demo.png)
+
+## Canonical output
+
+JSON is the canonical v2 report format. SARIF, Markdown, and HTML are available as derived exports from the same `ScanReport`.
+
+Key sections include:
 
 - `findings`
-  - explainable issues with evidence, severity, and remediation direction
 - `context_analysis`
-  - structured OpenClaw context such as metadata, install chain, invocation, reachability, precedence, and prompt summaries
 - `attack_paths`
-  - realistic risk chains assembled from findings and context
+- `corpus_assets_used`
+- `dependency_audit_summary`
+- `api_classification_summary`
+- `source_reputation_summary`
+- `external_references`
 - `scoring_summary`
-  - base score, compound uplift, path uplift, confidence adjustment, and final score
 - `consequence_summary`
-  - host-vs-sandbox consequence model
 - `validation_*`
-  - validation plan, runtime facts, validation results, path validation status, and runtime score adjustments
 - `guarded_validation`
-  - sandbox-backed capability and constraint checks used to refine path status without executing untrusted content
 - `provenance_notes` and `confidence_notes`
-  - why the verifier believes something, and where uncertainty remains
 - `suppression_matches` and `audit_summary`
-  - accepted exceptions without hiding evidence
 - `analysis_limitations`
-  - explicit scope or runtime gaps
 
-More detail is in [report.schema.json](./schemas/report.schema.json), [runtime-manifest.md](./docs/runtime-manifest.md), [validation-adapter.md](./docs/validation-adapter.md), and [reporting.md](./docs/reporting.md).
+More detail is available in:
 
-## Windows EXE packaging
+- [report.schema.json](./schemas/report.schema.json)
+- [reporting.md](./docs/reporting.md)
+- [runtime-manifest.md](./docs/runtime-manifest.md)
+- [validation-adapter.md](./docs/validation-adapter.md)
+- [examples/reports/README.md](./examples/reports/README.md)
 
-For release packaging details, see [packaging.md](./docs/packaging.md). The short version is:
+Example derived reports for the inert v2 demo fixture are included under:
 
-- build with `cargo build --release`
-- ship `target\release\openclaw-skill-guard.exe`
-- keep `README.md`, `README.zh-CN.md`, `CHANGELOG.md`, `schemas/`, and key `docs/` files with the release if you want a self-explanatory handoff
-- optionally include `examples/` and `fixtures/` for demos
-- do not ship local build caches, debug artifacts, or editor-generated files
+- `examples/reports/v2-report-demo.json`
+- `examples/reports/v2-report-demo.sarif`
+- `examples/reports/v2-report-demo.md`
+- `examples/reports/v2-report-demo.html`
 
-## Demo assets
+## Packaging and release docs
 
-Release-candidate demo assets are included under:
-
-- [fixtures/v1](./fixtures/v1)
-- [examples/demo-commands.md](./examples/demo-commands.md)
-- [examples/demo-samples.md](./examples/demo-samples.md)
-- [examples/reports](./examples/reports)
-
-These samples are inert and intended for demonstration, testing, and review only.
-
-## False-positive handling
-
-The verifier does not rely on raw keyword matching alone. It also carries:
-
-- provenance notes for where a conclusion came from
-- confidence shaping for direct evidence versus inferred context
-- guarded runtime refinement for capability and scope checks
-- false-positive handling for localhost or RPC workflows, quoted examples, benign `child_process` references, and legitimate install guidance
-- suppression and audit output when an operator intentionally narrows a result
-
-## Current limits
-
-This release intentionally distinguishes between:
-
-- static conclusions
-  - what the repository content, metadata, and attack-path logic indicate
-- runtime refinement
-  - what a supplied runtime manifest or safe local checks can confirm, narrow, or block
-- guarded validation
-  - what the sandbox-backed capability and scope checker can safely confirm without running untrusted content
-- scope limitations
-  - what remains incomplete because not all roots, runtime facts, or environment surfaces are visible
-
-The current release deliberately does **not** do the following:
-
-- execute install chains or payloads
-- run arbitrary shell, PowerShell, or `child_process`
-- fetch unknown remote content for validation
-- provide a full global precedence truth graph
-- integrate online reputation feeds
-- implement signing, SBOM, or AI-BOM verification
-- act as an exploit runner or dynamic malware sandbox
-
-## Safety statement
-
-This project is a **verifier**, not an exploit runner.
-
-- It does not intentionally execute dangerous payloads.
-- Runtime validation is guarded and controlled.
-- The runtime adapter performs manifest ingestion, safe local presence checks, scope validation, and consequence refinement.
-- High-risk findings remain evidence-driven and auditable.
-
-## Release candidate status
-
-The repository is in release-candidate shape for `v1.0.0-rc1`, a CLI-first Windows-friendly v1 delivery:
-
-- core verifier is implemented
-- CLI is stable for v1 usage
-- schema and public report contract are documented
-- examples and demo reports are included
-- Windows release build and EXE entrypoint are documented
-- root-level tests are green
-
-Release-facing materials:
-
-- [CHANGELOG.md](./CHANGELOG.md)
-- [LICENSE](./LICENSE)
 - [packaging.md](./docs/packaging.md)
 - [release-ready.md](./docs/release-ready.md)
-- [github-release-kit.md](./docs/github-release-kit.md)
-- [smoke-scan-summary.md](./docs/smoke-scan-summary.md)
+- [CHANGELOG.md](./CHANGELOG.md)
+- [examples/demo-commands.md](./examples/demo-commands.md)
 
-See [progress.md](./docs/progress.md) for the implementation trail and [design.md](./docs/design.md) for the final architecture record.
+## Safety boundary
+
+`openclaw-skill-guard` is a verifier, not an exploit runner.
+
+- It does not intentionally execute dangerous payloads.
+- Runtime validation is guarded and non-executing.
+- The CLI and GUI both use the same evidence-driven scanning core.
+- Suppression handling remains auditable rather than hiding risk silently.
+
+## Current release position
+
+The project is in final deliverable shape for a Windows-friendly release with both CLI and GUI entry points:
+
+- desktop GUI as the main product surface
+- CLI retained for automation and advanced workflows
+- canonical JSON report contract
+- Windows EXE delivery path for both executables
+- root-level tests in place

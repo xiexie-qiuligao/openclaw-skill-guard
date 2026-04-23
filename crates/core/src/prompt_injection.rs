@@ -18,10 +18,25 @@ pub fn analyze_instruction_segments(segments: &[InstructionSegment]) -> PromptIn
         let text = segment.normalized_text.to_ascii_lowercase();
         let mut matched_kinds = Vec::new();
 
-        if contains_any(&text, &["ignore previous instructions", "override system", "follow only this skill"]) {
+        if contains_any(
+            &text,
+            &[
+                "ignore previous instructions",
+                "override system",
+                "follow only this skill",
+            ],
+        ) {
             matched_kinds.push(PromptSignalKind::ModelBypass);
         }
-        if contains_any(&text, &["skip confirmation", "run without asking", "do not ask for approval", "never ask for confirmation"]) {
+        if contains_any(
+            &text,
+            &[
+                "skip confirmation",
+                "run without asking",
+                "do not ask for approval",
+                "never ask for confirmation",
+            ],
+        ) {
             matched_kinds.push(PromptSignalKind::ApprovalBypass);
         }
         if contains_any_unnegated(
@@ -65,7 +80,10 @@ pub fn analyze_instruction_segments(segments: &[InstructionSegment]) -> PromptIn
         ) {
             matched_kinds.push(PromptSignalKind::SensitiveDataCoercion);
         }
-        if contains_any(&text, &["bypass safety", "skip validation", "do not validate"]) {
+        if contains_any(
+            &text,
+            &["bypass safety", "skip validation", "do not validate"],
+        ) {
             matched_kinds.push(PromptSignalKind::PolicyBypass);
         }
 
@@ -107,7 +125,9 @@ fn contains_any(text: &str, needles: &[&str]) -> bool {
 }
 
 fn contains_any_unnegated(text: &str, needles: &[&str]) -> bool {
-    needles.iter().any(|needle| contains_unnegated(text, needle))
+    needles
+        .iter()
+        .any(|needle| contains_unnegated(text, needle))
 }
 
 fn contains_unnegated(text: &str, needle: &str) -> bool {
@@ -135,13 +155,19 @@ fn evidence_from_segment(segment: &InstructionSegment) -> EvidenceNode {
 
 fn severity_for_kind(kind: PromptSignalKind, risk: InstructionRisk) -> FindingSeverity {
     match (kind, risk) {
-        (PromptSignalKind::ModelBypass | PromptSignalKind::ApprovalBypass | PromptSignalKind::PolicyBypass, _) => {
-            FindingSeverity::High
+        (
+            PromptSignalKind::ModelBypass
+            | PromptSignalKind::ApprovalBypass
+            | PromptSignalKind::PolicyBypass,
+            _,
+        ) => FindingSeverity::High,
+        (
+            PromptSignalKind::SensitiveDataCoercion | PromptSignalKind::ToolCoercion,
+            InstructionRisk::High,
+        ) => FindingSeverity::High,
+        (PromptSignalKind::SensitiveDataCoercion | PromptSignalKind::ToolCoercion, _) => {
+            FindingSeverity::Medium
         }
-        (PromptSignalKind::SensitiveDataCoercion | PromptSignalKind::ToolCoercion, InstructionRisk::High) => {
-            FindingSeverity::High
-        }
-        (PromptSignalKind::SensitiveDataCoercion | PromptSignalKind::ToolCoercion, _) => FindingSeverity::Medium,
         (PromptSignalKind::IndirectInstruction, InstructionRisk::High) => FindingSeverity::High,
         (PromptSignalKind::IndirectInstruction, _) => FindingSeverity::Medium,
     }
@@ -157,12 +183,24 @@ fn confidence_for_segment(risk: InstructionRisk) -> FindingConfidence {
 
 fn summary_for_kind(kind: PromptSignalKind, text: &str) -> String {
     match kind {
-        PromptSignalKind::ModelBypass => format!("Instruction attempts to override or bypass higher-priority model guidance: {text}"),
-        PromptSignalKind::ApprovalBypass => format!("Instruction pressures execution without confirmation: {text}"),
-        PromptSignalKind::IndirectInstruction => format!("Instruction delegates trust to external content: {text}"),
-        PromptSignalKind::ToolCoercion => format!("Instruction pressures use of sensitive tools: {text}"),
-        PromptSignalKind::SensitiveDataCoercion => format!("Instruction pressures access to local secrets or sensitive data: {text}"),
-        PromptSignalKind::PolicyBypass => format!("Instruction attempts to bypass safety or validation: {text}"),
+        PromptSignalKind::ModelBypass => format!(
+            "Instruction attempts to override or bypass higher-priority model guidance: {text}"
+        ),
+        PromptSignalKind::ApprovalBypass => {
+            format!("Instruction pressures execution without confirmation: {text}")
+        }
+        PromptSignalKind::IndirectInstruction => {
+            format!("Instruction delegates trust to external content: {text}")
+        }
+        PromptSignalKind::ToolCoercion => {
+            format!("Instruction pressures use of sensitive tools: {text}")
+        }
+        PromptSignalKind::SensitiveDataCoercion => {
+            format!("Instruction pressures access to local secrets or sensitive data: {text}")
+        }
+        PromptSignalKind::PolicyBypass => {
+            format!("Instruction attempts to bypass safety or validation: {text}")
+        }
     }
 }
 
@@ -202,7 +240,9 @@ impl PromptInjectionSignal {
         match self.kind {
             PromptSignalKind::ModelBypass => "Instruction attempts model-level control bypass",
             PromptSignalKind::ApprovalBypass => "Instruction attempts approval bypass",
-            PromptSignalKind::IndirectInstruction => "Instruction delegates trust to external content",
+            PromptSignalKind::IndirectInstruction => {
+                "Instruction delegates trust to external content"
+            }
             PromptSignalKind::ToolCoercion => "Instruction coerces sensitive tool usage",
             PromptSignalKind::SensitiveDataCoercion => "Instruction coerces sensitive data access",
             PromptSignalKind::PolicyBypass => "Instruction attempts policy bypass",

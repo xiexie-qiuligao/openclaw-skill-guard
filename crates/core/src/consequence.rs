@@ -26,8 +26,16 @@ pub fn analyze_consequences(
     let persistence_consequences = infer_persistence_consequences(skills);
     let environment_assumptions = infer_environment_assumptions(execution_surface, secrets, tools);
     let evidence_nodes = build_evidence_nodes(tools, secrets);
-    let inferred_notes = build_inferred_notes(execution_surface, &file_system_consequences, &network_consequences);
-    let impact_deltas = build_impact_deltas(execution_surface, &credential_consequences, &network_consequences);
+    let inferred_notes = build_inferred_notes(
+        execution_surface,
+        &file_system_consequences,
+        &network_consequences,
+    );
+    let impact_deltas = build_impact_deltas(
+        execution_surface,
+        &credential_consequences,
+        &network_consequences,
+    );
     let summary = format!(
         "Execution surface is {:?}; file-system={}, credentials={}, network={}, persistence={}.",
         execution_surface,
@@ -64,19 +72,23 @@ fn infer_execution_surface(
         .findings
         .iter()
         .any(|finding| finding.id.contains("install"))
-        || tools
-            .reachable_tools
-            .iter()
-            .any(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "gateway" | "nodes" | "cron"))
-        || secrets
-            .reachable_secret_scopes
-            .iter()
-            .any(|scope| scope.target.contains(".ssh") || scope.target.contains(".openclaw") || scope.target.contains("auth-profiles"));
-    let sandbox_like = tools
-        .reachable_tools
-        .iter()
-        .all(|tool| matches!(tool.capability.as_str(), "read" | "write" | "edit" | "apply_patch" | "browser" | "web_fetch" | "web_search"))
-        && !host_like;
+        || tools.reachable_tools.iter().any(|tool| {
+            matches!(
+                tool.capability.as_str(),
+                "exec" | "process" | "gateway" | "nodes" | "cron"
+            )
+        })
+        || secrets.reachable_secret_scopes.iter().any(|scope| {
+            scope.target.contains(".ssh")
+                || scope.target.contains(".openclaw")
+                || scope.target.contains("auth-profiles")
+        });
+    let sandbox_like = tools.reachable_tools.iter().all(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "read" | "write" | "edit" | "apply_patch" | "browser" | "web_fetch" | "web_search"
+        )
+    }) && !host_like;
 
     if host_like && sandbox_like {
         ExecutionSurface::Mixed
@@ -96,11 +108,11 @@ fn infer_file_system_consequences(
     secrets: &SecretReachabilityAnalysis,
 ) -> Vec<FileSystemConsequenceKind> {
     let mut consequences = Vec::new();
-    if secrets
-        .reachable_secret_scopes
-        .iter()
-        .any(|scope| scope.target.contains(".ssh") || scope.target.contains(".openclaw") || scope.target.contains(".netrc"))
-    {
+    if secrets.reachable_secret_scopes.iter().any(|scope| {
+        scope.target.contains(".ssh")
+            || scope.target.contains(".openclaw")
+            || scope.target.contains(".netrc")
+    }) {
         consequences.push(FileSystemConsequenceKind::HomeDirectoryArtifacts);
     }
     if secrets
@@ -167,11 +179,12 @@ fn infer_credential_consequences(
 
 fn infer_network_consequences(tools: &ToolReachabilityAnalysis) -> Vec<NetworkConsequenceKind> {
     let mut consequences = Vec::new();
-    if tools
-        .reachable_tools
-        .iter()
-        .any(|tool| matches!(tool.capability.as_str(), "browser" | "web_fetch" | "web_search"))
-    {
+    if tools.reachable_tools.iter().any(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "browser" | "web_fetch" | "web_search"
+        )
+    }) {
         consequences.push(NetworkConsequenceKind::BrowserWebFetch);
     }
     if tools
@@ -198,10 +211,14 @@ fn infer_persistence_consequences(skills: &[ParsedSkill]) -> Vec<PersistenceCons
     let mut consequences = Vec::new();
     for skill in skills {
         let lowered = skill.body.to_ascii_lowercase();
-        if lowered.contains(".bashrc") || lowered.contains(".zshrc") || lowered.contains("profile") {
+        if lowered.contains(".bashrc") || lowered.contains(".zshrc") || lowered.contains("profile")
+        {
             consequences.push(PersistenceConsequenceKind::ShellProfileModificationHint);
         }
-        if lowered.contains("cron") || lowered.contains("schtasks") || lowered.contains("scheduled task") {
+        if lowered.contains("cron")
+            || lowered.contains("schtasks")
+            || lowered.contains("scheduled task")
+        {
             consequences.push(PersistenceConsequenceKind::ScheduledTaskOrCronHint);
         }
         if lowered.contains("startup") || lowered.contains("autorun") {
@@ -225,7 +242,10 @@ fn infer_environment_assumptions(
     tools: &ToolReachabilityAnalysis,
 ) -> Vec<EnvironmentAssumption> {
     let mut assumptions = Vec::new();
-    if matches!(execution_surface, ExecutionSurface::Host | ExecutionSurface::Mixed) {
+    if matches!(
+        execution_surface,
+        ExecutionSurface::Host | ExecutionSurface::Mixed
+    ) {
         assumptions.push(EnvironmentAssumption {
             environment: RuntimeEnvironment::Host,
             assumption: "skill can reach host execution surface".to_string(),
@@ -241,16 +261,19 @@ fn infer_environment_assumptions(
             rationale: "Secret reachability in a sandbox depends on mounted files, env forwarding, or config exposure.".to_string(),
         });
     }
-    if tools
-        .reachable_tools
-        .iter()
-        .any(|tool| matches!(tool.capability.as_str(), "browser" | "web_fetch" | "gateway" | "nodes"))
-    {
+    if tools.reachable_tools.iter().any(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "browser" | "web_fetch" | "gateway" | "nodes"
+        )
+    }) {
         assumptions.push(EnvironmentAssumption {
             environment: RuntimeEnvironment::Sandbox,
             assumption: "network or outward-capable tools are enabled".to_string(),
             satisfied: None,
-            rationale: "Egress-oriented paths require enabled browser/web/gateway/network surfaces.".to_string(),
+            rationale:
+                "Egress-oriented paths require enabled browser/web/gateway/network surfaces."
+                    .to_string(),
         });
     }
     assumptions
@@ -294,8 +317,10 @@ fn build_inferred_notes(
     network: &[NetworkConsequenceKind],
 ) -> Vec<String> {
     let mut notes = Vec::new();
-    if matches!(execution_surface, ExecutionSurface::Host | ExecutionSurface::Mixed)
-        && file_system.contains(&FileSystemConsequenceKind::HomeDirectoryArtifacts)
+    if matches!(
+        execution_surface,
+        ExecutionSurface::Host | ExecutionSurface::Mixed
+    ) && file_system.contains(&FileSystemConsequenceKind::HomeDirectoryArtifacts)
     {
         notes.push("Host execution plus home-directory access can increase credential and persistence consequences.".to_string());
     }
@@ -311,7 +336,10 @@ fn build_impact_deltas(
     network: &[NetworkConsequenceKind],
 ) -> Vec<ImpactDelta> {
     let mut deltas = Vec::new();
-    if matches!(execution_surface, ExecutionSurface::Host | ExecutionSurface::Mixed) {
+    if matches!(
+        execution_surface,
+        ExecutionSurface::Host | ExecutionSurface::Mixed
+    ) {
         deltas.push(ImpactDelta {
             environment: RuntimeEnvironment::Host,
             delta: "host consequence uplift".to_string(),
@@ -322,10 +350,15 @@ fn build_impact_deltas(
         deltas.push(ImpactDelta {
             environment: RuntimeEnvironment::Sandbox,
             delta: "sandbox consequence limited by mounted secrets".to_string(),
-            rationale: "Sandbox impact depends on which secrets or config files are forwarded or mounted.".to_string(),
+            rationale:
+                "Sandbox impact depends on which secrets or config files are forwarded or mounted."
+                    .to_string(),
         });
     }
-    if network.iter().any(|kind| *kind != NetworkConsequenceKind::NoMeaningfulEgress) {
+    if network
+        .iter()
+        .any(|kind| *kind != NetworkConsequenceKind::NoMeaningfulEgress)
+    {
         deltas.push(ImpactDelta {
             environment: RuntimeEnvironment::Mixed,
             delta: "egress consequence depends on enabled outward-capable surfaces".to_string(),
@@ -345,33 +378,52 @@ fn build_host_sandbox_split(assessment: &ConsequenceAssessment) -> HostSandboxSp
         .file_system_consequences
         .contains(&FileSystemConsequenceKind::HomeDirectoryArtifacts)
     {
-        host_effects.push("Host execution can reach home-directory artifacts and local credential stores.".to_string());
-        blocked_in_sandbox.push("Home-directory effects are reduced if the sandbox lacks host mounts.".to_string());
+        host_effects.push(
+            "Host execution can reach home-directory artifacts and local credential stores."
+                .to_string(),
+        );
+        blocked_in_sandbox.push(
+            "Home-directory effects are reduced if the sandbox lacks host mounts.".to_string(),
+        );
     }
     if assessment
         .network_consequences
         .iter()
         .any(|kind| *kind != NetworkConsequenceKind::NoMeaningfulEgress)
     {
-        host_effects.push("Host-capable outward tools can move data beyond the workspace boundary.".to_string());
-        sandbox_effects.push("Sandbox consequence depends on whether browser/web/gateway/network tools are enabled.".to_string());
+        host_effects.push(
+            "Host-capable outward tools can move data beyond the workspace boundary.".to_string(),
+        );
+        sandbox_effects.push(
+            "Sandbox consequence depends on whether browser/web/gateway/network tools are enabled."
+                .to_string(),
+        );
         residual_sandbox_risks.push("Even without full host access, outward-capable tools can still export workspace or mounted data.".to_string());
     }
     if assessment
         .file_system_consequences
         .contains(&FileSystemConsequenceKind::WorkspaceOnlyScope)
     {
-        sandbox_effects.push("Workspace-scoped mutation remains possible through write/edit/apply_patch surfaces.".to_string());
+        sandbox_effects.push(
+            "Workspace-scoped mutation remains possible through write/edit/apply_patch surfaces."
+                .to_string(),
+        );
     }
     if assessment
         .credential_consequences
         .contains(&CredentialConsequenceKind::EnvironmentSecrets)
     {
-        residual_sandbox_risks.push("Forwarded env secrets remain exposed even when filesystem reach is reduced.".to_string());
+        residual_sandbox_risks.push(
+            "Forwarded env secrets remain exposed even when filesystem reach is reduced."
+                .to_string(),
+        );
     }
 
     if host_effects.is_empty() {
-        host_effects.push("No explicit host-only consequence was confirmed from the current scan inputs.".to_string());
+        host_effects.push(
+            "No explicit host-only consequence was confirmed from the current scan inputs."
+                .to_string(),
+        );
     }
     if sandbox_effects.is_empty() {
         sandbox_effects.push("Sandbox impact remains limited or uncertain without mounted secrets, write access, or outward-capable tools.".to_string());
@@ -410,7 +462,10 @@ mod tests {
 
         let analysis = analyze_consequences(&[skill], &install, &tools, &secrets);
 
-        assert_eq!(analysis.assessment.execution_surface, ExecutionSurface::Host);
+        assert_eq!(
+            analysis.assessment.execution_surface,
+            ExecutionSurface::Host
+        );
         assert!(analysis
             .assessment
             .credential_consequences

@@ -31,8 +31,8 @@ enum SuppressionConfig {
 pub fn load_suppression_rules(path: &Path) -> Result<Vec<SuppressionRule>, String> {
     let content = fs::read_to_string(path)
         .map_err(|err| format!("failed to read suppression file {}: {err}", path.display()))?;
-    let parsed: SuppressionConfig =
-        serde_json::from_str(&content).map_err(|err| format!("failed to parse suppression file: {err}"))?;
+    let parsed: SuppressionConfig = serde_json::from_str(&content)
+        .map_err(|err| format!("failed to parse suppression file: {err}"))?;
     let rules = match parsed {
         SuppressionConfig::RulesObject { rules } => rules,
         SuppressionConfig::RulesArray(rules) => rules,
@@ -76,8 +76,15 @@ pub fn apply_suppressions(
                 reason: rule.reason.clone(),
             });
             audit_records.push(AuditRecord {
-                level: if high_risk { AuditLevel::HighRisk } else { AuditLevel::Info },
-                message: format!("Finding `{}` was suppressed with reason: {}", finding.id, rule.reason),
+                level: if high_risk {
+                    AuditLevel::HighRisk
+                } else {
+                    AuditLevel::Info
+                },
+                message: format!(
+                    "Finding `{}` was suppressed with reason: {}",
+                    finding.id, rule.reason
+                ),
                 subject_id: Some(finding.id.clone()),
             });
             if lifecycle == SuppressionLifecycle::Expired {
@@ -112,8 +119,15 @@ pub fn apply_suppressions(
                 reason: rule.reason.clone(),
             });
             audit_records.push(AuditRecord {
-                level: if high_risk { AuditLevel::HighRisk } else { AuditLevel::Warning },
-                message: format!("Attack path `{}` was suppressed for scoring with reason: {}", path.path_id, rule.reason),
+                level: if high_risk {
+                    AuditLevel::HighRisk
+                } else {
+                    AuditLevel::Warning
+                },
+                message: format!(
+                    "Attack path `{}` was suppressed for scoring with reason: {}",
+                    path.path_id, rule.reason
+                ),
                 subject_id: Some(path.path_id.clone()),
             });
             if lifecycle == SuppressionLifecycle::Expired {
@@ -147,7 +161,11 @@ pub fn apply_suppressions(
         .collect();
     let active_paths: Vec<AttackPath> = updated_paths
         .iter()
-        .filter(|path| !matches.iter().any(|item| item.scope == "attack_path" && item.target_id == path.path_id))
+        .filter(|path| {
+            !matches
+                .iter()
+                .any(|item| item.scope == "attack_path" && item.target_id == path.path_id)
+        })
         .cloned()
         .collect();
 

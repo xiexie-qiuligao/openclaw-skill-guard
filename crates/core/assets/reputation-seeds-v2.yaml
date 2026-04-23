@@ -1,0 +1,90 @@
+- id: v2.seed.shortlink.bitly
+  seed_kind: shortlink_host
+  value: bit.ly
+  risk_hint: suspicious
+  description: Shortlink host hides the final destination.
+  false_positive_notes:
+    - Not every shortlink is malicious, but destinations require review.
+  provenance:
+    source_name: cls-certify url audit
+    source_kind: adapted_reference
+    source_ref: tools/url-audit.sh
+    notes: []
+
+- id: v2.seed.shortlink.tco
+  seed_kind: shortlink_host
+  value: t.co
+  risk_hint: suspicious
+  description: Twitter shortlink host hides the final destination.
+  false_positive_notes:
+    - Common on social platforms but still obscures reviewability.
+  provenance:
+    source_name: cls-certify url audit
+    source_kind: adapted_reference
+    source_ref: tools/url-audit.sh
+    notes: []
+
+- id: v2.seed.dynamic_dns.ngrok
+  seed_kind: dynamic_dns_suffix
+  value: ngrok.io
+  risk_hint: suspicious
+  description: Dynamic tunnel service often represents unstable or temporary exposure.
+  false_positive_notes:
+    - Developers may use tunnels legitimately for demos or local testing.
+  provenance:
+    source_name: cls-certify url audit
+    source_kind: adapted_reference
+    source_ref: tools/url-audit.sh
+    notes: []
+
+- id: v2.seed.dynamic_dns.localtunnel
+  seed_kind: dynamic_dns_suffix
+  value: localtunnel.me
+  risk_hint: suspicious
+  description: Dynamic tunnel service often represents unstable or temporary exposure.
+  false_positive_notes:
+    - Review the context before escalating.
+  provenance:
+    source_name: cls-certify url audit
+    source_kind: adapted_reference
+    source_ref: tools/url-audit.sh
+    notes: []
+
+- id: v2.seed.suspicious_tld_top
+  seed_kind: tld
+  value: .top
+  risk_hint: suspicious
+  description: Suspicious TLD seed for lightweight local reputation hints.
+  false_positive_notes:
+    - TLD alone is not proof of maliciousness.
+  provenance:
+    source_name: cls-certify url audit
+    source_kind: adapted_reference
+    source_ref: tools/url-audit.sh
+    notes: []
+
+- id: v2.seed.suspicious_tld_xyz
+  seed_kind: tld
+  value: .xyz
+  risk_hint: suspicious
+  description: Suspicious TLD seed for lightweight local reputation hints.
+  false_positive_notes:
+    - Requires context and should not be treated as a blacklist.
+  provenance:
+    source_name: cls-certify url audit
+    source_kind: adapted_reference
+    source_ref: tools/url-audit.sh
+    notes: []
+
+- id: v2.seed.known_suspicious_pastebin
+  seed_kind: exact_host
+  value: pastebin.com
+  risk_hint: suspicious
+  description: Paste hosts can distribute payloads outside normal code review surfaces.
+  false_positive_notes:
+    - Some paste links are benign debugging artifacts.
+  provenance:
+    source_name: cls-certify known malicious patterns
+    source_kind: adapted_reference
+    source_ref: references/known-malicious-patterns.md
+    notes: []

@@ -35,7 +35,14 @@ pub fn analyze_tool_reachability(skill: &ParsedSkill) -> ToolReachabilityAnalysi
 
             if matches!(
                 tool,
-                "exec" | "write" | "edit" | "apply_patch" | "process" | "gateway" | "cron" | "nodes"
+                "exec"
+                    | "write"
+                    | "edit"
+                    | "apply_patch"
+                    | "process"
+                    | "gateway"
+                    | "cron"
+                    | "nodes"
             ) {
                 findings.push(make_tool_finding(
                     "context.tool.high_risk_reachable",
@@ -50,13 +57,36 @@ pub fn analyze_tool_reachability(skill: &ParsedSkill) -> ToolReachabilityAnalysi
 
     for config in &skill.metadata.requires.config {
         if let Some(tool) = infer_tool_from_config(config) {
-            push_unique_tool(&mut reachable, tool, false, FindingConfidence::Medium, format!("Inferred from requires.config entry `{config}`."));
+            push_unique_tool(
+                &mut reachable,
+                tool,
+                false,
+                FindingConfidence::Medium,
+                format!("Inferred from requires.config entry `{config}`."),
+            );
         }
     }
 
     for line in build_scan_lines(&skill.body) {
-        for tool in ["browser", "web_fetch", "web_search", "read", "write", "edit", "apply_patch", "exec", "process", "gateway", "cron", "nodes"] {
-            let pattern = Regex::new(&format!(r"(?i)\b(?:use|call|invoke|run)\b[^\n]*\b{}\b", regex::escape(tool))).unwrap();
+        for tool in [
+            "browser",
+            "web_fetch",
+            "web_search",
+            "read",
+            "write",
+            "edit",
+            "apply_patch",
+            "exec",
+            "process",
+            "gateway",
+            "cron",
+            "nodes",
+        ] {
+            let pattern = Regex::new(&format!(
+                r"(?i)\b(?:use|call|invoke|run)\b[^\n]*\b{}\b",
+                regex::escape(tool)
+            ))
+            .unwrap();
             if pattern.is_match(&line.text) {
                 push_unique_tool(
                     &mut reachable,
@@ -70,7 +100,8 @@ pub fn analyze_tool_reachability(skill: &ParsedSkill) -> ToolReachabilityAnalysi
     }
 
     let summary = if reachable.is_empty() {
-        "No high-confidence OpenClaw tool dependencies or dispatch targets were inferred.".to_string()
+        "No high-confidence OpenClaw tool dependencies or dispatch targets were inferred."
+            .to_string()
     } else {
         format!(
             "Detected {} reachable or strongly implied OpenClaw tools.",
@@ -112,8 +143,14 @@ pub fn analyze_secret_reachability(skill: &ParsedSkill) -> SecretReachabilityAna
     }
 
     let sensitive_patterns = [
-        ("openclaw_credentials", r"(?i)~?[/\\]\.openclaw[/\\]credentials"),
-        ("openclaw_config", r"(?i)~?[/\\]\.openclaw[/\\]openclaw\.json"),
+        (
+            "openclaw_credentials",
+            r"(?i)~?[/\\]\.openclaw[/\\]credentials",
+        ),
+        (
+            "openclaw_config",
+            r"(?i)~?[/\\]\.openclaw[/\\]openclaw\.json",
+        ),
         ("ssh_keys", r"(?i)~?[/\\]\.ssh[/\\]"),
         ("dotenv", r"(?i)(?:^|[ /\\])\.env(?:$|[ /\\])"),
         ("npmrc", r"(?i)\.npmrc"),
@@ -122,8 +159,14 @@ pub fn analyze_secret_reachability(skill: &ParsedSkill) -> SecretReachabilityAna
         ("docker_config", r"(?i)\.docker[/\\]config\.json"),
         ("auth_profiles", r"(?i)auth-profiles\.json"),
         ("secrets_json", r"(?i)\bsecrets\.json\b"),
-        ("browser_credentials", r"(?i)\b(?:login data|cookies|keychain|credential manager)\b"),
-        ("wallet_material", r"(?i)\b(?:wallet|mnemonic|seed phrase|exchange key)\b"),
+        (
+            "browser_credentials",
+            r"(?i)\b(?:login data|cookies|keychain|credential manager)\b",
+        ),
+        (
+            "wallet_material",
+            r"(?i)\b(?:wallet|mnemonic|seed phrase|exchange key)\b",
+        ),
     ];
 
     for line in build_scan_lines(&skill.body) {
@@ -311,7 +354,10 @@ mod tests {
             Vec::new(),
         );
         let analysis = analyze_tool_reachability(&skill);
-        assert!(analysis.reachable_tools.iter().any(|tool| tool.capability == "exec"));
+        assert!(analysis
+            .reachable_tools
+            .iter()
+            .any(|tool| tool.capability == "exec"));
     }
 
     #[test]
@@ -326,6 +372,9 @@ mod tests {
             .reachable_secret_scopes
             .iter()
             .any(|scope| scope.target == "DEMO_KEY"));
-        assert!(analysis.findings.iter().any(|finding| finding.id == "context.secret.local_sensitive_path"));
+        assert!(analysis
+            .findings
+            .iter()
+            .any(|finding| finding.id == "context.secret.local_sensitive_path"));
     }
 }

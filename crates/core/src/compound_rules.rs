@@ -1,10 +1,12 @@
+use crate::install::InstallAnalysis;
 use crate::instruction::InstructionAnalysis;
 use crate::invocation::InvocationAnalysis;
 use crate::precedence::PrecedenceAnalysis;
 use crate::prompt_injection::PromptInjectionAnalysis;
 use crate::reachability::{SecretReachabilityAnalysis, ToolReachabilityAnalysis};
-use crate::types::{CompoundRuleHit, FindingConfidence, FindingSeverity, ParsedSkill, PromptSignalKind};
-use crate::install::InstallAnalysis;
+use crate::types::{
+    CompoundRuleHit, FindingConfidence, FindingSeverity, ParsedSkill, PromptSignalKind,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CompoundRuleAnalysis {
@@ -23,9 +25,14 @@ pub fn evaluate_compound_rules(
 ) -> CompoundRuleAnalysis {
     let mut hits = Vec::new();
 
-    if skills.iter().any(|skill| skill.invocation_policy.command_dispatch == crate::types::InvocationDispatch::Tool)
-        && tools.reachable_tools.iter().any(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "write" | "apply_patch"))
-    {
+    if skills.iter().any(|skill| {
+        skill.invocation_policy.command_dispatch == crate::types::InvocationDispatch::Tool
+    }) && tools.reachable_tools.iter().any(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "exec" | "process" | "write" | "apply_patch"
+        )
+    }) {
         hits.push(rule(
             "compound.dispatch_risky_tool",
             "Direct tool dispatch plus high-risk tool",
@@ -35,8 +42,7 @@ pub fn evaluate_compound_rules(
     }
 
     if skills.iter().any(|skill| {
-        skill.invocation_policy.disable_model_invocation
-            && skill.invocation_policy.user_invocable
+        skill.invocation_policy.disable_model_invocation && skill.invocation_policy.user_invocable
     }) {
         hits.push(rule(
             "compound.hidden_user_invocation",
@@ -59,15 +65,17 @@ pub fn evaluate_compound_rules(
         ));
     }
 
-    if prompt
-        .signals
-        .iter()
-        .any(|signal| matches!(signal.kind, PromptSignalKind::ToolCoercion | PromptSignalKind::IndirectInstruction))
-        && tools
-            .reachable_tools
-            .iter()
-            .any(|tool| matches!(tool.capability.as_str(), "exec" | "process" | "browser" | "web_fetch"))
-    {
+    if prompt.signals.iter().any(|signal| {
+        matches!(
+            signal.kind,
+            PromptSignalKind::ToolCoercion | PromptSignalKind::IndirectInstruction
+        )
+    }) && tools.reachable_tools.iter().any(|tool| {
+        matches!(
+            tool.capability.as_str(),
+            "exec" | "process" | "browser" | "web_fetch"
+        )
+    }) {
         hits.push(rule(
             "compound.instruction_tool_coercion",
             "Instruction signal plus tool coercion surface",
@@ -76,11 +84,12 @@ pub fn evaluate_compound_rules(
         ));
     }
 
-    if prompt
-        .signals
-        .iter()
-        .any(|signal| matches!(signal.kind, PromptSignalKind::SensitiveDataCoercion | PromptSignalKind::IndirectInstruction))
-        && !secrets.reachable_secret_scopes.is_empty()
+    if prompt.signals.iter().any(|signal| {
+        matches!(
+            signal.kind,
+            PromptSignalKind::SensitiveDataCoercion | PromptSignalKind::IndirectInstruction
+        )
+    }) && !secrets.reachable_secret_scopes.is_empty()
     {
         hits.push(rule(
             "compound.instruction_secret_coercion",
@@ -91,10 +100,12 @@ pub fn evaluate_compound_rules(
     }
 
     if !secrets.reachable_secret_scopes.is_empty()
-        && tools
-            .reachable_tools
-            .iter()
-            .any(|tool| matches!(tool.capability.as_str(), "write" | "process" | "gateway" | "browser" | "web_fetch"))
+        && tools.reachable_tools.iter().any(|tool| {
+            matches!(
+                tool.capability.as_str(),
+                "write" | "process" | "gateway" | "browser" | "web_fetch"
+            )
+        })
     {
         hits.push(rule(
             "compound.secret_exfil_potential",
@@ -105,7 +116,10 @@ pub fn evaluate_compound_rules(
     }
 
     if !precedence.collisions.is_empty()
-        && (invocation.findings.iter().any(|finding| finding.category == "invocation_policy")
+        && (invocation
+            .findings
+            .iter()
+            .any(|finding| finding.category == "invocation_policy")
             || !install.findings.is_empty())
     {
         hits.push(rule(
@@ -120,7 +134,10 @@ pub fn evaluate_compound_rules(
         !install.findings.is_empty(),
         !prompt.findings.is_empty(),
         !secrets.findings.is_empty(),
-        tools.findings.iter().any(|finding| finding.severity >= FindingSeverity::High),
+        tools
+            .findings
+            .iter()
+            .any(|finding| finding.severity >= FindingSeverity::High),
     ]
     .into_iter()
     .filter(|value| *value)
@@ -154,8 +171,8 @@ fn rule(id: &str, title: &str, summary: &str, severity: FindingSeverity) -> Comp
 mod tests {
     use std::path::Path;
 
-    use crate::instruction::extract_instruction_segments;
     use crate::install::analyze_install_chain;
+    use crate::instruction::extract_instruction_segments;
     use crate::invocation::analyze_invocation_policy;
     use crate::precedence::analyze_precedence;
     use crate::prompt_injection::analyze_instruction_segments;
@@ -201,4 +218,3 @@ mod tests {
             .any(|hit| hit.rule_id == "compound.hidden_user_invocation"));
     }
 }
-

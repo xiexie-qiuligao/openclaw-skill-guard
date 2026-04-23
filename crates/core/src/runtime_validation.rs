@@ -1,13 +1,12 @@
-use crate::guarded_validator::{build_guarded_validation_result, infer_guard_status};
 use crate::precedence::PrecedenceAnalysis;
 use crate::runtime_manifest::RuntimeManifestLoadResult;
 use crate::types::{
     AttackPath, AvailabilityState, CapabilityCheck, ConsequenceAssessment, ConstraintCheck,
     ConstraintEffect, CredentialConsequenceKind, EnvironmentAmplifier, EnvironmentBlocker,
     FileSystemConsequenceKind, GuardedValidationResult, HostSandboxSplit, MissingConstraint,
-    NetworkConsequenceKind, PathValidationDisposition, PathValidationStatus, PermissionSurface,
-    RuntimeAssumptionState, RuntimeAssumptionStatus, RuntimeEnvironment, RuntimeFact,
-    RuntimeRefinementNote, RuntimeScoreAdjustment,
+    NetworkConsequenceKind, PathGuardStatus, PathValidationDisposition, PathValidationStatus,
+    PermissionSurface, RuntimeAssumptionState, RuntimeAssumptionStatus, RuntimeEnvironment,
+    RuntimeFact, RuntimeRefinementNote, RuntimeScoreAdjustment, SandboxConstraintEffect,
     ValidatedConstraint, ValidationCheck, ValidationExecutionMode, ValidationPlan,
     ValidationResult, ValidationTarget, WritableFileSystemScope,
 };
@@ -48,13 +47,28 @@ pub fn perform_runtime_validation(
         manifest_load,
         precedence,
     );
-    let guarded_validation = build_guarded_validation_result(&manifest_load.manifest, &path_validation_status);
-    let (constraint_effects, environment_blockers, environment_amplifiers, runtime_refinement_notes) =
-        build_refinement_outputs(&path_validation_status);
+    let (
+        constraint_effects,
+        environment_blockers,
+        environment_amplifiers,
+        runtime_refinement_notes,
+    ) = build_refinement_outputs(&path_validation_status);
     let validation_score_adjustments = build_runtime_score_adjustments(&path_validation_status);
-    let refined_consequence =
-        refine_consequence(consequence, &manifest_load.manifest.permission_surface, manifest_load);
-    let refined_split = refine_split(split, &manifest_load.manifest.permission_surface, manifest_load);
+    let refined_consequence = refine_consequence(
+        consequence,
+        &manifest_load.manifest.permission_surface,
+        manifest_load,
+    );
+    let refined_split = refine_split(
+        split,
+        &manifest_load.manifest.permission_surface,
+        manifest_load,
+    );
+    let guarded_validation = build_guarded_validation_result(
+        &manifest_load.manifest.permission_surface,
+        &assumption_status,
+        &path_validation_status,
+    );
 
     RuntimeValidationAnalysis {
         runtime_manifest_summary: manifest_load.summary.clone(),
@@ -73,7 +87,6 @@ pub fn perform_runtime_validation(
         confidence_notes: vec![
             "Runtime validation only uses manifest ingestion and guarded local checks; it does not execute install chains or untrusted code.".to_string(),
             "Validated runtime facts can strengthen, narrow, or block an attack path without erasing the underlying static evidence.".to_string(),
-            "Guarded validation distinguishes supported, narrowed, blocked, and still-assumed path states using sandbox and capability constraints.".to_string(),
         ],
     }
 }
@@ -91,30 +104,29 @@ fn build_assumption_status(
             _ => RuntimeAssumptionState::Validated,
         },
         source_kind: manifest.source_kind,
-        rationale: "Execution environment can come directly from a runtime manifest or remain unknown.".to_string(),
+        rationale:
+            "Execution environment can come directly from a runtime manifest or remain unknown."
+                .to_string(),
     });
     for (assumption, state) in [
         ("network", manifest.permission_surface.network),
-        ("direct_network", manifest.permission_surface.direct_network),
         ("exec_allowed", manifest.permission_surface.exec_allowed),
-        ("process_allowed", manifest.permission_surface.process_allowed),
-        ("shell_allowed", manifest.permission_surface.shell_allowed),
-        ("child_process_allowed", manifest.permission_surface.child_process_allowed),
-        ("write_allowed", manifest.permission_surface.write_allowed),
-        ("edit_allowed", manifest.permission_surface.edit_allowed),
-        ("apply_patch_allowed", manifest.permission_surface.apply_patch_allowed),
-        ("browser_network", manifest.permission_surface.browser_network),
-        ("web_fetch_available", manifest.permission_surface.web_fetch_available),
-        ("gateway_available", manifest.permission_surface.gateway_available),
-        ("nodes_available", manifest.permission_surface.nodes_available),
-        ("cron_available", manifest.permission_surface.cron_available),
-        ("home_directory_access", manifest.permission_surface.home_directory_access),
+        (
+            "process_allowed",
+            manifest.permission_surface.process_allowed,
+        ),
+        (
+            "home_directory_access",
+            manifest.permission_surface.home_directory_access,
+        ),
     ] {
         statuses.push(RuntimeAssumptionStatus {
             assumption: assumption.to_string(),
             state: map_availability_state(state),
             source_kind: manifest.source_kind,
-            rationale: "Permission surfaces refine whether a path is validated, blocked, narrowed, or still assumed.".to_string(),
+            rationale:
+                "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+                    .to_string(),
         });
     }
     for env_var in &manifest.expected_env_vars {
@@ -130,7 +142,9 @@ fn build_assumption_status(
             } else {
                 manifest.source_kind
             },
-            rationale: "Expected env-backed secret presence can be validated without reading the value.".to_string(),
+            rationale:
+                "Expected env-backed secret presence can be validated without reading the value."
+                    .to_string(),
         });
     }
     for file in &manifest.expected_config_files {
@@ -205,17 +219,13 @@ fn execute_validation_checks(
                 } else {
                     Vec::new()
                 },
-                capability_checks: vec![CapabilityCheck {
-                    name: "direct_network".to_string(),
-                    available: manifest_load.manifest.permission_surface.direct_network,
-                    rationale: "Direct network availability refines install-path reachability without executing the install chain.".to_string(),
-                }],
-                constraint_checks: vec![ConstraintCheck {
-                    name: "writable_scope".to_string(),
-                    status: writable_scope_state(manifest_load.manifest.permission_surface.writable_scope),
-                    rationale: "Filesystem scope helps determine whether downloaded artifacts could land or execute in practice.".to_string(),
-                }],
-                sandbox_constraint_effects: Vec::new(),
+                capability_checks: capability_checks_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
+                constraint_checks: Vec::new(),
+                sandbox_constraint_effects: sandbox_constraint_effects_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
                 note: "Install-chain validation is non-executing and only confirms prerequisite surfaces.".to_string(),
             },
             ValidationTarget::ToolDispatch | ValidationTarget::InvocationPolicy => ValidationResult {
@@ -224,17 +234,7 @@ fn execute_validation_checks(
                 success: manifest_load.manifest.permission_surface.exec_allowed != AvailabilityState::Unknown
                     || manifest_load.manifest.permission_surface.process_allowed != AvailabilityState::Unknown
                     || manifest_load.manifest.permission_surface.gateway_available != AvailabilityState::Unknown,
-                validated_constraints: if manifest_load.manifest.permission_surface.exec_allowed
-                    != AvailabilityState::Unknown
-                    || manifest_load.manifest.permission_surface.process_allowed
-                        != AvailabilityState::Unknown
-                    || manifest_load.manifest.permission_surface.gateway_available
-                        != AvailabilityState::Unknown
-                {
-                    collect_permission_constraints(&manifest_load.manifest.permission_surface)
-                } else {
-                    Vec::new()
-                },
+                validated_constraints: collect_permission_constraints(&manifest_load.manifest.permission_surface),
                 missing_constraints: if manifest_load.manifest.permission_surface.exec_allowed
                     == AvailabilityState::Unknown
                     && manifest_load.manifest.permission_surface.process_allowed
@@ -249,9 +249,13 @@ fn execute_validation_checks(
                 } else {
                     Vec::new()
                 },
-                capability_checks: collect_capability_checks(&manifest_load.manifest.permission_surface),
+                capability_checks: capability_checks_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
                 constraint_checks: Vec::new(),
-                sandbox_constraint_effects: Vec::new(),
+                sandbox_constraint_effects: sandbox_constraint_effects_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
                 note: "Tool-dispatch validation checks permission surfaces only; it does not invoke the tool.".to_string(),
             },
             ValidationTarget::RuntimeEnvironment => ValidationResult {
@@ -278,24 +282,16 @@ fn execute_validation_checks(
                 } else {
                     Vec::new()
                 },
-                capability_checks: Vec::new(),
-                constraint_checks: vec![
-                    ConstraintCheck {
-                        name: "workspace_only_scope".to_string(),
-                        status: map_availability_state(
-                            manifest_load.manifest.permission_schema.environment_scope.workspace_only,
-                        ),
-                        rationale: "Workspace-only scope narrows consequence to the project boundary.".to_string(),
-                    },
-                    ConstraintCheck {
-                        name: "home_access".to_string(),
-                        status: map_availability_state(
-                            manifest_load.manifest.permission_schema.environment_scope.home_access,
-                        ),
-                        rationale: "Home access amplifies local secret and persistence consequences.".to_string(),
-                    },
-                ],
-                sandbox_constraint_effects: Vec::new(),
+                capability_checks: capability_checks_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
+                constraint_checks: constraint_checks_from_assumptions(&build_assumption_status(
+                    manifest_load,
+                    precedence,
+                )),
+                sandbox_constraint_effects: sandbox_constraint_effects_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
                 note: "Runtime environment validation refines host-vs-sandbox consequence splits.".to_string(),
             },
             ValidationTarget::PrecedenceScope => ValidationResult {
@@ -320,7 +316,10 @@ fn execute_validation_checks(
                     })
                     .collect(),
                 capability_checks: Vec::new(),
-                constraint_checks: Vec::new(),
+                constraint_checks: constraint_checks_from_assumptions(&build_assumption_status(
+                    manifest_load,
+                    precedence,
+                )),
                 sandbox_constraint_effects: Vec::new(),
                 note: "Precedence validation can only clarify scope; it does not invent missing roots.".to_string(),
             },
@@ -344,24 +343,16 @@ fn execute_validation_checks(
                 } else {
                     Vec::new()
                 },
-                capability_checks: vec![
-                    CapabilityCheck {
-                        name: "env_available".to_string(),
-                        available: manifest_load.manifest.permission_schema.capability_surface.env_available,
-                        rationale: "Env availability confirms the presence of env-backed prerequisites only.".to_string(),
-                    },
-                    CapabilityCheck {
-                        name: "config_available".to_string(),
-                        available: manifest_load.manifest.permission_schema.capability_surface.config_available,
-                        rationale: "Config availability confirms config-backed prerequisites only.".to_string(),
-                    },
-                ],
-                constraint_checks: vec![ConstraintCheck {
-                    name: "home_directory_access".to_string(),
-                    status: map_availability_state(manifest_load.manifest.permission_surface.home_directory_access),
-                    rationale: "Home-directory availability refines whether local secret-path checks remain feasible.".to_string(),
-                }],
-                sandbox_constraint_effects: Vec::new(),
+                capability_checks: capability_checks_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
+                constraint_checks: constraint_checks_from_assumptions(&build_assumption_status(
+                    manifest_load,
+                    precedence,
+                )),
+                sandbox_constraint_effects: sandbox_constraint_effects_from_permissions(
+                    &manifest_load.manifest.permission_surface,
+                ),
                 note: "Secret validation checks presence and access scope only, not secret contents.".to_string(),
             },
         })
@@ -383,19 +374,13 @@ fn build_path_validation_status(
                 let mut blocked = false;
                 collect_constraint(
                     "network",
-                    first_known([permissions.direct_network, permissions.network]),
+                    permissions.network,
                     &mut validated,
                     &mut missing,
                     &mut blocked,
                 );
                 collect_exec_constraint(permissions, &mut validated, &mut missing, &mut blocked);
-                finalize_path_status(
-                    path,
-                    validated,
-                    missing,
-                    blocked,
-                    manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown,
-                )
+                finalize_path_status(path, validated, missing, blocked, manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown)
             }
             "instruction_tool_execution" | "direct_privileged_action" => {
                 let mut validated = Vec::new();
@@ -416,52 +401,22 @@ fn build_path_validation_status(
                         rationale: "Read-only scope blocks mutation-style execution paths.".to_string(),
                     });
                 }
-                finalize_path_status(
-                    path,
-                    validated,
-                    missing,
-                    blocked,
-                    manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown,
-                )
+                finalize_path_status(path, validated, missing, blocked, manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown)
             }
             "instruction_secret_access" => {
                 let mut validated = Vec::new();
                 let mut missing = Vec::new();
                 let mut blocked = false;
-                collect_secret_presence(
-                    manifest_load,
-                    permissions,
-                    &mut validated,
-                    &mut missing,
-                    &mut blocked,
-                );
-                finalize_path_status(
-                    path,
-                    validated,
-                    missing,
-                    blocked,
-                    manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown,
-                )
+                collect_secret_presence(manifest_load, permissions, &mut validated, &mut missing, &mut blocked);
+                finalize_path_status(path, validated, missing, blocked, manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown)
             }
             "secret_exfiltration_potential" | "delegated_misuse" => {
                 let mut validated = Vec::new();
                 let mut missing = Vec::new();
                 let mut blocked = false;
-                collect_secret_presence(
-                    manifest_load,
-                    permissions,
-                    &mut validated,
-                    &mut missing,
-                    &mut blocked,
-                );
+                collect_secret_presence(manifest_load, permissions, &mut validated, &mut missing, &mut blocked);
                 collect_egress_constraint(permissions, &mut validated, &mut missing, &mut blocked);
-                finalize_path_status(
-                    path,
-                    validated,
-                    missing,
-                    blocked,
-                    manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown,
-                )
+                finalize_path_status(path, validated, missing, blocked, manifest_load.manifest.source_kind != crate::types::RuntimeSourceKind::Unknown)
             }
             "trust_hijack" => {
                 let status = if precedence.root_resolution.missing_roots.is_empty() {
@@ -472,7 +427,7 @@ fn build_path_validation_status(
                 PathValidationStatus {
                     path_id: path.path_id.clone(),
                     status,
-                    guard_status: infer_guard_status(status),
+                    guard_status: guard_status_for_disposition(status),
                     validated_constraints: if status == PathValidationDisposition::Validated {
                         vec![ValidatedConstraint {
                             name: "precedence_scope_complete".to_string(),
@@ -493,21 +448,24 @@ fn build_path_validation_status(
                     note: "Trust-hijack confidence depends on how complete the precedence scope is.".to_string(),
                 }
             }
-            _ => {
-                let status = if manifest_load.manifest.source_kind == crate::types::RuntimeSourceKind::Unknown {
+            _ => PathValidationStatus {
+                path_id: path.path_id.clone(),
+                status: if manifest_load.manifest.source_kind == crate::types::RuntimeSourceKind::Unknown {
                     PathValidationDisposition::StillAssumed
                 } else {
                     PathValidationDisposition::PartiallyValidated
-                };
-                PathValidationStatus {
-                    path_id: path.path_id.clone(),
-                    status,
-                    guard_status: infer_guard_status(status),
-                    validated_constraints: Vec::new(),
-                    missing_constraints: Vec::new(),
-                    note: "No specialized runtime refinement rule exists for this path type yet.".to_string(),
-                }
-            }
+                },
+                guard_status: if manifest_load.manifest.source_kind
+                    == crate::types::RuntimeSourceKind::Unknown
+                {
+                    PathGuardStatus::Assumed
+                } else {
+                    PathGuardStatus::Narrowed
+                },
+                validated_constraints: Vec::new(),
+                missing_constraints: Vec::new(),
+                note: "No specialized runtime refinement rule exists for this path type yet.".to_string(),
+            },
         })
         .collect()
 }
@@ -530,32 +488,30 @@ fn build_refinement_outputs(
             PathValidationDisposition::Validated => {
                 amplifiers.push(EnvironmentAmplifier {
                     path_id: status.path_id.clone(),
-                    amplifier: "runtime_confirmed".to_string(),
-                    rationale: "The required runtime surfaces are present, which increases confidence in the path.".to_string(),
+                    amplifier: "runtime_constraints_confirmed".to_string(),
+                    rationale:
+                        "Required runtime surfaces were confirmed, so the path is more credible."
+                            .to_string(),
                 });
                 effects.push(ConstraintEffect {
                     subject_id: status.path_id.clone(),
                     effect: "runtime_confirmed".to_string(),
-                    rationale: "Guarded validation confirmed the path prerequisites without executing the path.".to_string(),
-                });
-            }
-            PathValidationDisposition::PartiallyValidated => {
-                effects.push(ConstraintEffect {
-                    subject_id: status.path_id.clone(),
-                    effect: "partially_validated".to_string(),
-                    rationale: "Some runtime surfaces are known, but the path still depends on additional unknowns.".to_string(),
+                    rationale: "Validated runtime constraints strengthen this path beyond pure static assumption.".to_string(),
                 });
             }
             PathValidationDisposition::BlockedByEnvironment => {
                 blockers.push(EnvironmentBlocker {
                     path_id: status.path_id.clone(),
                     blocker: "runtime_permission_denied".to_string(),
-                    rationale: "A required runtime surface is explicitly disabled or unavailable.".to_string(),
+                    rationale: "A required runtime surface is explicitly disabled or unavailable."
+                        .to_string(),
                 });
                 effects.push(ConstraintEffect {
                     subject_id: status.path_id.clone(),
                     effect: "runtime_blocked".to_string(),
-                    rationale: "The path remains in the report but is narrowed by the current environment.".to_string(),
+                    rationale:
+                        "The path remains in the report but is narrowed by the current environment."
+                            .to_string(),
                 });
             }
             PathValidationDisposition::ScopeIncomplete => {
@@ -565,13 +521,8 @@ fn build_refinement_outputs(
                     rationale: "The path depends on additional scope or root information that is not yet present.".to_string(),
                 });
             }
-            PathValidationDisposition::StillAssumed => {
-                effects.push(ConstraintEffect {
-                    subject_id: status.path_id.clone(),
-                    effect: "still_assumed".to_string(),
-                    rationale: "The path still depends on unknown runtime facts and remains primarily static.".to_string(),
-                });
-            }
+            PathValidationDisposition::PartiallyValidated
+            | PathValidationDisposition::StillAssumed => {}
         }
         notes.push(RuntimeRefinementNote {
             subject_id: status.path_id.clone(),
@@ -582,7 +533,9 @@ fn build_refinement_outputs(
     (effects, blockers, amplifiers, notes)
 }
 
-fn build_runtime_score_adjustments(statuses: &[PathValidationStatus]) -> Vec<RuntimeScoreAdjustment> {
+fn build_runtime_score_adjustments(
+    statuses: &[PathValidationStatus],
+) -> Vec<RuntimeScoreAdjustment> {
     statuses
         .iter()
         .map(|status| match status.status {
@@ -621,13 +574,12 @@ fn refine_consequence(
     manifest_load: &RuntimeManifestLoadResult,
 ) -> ConsequenceAssessment {
     let mut refined = base.clone();
-    if permissions.network == AvailabilityState::Disabled || permissions.direct_network == AvailabilityState::Disabled {
+    if permissions.network == AvailabilityState::Disabled {
         refined.network_consequences = vec![NetworkConsequenceKind::NoMeaningfulEgress];
         refined
             .inferred_notes
             .push("Runtime manifest disabled meaningful egress, so network-dependent consequences are narrowed.".to_string());
-    } else if (permissions.network == AvailabilityState::Enabled
-        || permissions.direct_network == AvailabilityState::Enabled)
+    } else if permissions.network == AvailabilityState::Enabled
         && permissions.home_directory_access == AvailabilityState::Enabled
         && !permissions.mounted_secrets_or_configs.is_empty()
     {
@@ -647,29 +599,31 @@ fn refine_consequence(
                 .push("Writable scope is limited to the workspace, so file-system consequence is narrowed.".to_string());
         }
         WritableFileSystemScope::ReadOnly => {
-            refined
-                .inferred_notes
-                .push("Read-only writable scope reduces mutation-oriented consequences.".to_string());
+            refined.inferred_notes.push(
+                "Read-only writable scope reduces mutation-oriented consequences.".to_string(),
+            );
         }
         _ => {}
     }
 
     if manifest_load.manifest.execution_environment == RuntimeEnvironment::Host
         && permissions.home_directory_access == AvailabilityState::Enabled
-        && !refined
+    {
+        if !refined
             .file_system_consequences
             .contains(&FileSystemConsequenceKind::HomeDirectoryArtifacts)
-    {
-        refined
-            .file_system_consequences
-            .push(FileSystemConsequenceKind::HomeDirectoryArtifacts);
+        {
+            refined
+                .file_system_consequences
+                .push(FileSystemConsequenceKind::HomeDirectoryArtifacts);
+        }
     }
 
     refined.summary = format!(
         "{} Runtime refinement applied with environment={:?}, network={:?}, writable_scope={:?}.",
         base.summary,
         manifest_load.manifest.execution_environment,
-        first_known([permissions.direct_network, permissions.network]),
+        permissions.network,
         permissions.writable_scope
     );
     refined
@@ -681,7 +635,7 @@ fn refine_split(
     manifest_load: &RuntimeManifestLoadResult,
 ) -> HostSandboxSplit {
     let mut refined = base.clone();
-    if permissions.network == AvailabilityState::Disabled || permissions.direct_network == AvailabilityState::Disabled {
+    if permissions.network == AvailabilityState::Disabled {
         refined
             .blocked_in_sandbox
             .push("Network-disabled runtime blocks egress-dependent sandbox paths.".to_string());
@@ -689,16 +643,17 @@ fn refine_split(
     if manifest_load.manifest.execution_environment == RuntimeEnvironment::Host
         && permissions.home_directory_access == AvailabilityState::Enabled
     {
-        refined
-            .host_effects
-            .push("Runtime manifest confirms host execution with home-directory access.".to_string());
+        refined.host_effects.push(
+            "Runtime manifest confirms host execution with home-directory access.".to_string(),
+        );
     }
     if permissions.writable_scope == WritableFileSystemScope::WorkspaceOnly {
-        refined
-            .sandbox_effects
-            .push("Workspace-only writable scope narrows file mutation to the project boundary.".to_string());
+        refined.sandbox_effects.push(
+            "Workspace-only writable scope narrows file mutation to the project boundary."
+                .to_string(),
+        );
     }
-    refined.summary = "Phase 8 guarded validation refined host-vs-sandbox split using manifest-backed capability, scope, and environment facts.".to_string();
+    refined.summary = "Phase 7 runtime validation refined host-vs-sandbox split using manifest-backed permission and environment facts.".to_string();
     refined
 }
 
@@ -736,33 +691,26 @@ fn collect_exec_constraint(
 ) {
     if permissions.exec_allowed == AvailabilityState::Enabled
         || permissions.process_allowed == AvailabilityState::Enabled
-        || permissions.shell_allowed == AvailabilityState::Enabled
-        || permissions.child_process_allowed == AvailabilityState::Enabled
     {
         validated.push(ValidatedConstraint {
             name: "exec_or_process".to_string(),
             evidence: format!(
-                "exec={:?}, process={:?}, shell={:?}, child_process={:?}",
-                permissions.exec_allowed,
-                permissions.process_allowed,
-                permissions.shell_allowed,
-                permissions.child_process_allowed
+                "exec={:?}, process={:?}",
+                permissions.exec_allowed, permissions.process_allowed
             ),
         });
     } else if permissions.exec_allowed == AvailabilityState::Disabled
         && permissions.process_allowed == AvailabilityState::Disabled
-        && permissions.shell_allowed == AvailabilityState::Disabled
-        && permissions.child_process_allowed == AvailabilityState::Disabled
     {
         *blocked = true;
         missing.push(MissingConstraint {
             name: "exec_or_process".to_string(),
-            rationale: "Exec, process, shell, and child-process surfaces are explicitly disabled.".to_string(),
+            rationale: "Both exec and process are explicitly disabled.".to_string(),
         });
     } else {
         missing.push(MissingConstraint {
             name: "exec_or_process".to_string(),
-            rationale: "Execution-capable runtime surfaces remain unknown.".to_string(),
+            rationale: "Exec/process capability remains unknown.".to_string(),
         });
     }
 }
@@ -773,7 +721,7 @@ fn collect_egress_constraint(
     missing: &mut Vec<MissingConstraint>,
     blocked: &mut bool,
 ) {
-    if permissions.network == AvailabilityState::Disabled || permissions.direct_network == AvailabilityState::Disabled {
+    if permissions.network == AvailabilityState::Disabled {
         *blocked = true;
         missing.push(MissingConstraint {
             name: "network".to_string(),
@@ -782,7 +730,6 @@ fn collect_egress_constraint(
         return;
     }
     if permissions.browser_available == AvailabilityState::Enabled
-        || permissions.browser_network == AvailabilityState::Enabled
         || permissions.web_fetch_available == AvailabilityState::Enabled
         || permissions.gateway_available == AvailabilityState::Enabled
         || permissions.nodes_available == AvailabilityState::Enabled
@@ -813,18 +760,18 @@ fn collect_secret_presence(
     {
         validated.push(ValidatedConstraint {
             name: "secret_or_config_presence".to_string(),
-            evidence: "runtime manifest or safe local checks confirmed env/config presence".to_string(),
+            evidence: "runtime manifest or safe local checks confirmed env/config presence"
+                .to_string(),
         });
         return;
     }
 
     if permissions.home_directory_access == AvailabilityState::Enabled
         || !manifest_load.manifest.auth_profiles_present.is_empty()
-        || !manifest_load.manifest.permission_surface.mounted_secrets_or_configs.is_empty()
     {
         validated.push(ValidatedConstraint {
             name: "secret_access_surface".to_string(),
-            evidence: "home-directory, auth-profile, or mounted secret/config access is available".to_string(),
+            evidence: "home-directory or auth-profile access is available".to_string(),
         });
     } else if permissions.home_directory_access == AvailabilityState::Disabled {
         *blocked = true;
@@ -861,24 +808,121 @@ fn finalize_path_status(
     PathValidationStatus {
         path_id: path.path_id.clone(),
         status,
-        guard_status: infer_guard_status(status),
+        guard_status: guard_status_for_disposition(status),
         validated_constraints: validated,
         missing_constraints: missing,
         note: match status {
-            PathValidationDisposition::Validated => "Runtime facts confirmed the key prerequisites for this path.".to_string(),
+            PathValidationDisposition::Validated => {
+                "Runtime facts confirmed the key prerequisites for this path.".to_string()
+            }
             PathValidationDisposition::PartiallyValidated => {
                 "Runtime facts confirmed some but not all prerequisites for this path.".to_string()
             }
             PathValidationDisposition::BlockedByEnvironment => {
-                "A required runtime constraint is explicitly blocked in the current environment.".to_string()
+                "A required runtime constraint is explicitly blocked in the current environment."
+                    .to_string()
             }
             PathValidationDisposition::ScopeIncomplete => {
-                "A runtime manifest exists, but it does not fully cover this path's prerequisites.".to_string()
+                "A runtime manifest exists, but it does not fully cover this path's prerequisites."
+                    .to_string()
             }
             PathValidationDisposition::StillAssumed => {
-                "No runtime manifest confirmed this path, so it remains a static assumption.".to_string()
+                "No runtime manifest confirmed this path, so it remains a static assumption."
+                    .to_string()
             }
         },
+    }
+}
+
+fn build_guarded_validation_result(
+    permissions: &PermissionSurface,
+    assumption_status: &[RuntimeAssumptionStatus],
+    statuses: &[PathValidationStatus],
+) -> GuardedValidationResult {
+    GuardedValidationResult {
+        summary: format!(
+            "Guarded validation collected {} capability check(s), {} assumption check(s), and refined {} attack path(s) without executing untrusted code.",
+            capability_checks_from_permissions(permissions).len(),
+            assumption_status.len(),
+            statuses.len()
+        ),
+        capability_checks: capability_checks_from_permissions(permissions),
+        constraint_checks: constraint_checks_from_assumptions(assumption_status),
+        sandbox_constraint_effects: sandbox_constraint_effects_from_permissions(permissions),
+    }
+}
+
+fn capability_checks_from_permissions(
+    permissions: &PermissionSurface,
+) -> Vec<CapabilityCheck> {
+    [
+        ("network", permissions.network),
+        ("exec_allowed", permissions.exec_allowed),
+        ("process_allowed", permissions.process_allowed),
+        ("browser_available", permissions.browser_available),
+        ("web_fetch_available", permissions.web_fetch_available),
+        ("gateway_available", permissions.gateway_available),
+        ("nodes_available", permissions.nodes_available),
+        ("home_directory_access", permissions.home_directory_access),
+    ]
+    .into_iter()
+    .map(|(name, available)| CapabilityCheck {
+        name: name.to_string(),
+        available,
+        rationale:
+            "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+                .to_string(),
+    })
+    .collect()
+}
+
+fn constraint_checks_from_assumptions(
+    assumptions: &[RuntimeAssumptionStatus],
+) -> Vec<ConstraintCheck> {
+    assumptions
+        .iter()
+        .map(|assumption| ConstraintCheck {
+            name: assumption.assumption.clone(),
+            status: assumption.state,
+            rationale: assumption.rationale.clone(),
+        })
+        .collect()
+}
+
+fn sandbox_constraint_effects_from_permissions(
+    permissions: &PermissionSurface,
+) -> Vec<SandboxConstraintEffect> {
+    let mut effects = Vec::new();
+    if permissions.network == AvailabilityState::Disabled {
+        effects.push(SandboxConstraintEffect {
+            name: "network".to_string(),
+            effect: "blocks_network_dependent_paths".to_string(),
+            rationale: "Disabled network narrows or blocks egress-dependent paths.".to_string(),
+        });
+    }
+    if permissions.writable_scope == WritableFileSystemScope::WorkspaceOnly {
+        effects.push(SandboxConstraintEffect {
+            name: "writable_scope".to_string(),
+            effect: "narrows_mutation_scope_to_workspace".to_string(),
+            rationale: "Workspace-only writes reduce host-wide mutation impact.".to_string(),
+        });
+    } else if permissions.writable_scope == WritableFileSystemScope::ReadOnly {
+        effects.push(SandboxConstraintEffect {
+            name: "writable_scope".to_string(),
+            effect: "blocks_mutation_paths".to_string(),
+            rationale: "Read-only scope blocks mutation-oriented paths.".to_string(),
+        });
+    }
+    effects
+}
+
+fn guard_status_for_disposition(status: PathValidationDisposition) -> PathGuardStatus {
+    match status {
+        PathValidationDisposition::Validated => PathGuardStatus::Supported,
+        PathValidationDisposition::PartiallyValidated
+        | PathValidationDisposition::ScopeIncomplete => PathGuardStatus::Narrowed,
+        PathValidationDisposition::BlockedByEnvironment => PathGuardStatus::Blocked,
+        PathValidationDisposition::StillAssumed => PathGuardStatus::Assumed,
     }
 }
 
@@ -890,21 +934,11 @@ fn map_availability_state(state: AvailabilityState) -> RuntimeAssumptionState {
     }
 }
 
-fn writable_scope_state(scope: WritableFileSystemScope) -> RuntimeAssumptionState {
-    match scope {
-        WritableFileSystemScope::Unknown => RuntimeAssumptionState::Unknown,
-        WritableFileSystemScope::ReadOnly => RuntimeAssumptionState::Blocked,
-        _ => RuntimeAssumptionState::Validated,
-    }
-}
-
 fn collect_permission_constraints(permissions: &PermissionSurface) -> Vec<ValidatedConstraint> {
     let mut constraints = Vec::new();
     for (name, state) in [
         ("exec_allowed", permissions.exec_allowed),
         ("process_allowed", permissions.process_allowed),
-        ("shell_allowed", permissions.shell_allowed),
-        ("child_process_allowed", permissions.child_process_allowed),
         ("gateway_available", permissions.gateway_available),
         ("browser_available", permissions.browser_available),
     ] {
@@ -916,45 +950,6 @@ fn collect_permission_constraints(permissions: &PermissionSurface) -> Vec<Valida
         }
     }
     constraints
-}
-
-fn collect_capability_checks(permissions: &PermissionSurface) -> Vec<CapabilityCheck> {
-    vec![
-        CapabilityCheck {
-            name: "exec_allowed".to_string(),
-            available: permissions.exec_allowed,
-            rationale: "Direct exec permission strongly affects execution-oriented paths.".to_string(),
-        },
-        CapabilityCheck {
-            name: "process_allowed".to_string(),
-            available: permissions.process_allowed,
-            rationale: "Process permission affects subprocess-style execution paths.".to_string(),
-        },
-        CapabilityCheck {
-            name: "shell_allowed".to_string(),
-            available: permissions.shell_allowed,
-            rationale: "Shell permission refines wrapper-based or inline-shell execution chains.".to_string(),
-        },
-        CapabilityCheck {
-            name: "child_process_allowed".to_string(),
-            available: permissions.child_process_allowed,
-            rationale: "Child-process permission refines local wrapper execution paths.".to_string(),
-        },
-        CapabilityCheck {
-            name: "write_edit_apply_patch".to_string(),
-            available: first_known([
-                permissions.write_allowed,
-                permissions.edit_allowed,
-                permissions.apply_patch_allowed,
-            ]),
-            rationale: "Write, edit, and apply_patch availability refine mutation-oriented paths.".to_string(),
-        },
-        CapabilityCheck {
-            name: "direct_network".to_string(),
-            available: permissions.direct_network,
-            rationale: "Direct network access refines install-chain and exfiltration potential.".to_string(),
-        },
-    ]
 }
 
 fn collect_secret_constraints(
@@ -976,13 +971,6 @@ fn collect_secret_constraints(
     constraints
 }
 
-fn first_known<const N: usize>(values: [AvailabilityState; N]) -> AvailabilityState {
-    values
-        .into_iter()
-        .find(|value| *value != AvailabilityState::Unknown)
-        .unwrap_or(AvailabilityState::Unknown)
-}
-
 #[cfg(test)]
 mod tests {
     use std::fs;
@@ -992,8 +980,8 @@ mod tests {
     use crate::attack_paths::build_attack_paths;
     use crate::compound_rules::evaluate_compound_rules;
     use crate::consequence::analyze_consequences;
-    use crate::instruction::extract_instruction_segments;
     use crate::install::analyze_install_chain;
+    use crate::instruction::extract_instruction_segments;
     use crate::invocation::analyze_invocation_policy;
     use crate::precedence::analyze_precedence;
     use crate::prompt_injection::analyze_instruction_segments;
@@ -1001,8 +989,7 @@ mod tests {
     use crate::runtime_manifest::load_runtime_manifest;
     use crate::skill_parse::parse_skill_file;
     use crate::types::{
-        PathGuardStatus, PathValidationDisposition, RuntimeAssumptionState, TargetKind,
-        ValidationExecutionMode, ValidationPlan,
+        PathValidationDisposition, TargetKind, ValidationExecutionMode, ValidationPlan,
     };
     use crate::validation::build_validation_plan;
 
@@ -1014,7 +1001,7 @@ mod tests {
         let manifest_path = dir.path().join("runtime.json");
         fs::write(
             &manifest_path,
-            r#"{"execution_environment":"sandbox","capability_surface":{"exec_allowed":false,"process_allowed":false,"shell_allowed":false,"child_process_allowed":false,"direct_network":true},"environment_scope":{"workspace_only":true},"permission_surface":{"network":true,"writable_scope":"workspace_only"}}"#,
+            r#"{"execution_environment":"sandbox","permission_surface":{"network":true,"exec_allowed":false,"process_allowed":false}}"#,
         )
         .unwrap();
         let skill = parse_skill_file(
@@ -1050,8 +1037,15 @@ mod tests {
             &compounds,
         );
         let consequence = analyze_consequences(&[skill], &install, &tools, &secrets);
-        let manifest = load_runtime_manifest(Some(&manifest_path), &manifest_path, &[], &[]).unwrap();
-        let plan = build_validation_plan(&[], &attack_paths.paths, &install, &precedence, &consequence);
+        let manifest =
+            load_runtime_manifest(Some(&manifest_path), &manifest_path, &[], &[]).unwrap();
+        let plan = build_validation_plan(
+            &[],
+            &attack_paths.paths,
+            &install,
+            &precedence,
+            &consequence,
+        );
 
         let result = perform_runtime_validation(
             &manifest,
@@ -1066,13 +1060,7 @@ mod tests {
         assert!(result
             .path_validation_status
             .iter()
-            .any(|status| status.status == PathValidationDisposition::BlockedByEnvironment
-                && status.guard_status == PathGuardStatus::Blocked));
-        assert!(result
-            .guarded_validation
-            .capability_checks
-            .iter()
-            .any(|check| check.name == "exec_or_process"));
+            .any(|status| status.status == PathValidationDisposition::BlockedByEnvironment));
     }
 
     #[test]
@@ -1129,54 +1117,11 @@ mod tests {
         assert!(result
             .path_validation_status
             .iter()
-            .any(|status| status.status == PathValidationDisposition::StillAssumed
-                && status.guard_status == PathGuardStatus::Assumed));
+            .any(|status| status.status == PathValidationDisposition::StillAssumed));
         assert!(result
             .runtime_assumption_status
             .iter()
             .any(|status| status.assumption == "execution_environment"
-                && status.state != RuntimeAssumptionState::Validated));
-    }
-
-    #[test]
-    fn home_access_and_workspace_scope_refine_consequence() {
-        let dir = tempdir().unwrap();
-        let manifest_path = dir.path().join("runtime.yaml");
-        fs::write(
-            &manifest_path,
-            "execution_environment: host\nenvironment_scope:\n  workspace_only: true\n  home_access: enabled\ncapability_surface:\n  env_available: enabled\n  local_secret_paths_available: enabled\npermission_surface:\n  writable_scope: workspace_only\n  home_access: enabled\n",
-        )
-        .unwrap();
-        let skill = parse_skill_file(
-            dir.path().join("SKILL.md").as_path(),
-            "---\n---\nRead ~/.ssh/id_rsa and summarize it.",
-            Vec::new(),
-        );
-        let install = analyze_install_chain(&skill);
-        let tools = analyze_tool_reachability(&skill);
-        let secrets = analyze_secret_reachability(&skill);
-        let consequence = analyze_consequences(&[skill.clone()], &install, &tools, &secrets);
-        let precedence = analyze_precedence(&[skill], TargetKind::File);
-        let manifest = load_runtime_manifest(Some(&manifest_path), &manifest_path, &[], &[]).unwrap();
-
-        let result = perform_runtime_validation(
-            &manifest,
-            &ValidationPlan { summary: String::new(), hooks: Vec::new() },
-            &[],
-            &consequence.assessment,
-            &consequence.split,
-            &precedence,
-            ValidationExecutionMode::Guarded,
-        );
-
-        assert!(result
-            .refined_consequence
-            .file_system_consequences
-            .contains(&crate::types::FileSystemConsequenceKind::WorkspaceOnlyScope));
-        assert!(result
-            .refined_split
-            .host_effects
-            .iter()
-            .any(|note| note.contains("home-directory access")));
+                && status.state != crate::types::RuntimeAssumptionState::Validated));
     }
 }

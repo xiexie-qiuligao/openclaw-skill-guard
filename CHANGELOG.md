@@ -1,37 +1,51 @@
 # Changelog
 
-## v1.0.0-rc1 - 2026-04-23
+## v2.0.0 - 2026-04-23
 
-First release candidate for Standalone OpenClaw Skill Guard, a CLI-first OpenClaw-aware skill verifier with canonical JSON reporting and guarded runtime validation.
+Final deliverable release for `openclaw-skill-guard`, shipped as a Windows-friendly OpenClaw-aware verifier with a primary desktop GUI and an auxiliary CLI for automation.
 
 ### Included in this release
 
-- baseline dangerous-pattern scanning for OpenClaw skill review
+- baseline dangerous-pattern scanner
 - structured `SKILL.md` and `metadata.openclaw` parsing
 - install-chain, invocation-policy, tool-reachability, secret-reachability, and precedence analysis
-- instruction extraction and prompt injection or indirect instruction analysis
-- attack-path construction, compound scoring, and consequence modeling
+- prompt and instruction analysis
+- attack-path construction and compound scoring
+- host-vs-sandbox consequence modeling
 - runtime manifest ingestion and guarded runtime refinement
-- sandbox-backed guarded validator checks for capability presence, environment scope, and path prerequisites
-- provenance notes, confidence shaping, false-positive handling, suppression matching, and audit output
-- canonical JSON report schema for CLI and release workflows
-- demo fixtures, example reports, and Windows EXE delivery path
+- provenance, confidence, and false-positive shaping
+- suppression and audit workflow
+- corpus-backed threat analyzer
+- corpus-backed sensitive analyzer
+- dependency audit
+- URL and API classification
+- source and domain reputation hints
+- canonical JSON report schema
+- SARIF, Markdown, and HTML derived outputs
+- overview-first Chinese GUI product surface with deep result reading
+- Windows GUI EXE and CLI EXE delivery path
+- inert fixtures, example reports, and GUI showcase materials
 
-### Release posture
+### GUI delivery highlights
 
-- CLI-first delivery for v1
-- canonical JSON as the public report contract
-- verifier posture rather than payload execution
-- guarded runtime validation to refine reachability and consequence without running untrusted content
+- Chinese-first desktop workflow
+- overview-first result homepage
+- findings, paths, context, validation, audit, and raw JSON views
+- finding/path/provenance linkage
+- lightweight result filtering
+- external reference and dependency drill-down reading
+- in-GUI export for JSON, SARIF, Markdown, and HTML
 
 ### Current limits
 
 - runtime validation is guarded and non-executing
-- precedence remains scope-aware rather than globally omniscient
-- reputation, signing, SBOM, and AI-BOM integration are out of scope for rc1
-- no GUI release surface is shipped in this release candidate
+- local reputation hints are explainable but not an online truth source
+- no exploit execution, dynamic malware sandboxing, or online CVE service
+- JSON remains the canonical contract; derived formats are convenience outputs
 
-### Notes
+### Final positioning
 
-- release-facing copy and GitHub publication materials are prepared under `README*` and `docs/github-release-kit.md`
-- root-level `cargo test` passed for the current release candidate
+- GUI is the primary user-facing product surface
+- CLI remains the automation and advanced-user entry point
+- both executables reuse the same verifier core
+- the project stays within verifier / guard boundaries rather than becoming an exploit runner

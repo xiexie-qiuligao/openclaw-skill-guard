@@ -12,9 +12,13 @@ pub struct MetadataNormalizationResult {
     pub diagnostics: Vec<String>,
 }
 
-pub fn normalize_metadata(frontmatter: &crate::types::FrontmatterParseResult) -> MetadataNormalizationResult {
+pub fn normalize_metadata(
+    frontmatter: &crate::types::FrontmatterParseResult,
+) -> MetadataNormalizationResult {
     let mut diagnostics = Vec::new();
-    let raw_metadata = get_field(frontmatter, "metadata").map(str::trim).filter(|value| !value.is_empty());
+    let raw_metadata = get_field(frontmatter, "metadata")
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
 
     let mut metadata = OpenClawMetadata {
         present: raw_metadata.is_some(),
@@ -29,7 +33,10 @@ pub fn normalize_metadata(frontmatter: &crate::types::FrontmatterParseResult) ->
 
     let invocation_policy = InvocationPolicy {
         user_invocable: parse_bool(get_field(frontmatter, "user-invocable"), true),
-        disable_model_invocation: parse_bool(get_field(frontmatter, "disable-model-invocation"), false),
+        disable_model_invocation: parse_bool(
+            get_field(frontmatter, "disable-model-invocation"),
+            false,
+        ),
         command_dispatch: normalize_dispatch(get_field(frontmatter, "command-dispatch")),
         command_tool: get_field(frontmatter, "command-tool")
             .map(str::trim)
@@ -54,7 +61,8 @@ pub fn normalize_metadata(frontmatter: &crate::types::FrontmatterParseResult) ->
                     metadata.requires = normalize_requires(object.get("requires"));
                     metadata.install = normalize_install(object.get("install"), &mut diagnostics);
                 } else if !openclaw.is_null() {
-                    diagnostics.push("metadata.openclaw exists but is not a JSON object".to_string());
+                    diagnostics
+                        .push("metadata.openclaw exists but is not a JSON object".to_string());
                 }
             }
             Err(err) => diagnostics.push(format!("metadata JSON parse failed: {err}")),
@@ -131,10 +139,7 @@ fn normalize_install(value: Option<&Value>, diagnostics: &mut Vec<String>) -> Ve
                 .get("execute")
                 .and_then(Value::as_bool)
                 .unwrap_or(false)
-                || object
-                    .get("run")
-                    .and_then(Value::as_bool)
-                    .unwrap_or(false);
+                || object.get("run").and_then(Value::as_bool).unwrap_or(false);
 
             Some(InstallSpec {
                 kind,
@@ -196,7 +201,9 @@ mod tests {
         assert_eq!(normalized.metadata.primary_env.as_deref(), Some("DEMO_KEY"));
         assert_eq!(normalized.metadata.requires.config, vec!["tools.exec"]);
         assert_eq!(normalized.metadata.install.len(), 1);
-        assert_eq!(normalized.invocation_policy.command_tool.as_deref(), Some("exec"));
+        assert_eq!(
+            normalized.invocation_policy.command_tool.as_deref(),
+            Some("exec")
+        );
     }
 }
-

@@ -25,7 +25,9 @@ pub fn repo_root() -> PathBuf {
 }
 
 pub fn load_phase1_source_locks() -> Phase1SourceLocks {
-    let path = repo_root().join("research").join("phase1-source-locks.json");
+    let path = repo_root()
+        .join("research")
+        .join("phase1-source-locks.json");
     let raw = fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
     serde_json::from_str(&raw)
@@ -42,4 +44,3 @@ pub fn missing_markers(lock: &SourceLock) -> Vec<String> {
         .cloned()
         .collect()
 }
-

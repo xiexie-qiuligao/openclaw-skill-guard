@@ -1,0 +1,63 @@
+- id: v2.sensitive.openai_key
+  category: api_key
+  matcher:
+    kind: regex
+    pattern: 'sk-[A-Za-z0-9]{20,}'
+  description: OpenAI-style API key shape.
+  severity_hint: high
+  false_positive_notes:
+    - Synthetic examples and placeholder values should be treated cautiously.
+  provenance:
+    source_name: cls-certify sensitive data patterns
+    source_kind: adapted_reference
+    source_ref: references/sensitive-data-patterns.md
+    notes:
+      - Reduced to a safe corpus seed for local validation and tests.
+
+- id: v2.sensitive.github_pat
+  category: token
+  matcher:
+    kind: regex
+    pattern: 'ghp_[A-Za-z0-9]{20,}'
+  description: GitHub personal access token shape.
+  severity_hint: high
+  false_positive_notes:
+    - Example tokens in security documentation may appear in inert samples.
+  provenance:
+    source_name: cls-certify sensitive data patterns
+    source_kind: adapted_reference
+    source_ref: references/sensitive-data-patterns.md
+    notes:
+      - Token length trimmed to keep fixtures inert while preserving pattern intent.
+
+- id: v2.sensitive.private_key_material
+  category: private_key
+  matcher:
+    kind: substring
+    value: '-----BEGIN PRIVATE KEY-----'
+  description: Embedded private key material marker.
+  severity_hint: critical
+  false_positive_notes:
+    - Documentation discussing key markers should not automatically imply active exposure.
+  provenance:
+    source_name: first-party baseline plus adapted reference
+    source_kind: first_party
+    source_ref: baseline.private_key_material
+    notes:
+      - Included to align corpus assets with existing baseline behavior.
+
+- id: v2.sensitive.generic_bearer_token
+  category: bearer_token
+  matcher:
+    kind: regex
+    pattern: '(?i)bearer\s+[A-Za-z0-9._-]{24,}'
+  description: Generic bearer token style authorization header fragment.
+  severity_hint: medium
+  false_positive_notes:
+    - Example curl snippets and docs often include bearer placeholders.
+  provenance:
+    source_name: cls-certify sensitive data patterns
+    source_kind: adapted_reference
+    source_ref: references/sensitive-data-patterns.md
+    notes:
+      - Useful for corpus regression even before full analyzer integration.

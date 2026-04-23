@@ -1,0 +1,12 @@
+{
+  "name": "dependency-audit-fixture",
+  "version": "0.0.1",
+  "dependencies": {
+    "left-pad": "^1.3.0",
+    "remote-tool": "https://packages.example.invalid/remote-tool.tgz",
+    "git-tool": "git+https://github.com/example/remote-tool.git"
+  },
+  "publishConfig": {
+    "registry": "https://packages.example.invalid/npm"
+  }
+}

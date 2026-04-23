@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 use crate::types::{
-    CollisionConfidence, EvidenceKind, EvidenceNode, Finding, FindingConfidence,
-    FindingSeverity, ParsedSkill, PrecedenceCollision, PrecedenceScope, RootResolutionSummary,
-    ScopeLimitationNote, SkillLocation, SkillSource, TargetKind,
+    CollisionConfidence, EvidenceKind, EvidenceNode, Finding, FindingConfidence, FindingSeverity,
+    ParsedSkill, PrecedenceCollision, PrecedenceScope, RootResolutionSummary, ScopeLimitationNote,
+    SkillLocation, SkillSource, TargetKind,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,10 +20,16 @@ pub fn analyze_precedence(skills: &[ParsedSkill], target_kind: TargetKind) -> Pr
 
     for skill in skills {
         if let Some(name) = skill.descriptor.name.as_deref() {
-            by_name.entry(name.to_ascii_lowercase()).or_default().push(skill);
+            by_name
+                .entry(name.to_ascii_lowercase())
+                .or_default()
+                .push(skill);
         }
         for slug in &skill.descriptor.slug_candidates {
-            by_name.entry(format!("slug:{slug}")).or_default().push(skill);
+            by_name
+                .entry(format!("slug:{slug}"))
+                .or_default()
+                .push(skill);
         }
     }
 
@@ -37,14 +43,25 @@ pub fn analyze_precedence(skills: &[ParsedSkill], target_kind: TargetKind) -> Pr
 
         let collision = PrecedenceCollision {
             skill_name: key.clone(),
-            collision_kind: if key.starts_with("slug:") { "slug_collision" } else { "name_collision" }.to_string(),
+            collision_kind: if key.starts_with("slug:") {
+                "slug_collision"
+            } else {
+                "name_collision"
+            }
+            .to_string(),
             winning_source: choose_preferred_source(&skills),
             losing_source: choose_secondary_source(&skills),
-            paths: skills.iter().map(|skill| skill.skill_file.clone()).collect(),
+            paths: skills
+                .iter()
+                .map(|skill| skill.skill_file.clone())
+                .collect(),
             limited_by_scope: !root_resolution.missing_roots.is_empty(),
             confidence: if root_resolution.missing_roots.is_empty() {
                 CollisionConfidence::ConfirmedWithinScannedRoots
-            } else if matches!(target_kind, TargetKind::SkillsRoot | TargetKind::Workspace | TargetKind::OpenClawHome) {
+            } else if matches!(
+                target_kind,
+                TargetKind::SkillsRoot | TargetKind::Workspace | TargetKind::OpenClawHome
+            ) {
                 CollisionConfidence::PossibleScopeLimited
             } else {
                 CollisionConfidence::Unresolved
@@ -61,7 +78,10 @@ pub fn analyze_precedence(skills: &[ParsedSkill], target_kind: TargetKind) -> Pr
     }
 
     let summary = if collisions.is_empty() {
-        if matches!(target_kind, TargetKind::SkillsRoot | TargetKind::Workspace | TargetKind::OpenClawHome) {
+        if matches!(
+            target_kind,
+            TargetKind::SkillsRoot | TargetKind::Workspace | TargetKind::OpenClawHome
+        ) {
             "No local naming collisions were detected in the scanned scope.".to_string()
         } else {
             "Precedence analysis is limited by the current scan scope; no local naming collisions were detected.".to_string()
@@ -213,8 +233,16 @@ mod tests {
 
     #[test]
     fn detects_basic_name_collision() {
-        let first = parse_skill_file(Path::new("workspace/a/SKILL.md"), "---\nname: Demo\n---\nBody", Vec::new());
-        let second = parse_skill_file(Path::new("bundled/b/SKILL.md"), "---\nname: Demo\n---\nBody", Vec::new());
+        let first = parse_skill_file(
+            Path::new("workspace/a/SKILL.md"),
+            "---\nname: Demo\n---\nBody",
+            Vec::new(),
+        );
+        let second = parse_skill_file(
+            Path::new("bundled/b/SKILL.md"),
+            "---\nname: Demo\n---\nBody",
+            Vec::new(),
+        );
         let analysis = analyze_precedence(&[first, second], TargetKind::SkillsRoot);
         assert!(analysis
             .collisions
@@ -229,7 +257,11 @@ mod tests {
 
     #[test]
     fn scope_limitation_is_reported_when_roots_are_missing() {
-        let first = parse_skill_file(Path::new("workspace/a/SKILL.md"), "---\nname: Demo\n---\nBody", Vec::new());
+        let first = parse_skill_file(
+            Path::new("workspace/a/SKILL.md"),
+            "---\nname: Demo\n---\nBody",
+            Vec::new(),
+        );
         let analysis = analyze_precedence(&[first], TargetKind::File);
         assert!(!analysis.root_resolution.missing_roots.is_empty());
         assert!(!analysis.root_resolution.scope_notes.is_empty());

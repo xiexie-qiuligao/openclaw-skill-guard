@@ -1,17 +1,25 @@
 # Release-Ready Self-Check
 
-Date: 2026-04-22
+Date: 2026-04-23
 
 ## Scope
 
-This document captures the v1 release-candidate self-check. It is intentionally focused on release readiness, not on starting a new feature phase.
+This document captures the `v1.0.0-rc1` release-readiness pass for Standalone OpenClaw Skill Guard. It is intentionally focused on publication readiness for a CLI-first verifier release, not on opening a new feature phase.
+
+## Product posture confirmed
+
+- project positioning is consistent as an OpenClaw-aware skill verifier
+- primary delivery is a Rust CLI, with a documented Windows EXE path
+- canonical output remains the v1 JSON report
+- runtime refinement remains guarded, non-executing, and evidence-preserving
+- the tool is presented as a verifier, not an exploit runner
 
 ## Checks performed
 
 ### 1. Root tests
 
 - Command:
-  - `C:\Users\29345\.cargo\bin\cargo.exe test`
+  - `cargo test`
 - Result:
   - passed
 
@@ -24,12 +32,13 @@ This document captures the v1 release-candidate self-check. It is intentionally 
   - suppression file option
   - runtime manifest option
   - validation mode option
+  - Windows release EXE invocation
 - Result:
-  - help text is consistent and usable for v1 demos
+  - help text is consistent and usable for v1 demos and release documentation
 
 ### 3. Demo commands
 
-Verified demo commands from [demo-commands.md](D:/漏扫skill/standalone-openclaw-skill-guard/examples/demo-commands.md):
+Verified demo commands from [demo-commands.md](../examples/demo-commands.md):
 
 - benign sample
 - high-risk sample
@@ -48,13 +57,23 @@ All commands produced JSON output successfully.
   - obvious high-risk
   - install-risk
   - prompt-risk
-  - precedence/shadowing hint
+  - precedence or shadowing hint
   - runtime refinement
-  - suppression/audit
+  - suppression or audit
 - Result:
   - one release-facing false positive was found in the benign sample
-  - it was fixed before release by suppressing clearly negated indirect/tool/secret directives in the prompt analyzer
-  - no remaining release blocker was found in the smoke-scan pass
+  - it was fixed before release by suppressing clearly negated indirect, tool, and secret directives in the prompt analyzer
+  - no remaining publication blocker was found in the smoke-scan pass
+
+### 3.2 Windows EXE delivery
+
+- Verified:
+  - `cargo build --release`
+  - `target\release\openclaw-skill-guard.exe`
+  - benign sample via EXE
+  - risky sample via EXE
+- Result:
+  - Windows EXE delivery path is working for the current release candidate
 
 ### 4. Canonical report output
 
@@ -66,40 +85,41 @@ Checked that example outputs include the expected v1 sections:
 - `scoring_summary`
 - `consequence_summary`
 - runtime validation fields
+- guarded validation fields
 - suppression and audit fields
 - `analysis_limitations`
 
 ### 5. Schema and output consistency
 
-- `report.schema.json` was updated to match the current runtime-validation-era `ScanReport`
+- `report.schema.json` matches the current runtime-validation-era `ScanReport`
 - renderer test passes
 - example outputs deserialize as valid JSON and contain the expected top-level fields
 
 ### 6. Docs consistency
 
-Reviewed and updated:
+Reviewed and updated release-facing wording in:
 
-- [README.md](D:/漏扫skill/standalone-openclaw-skill-guard/README.md)
-- [design.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/design.md)
-- [rule-catalog.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/rule-catalog.md)
-- [validation-hooks.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/validation-hooks.md)
-- [runtime-consequences.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/runtime-consequences.md)
-- [suppression-audit.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/suppression-audit.md)
-- [runtime-manifest.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/runtime-manifest.md)
-- [validation-adapter.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/validation-adapter.md)
-- [reporting.md](D:/漏扫skill/standalone-openclaw-skill-guard/docs/reporting.md)
+- [README.md](../README.md)
+- [README.zh-CN.md](../README.zh-CN.md)
+- [CHANGELOG.md](../CHANGELOG.md)
+- [packaging.md](./packaging.md)
+- [github-release-kit.md](./github-release-kit.md)
+- release-facing technical references:
+  - [runtime-manifest.md](./runtime-manifest.md)
+  - [validation-adapter.md](./validation-adapter.md)
+  - [reporting.md](./reporting.md)
 
 ## Current blockers
 
-No release blocker was found during this pass.
+No release-text blocker or release-validation blocker was found during this pass.
 
 ## Known non-blocking limits
 
 - runtime validation is guarded and non-executing
-- global precedence truth remains scope-dependent
-- reputation, signing, SBOM, and AI-BOM are not part of v1
-- no GUI release surface is being shipped in this v1 candidate
+- precedence truth remains scope-dependent rather than globally complete
+- reputation, signing, SBOM, and AI-BOM are not part of `v1.0.0-rc1`
+- no GUI release surface is being shipped in this release candidate
 
 ## Recommendation
 
-The repository is in release-candidate shape for a v1 CLI-first release.
+The repository is in deliverable shape for a Windows-friendly `v1.0.0-rc1` CLI release and the publication copy is ready for direct GitHub use.

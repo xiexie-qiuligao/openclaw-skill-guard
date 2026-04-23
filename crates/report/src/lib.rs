@@ -8,11 +8,11 @@ pub fn render_json(report: &ScanReport) -> Result<String, serde_json::Error> {
 mod tests {
     use openclaw_skill_guard_core::{
         AuditSummary, ConsequenceAssessment, ConstraintEffect, ContextAnalysis,
-        EnvironmentBlocker, EnvironmentAmplifier, ExecutionSurface, HostSandboxSplit,
-        Recommendations, RootResolutionSummary, RuntimeAssumptionStatus, RuntimeFact,
-        RuntimeRefinementNote, RuntimeScoreAdjustment, RuntimeSourceKind, ScanReport, ScanTarget,
-        ScoringSummary, SuppressionLifecycle, TargetKind, ValidationPlan, ValidationResult,
-        ValidationTarget, Verdict,
+        EnvironmentBlocker, EnvironmentAmplifier, ExecutionSurface, GuardedValidationResult,
+        HostSandboxSplit, Recommendations, RootResolutionSummary, RuntimeAssumptionStatus,
+        RuntimeFact, RuntimeRefinementNote, RuntimeScoreAdjustment, RuntimeSourceKind,
+        ScanReport, ScanTarget, ScoringSummary, SuppressionLifecycle, TargetKind,
+        ValidationPlan, ValidationResult, ValidationTarget, Verdict,
     };
 
     use super::render_json;
@@ -73,6 +73,12 @@ mod tests {
                 summary: String::new(),
             },
             runtime_manifest_summary: "No runtime manifest supplied.".to_string(),
+            guarded_validation: GuardedValidationResult {
+                summary: "No guarded checks".to_string(),
+                capability_checks: Vec::new(),
+                constraint_checks: Vec::new(),
+                sandbox_constraint_effects: Vec::new(),
+            },
             runtime_facts: vec![RuntimeFact {
                 key: "execution_environment".to_string(),
                 value: "Unknown".to_string(),
@@ -96,6 +102,9 @@ mod tests {
                 success: false,
                 validated_constraints: Vec::new(),
                 missing_constraints: Vec::new(),
+                capability_checks: Vec::new(),
+                constraint_checks: Vec::new(),
+                sandbox_constraint_effects: Vec::new(),
                 note: "No manifest".to_string(),
             }],
             path_validation_status: Vec::new(),
@@ -179,6 +188,7 @@ mod tests {
         assert!(rendered.contains("\"validation_plan\""));
         assert!(rendered.contains("\"consequence_summary\""));
         assert!(rendered.contains("\"runtime_manifest_summary\""));
+        assert!(rendered.contains("\"guarded_validation\""));
         assert!(rendered.contains("\"validation_results\""));
         assert!(rendered.contains("\"path_validation_status\""));
         assert!(rendered.contains("\"validation_score_adjustments\""));

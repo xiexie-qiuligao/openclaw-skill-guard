@@ -6,5 +6,8 @@ Thumbs.db
 *.log
 *.tmp
 *.bak
+*.orig
+*.rej
+.history/
 /agent-skills-guard.zip
 /openclaw.zip

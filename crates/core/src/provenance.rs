@@ -67,6 +67,26 @@ pub fn refine_findings_and_paths(
             delta -= 1;
         }
 
+        if is_benign_child_process_context(&finding.evidence) {
+            mitigations.push(FalsePositiveMitigation {
+                subject_id: finding.id.clone(),
+                mitigation_kind: "benign_child_process_reference".to_string(),
+                delta: -1,
+                rationale: "A child_process or exec reference inside example-like or descriptive text is weaker than direct coercive tool guidance.".to_string(),
+            });
+            delta -= 1;
+        }
+
+        if is_legitimate_package_manager_install(finding) {
+            mitigations.push(FalsePositiveMitigation {
+                subject_id: finding.id.clone(),
+                mitigation_kind: "pinned_package_manager_install".to_string(),
+                delta: -1,
+                rationale: "Pinned package-manager install guidance is still part of the setup surface, but it is weaker than remote download-and-execute behavior.".to_string(),
+            });
+            delta -= 1;
+        }
+
         if finding.category == "tool_reachability"
             && finding.evidence.iter().all(|node| node.excerpt.to_ascii_lowercase().contains("exec"))
             && finding.why_openclaw_specific.contains("metadata")
@@ -250,6 +270,36 @@ fn is_benign_localhost_context(evidence: &[crate::types::EvidenceNode]) -> bool 
     })
 }
 
+fn is_benign_child_process_context(evidence: &[crate::types::EvidenceNode]) -> bool {
+    evidence.iter().any(|node| {
+        let lowered = node.excerpt.to_ascii_lowercase();
+        (lowered.contains("child_process")
+            || lowered.contains("exec(")
+            || lowered.contains("process.spawn"))
+            && !lowered.contains("run without asking")
+            && !lowered.contains("upload")
+            && !lowered.contains("secret")
+    })
+}
+
+fn is_legitimate_package_manager_install(finding: &Finding) -> bool {
+    if finding.category != "supply_chain_risk" {
+        return false;
+    }
+    finding.evidence.iter().any(|node| {
+        let lowered = node.excerpt.to_ascii_lowercase();
+        let pinned_npm = lowered.contains("npm install") && lowered.contains('@');
+        let pinned_go = lowered.contains("go install") && lowered.contains("@v");
+        let pinned_uv = lowered.contains("uv tool install") && (lowered.contains("==") || lowered.contains('@'));
+        let pinned_brew = lowered.contains("brew install") && !lowered.contains("http");
+        (pinned_npm || pinned_go || pinned_uv || pinned_brew)
+            && !lowered.contains("curl")
+            && !lowered.contains("wget")
+            && !lowered.contains("invoke-webrequest")
+            && !lowered.contains("| bash")
+    })
+}
+
 fn adjust_confidence(confidence: &mut FindingConfidence, delta: i32) {
     let level = match confidence {
         FindingConfidence::Low => 0_i32,
@@ -341,5 +391,45 @@ mod tests {
             refine_findings_and_paths(&invocation.findings, &[], &instructions, &precedence, TargetKind::File);
 
         assert!(analysis.findings.iter().any(|finding| finding.confidence == FindingConfidence::High));
+    }
+
+    #[test]
+    fn localhost_prompt_context_is_downgraded() {
+        let skill = parse_skill_file(
+            Path::new("demo/SKILL.md"),
+            "---\nname: Demo\n---\nUse browser to inspect localhost RPC status on 127.0.0.1:8545.",
+            Vec::new(),
+        );
+        let instructions = extract_instruction_segments(&skill);
+        let prompt = analyze_instruction_segments(&instructions.segments);
+        let precedence = analyze_precedence(&[skill], TargetKind::File);
+
+        let analysis =
+            refine_findings_and_paths(&prompt.findings, &[], &instructions, &precedence, TargetKind::File);
+
+        assert!(analysis
+            .false_positive_mitigations
+            .iter()
+            .any(|item| item.mitigation_kind == "benign_localhost_or_rpc"));
+    }
+
+    #[test]
+    fn pinned_install_instruction_is_downgraded() {
+        let skill = parse_skill_file(
+            Path::new("demo/SKILL.md"),
+            "---\nname: Demo\n---\nInstall with npm install demo-cli@1.2.3",
+            Vec::new(),
+        );
+        let install = analyze_install_chain(&skill);
+        let instructions = extract_instruction_segments(&skill);
+        let precedence = analyze_precedence(&[skill], TargetKind::File);
+
+        let analysis =
+            refine_findings_and_paths(&install.findings, &[], &instructions, &precedence, TargetKind::File);
+
+        assert!(analysis
+            .false_positive_mitigations
+            .iter()
+            .any(|item| item.mitigation_kind == "pinned_package_manager_install"));
     }
 }

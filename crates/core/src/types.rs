@@ -211,6 +211,15 @@ pub enum WritableFileSystemScope {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum PrivilegeHint {
+    RootAdmin,
+    StandardUser,
+    SandboxRestricted,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum RuntimeSourceKind {
     UserManifest,
     InferredFromConfig,
@@ -289,6 +298,16 @@ pub enum PathValidationDisposition {
     BlockedByEnvironment,
     ScopeIncomplete,
     StillAssumed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PathGuardStatus {
+    Supported,
+    Narrowed,
+    Blocked,
+    Assumed,
+    Amplified,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -543,15 +562,62 @@ pub struct PermissionSurface {
     pub mounted_secrets_or_configs: Vec<String>,
     pub exec_allowed: AvailabilityState,
     pub process_allowed: AvailabilityState,
+    pub shell_allowed: AvailabilityState,
+    pub child_process_allowed: AvailabilityState,
+    pub write_allowed: AvailabilityState,
+    pub edit_allowed: AvailabilityState,
+    pub apply_patch_allowed: AvailabilityState,
     pub browser_available: AvailabilityState,
     pub web_fetch_available: AvailabilityState,
     pub web_search_available: AvailabilityState,
     pub gateway_available: AvailabilityState,
     pub nodes_available: AvailabilityState,
     pub cron_available: AvailabilityState,
+    pub direct_network: AvailabilityState,
+    pub browser_network: AvailabilityState,
     pub root_admin_hint: AvailabilityState,
     pub user_identity_hint: Option<String>,
     pub home_directory_access: AvailabilityState,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EnvironmentScope {
+    pub workspace_only: AvailabilityState,
+    pub home_access: AvailabilityState,
+    pub mounted_paths: Vec<String>,
+    pub mounted_secrets: Vec<String>,
+    pub writable_scope: WritableFileSystemScope,
+    pub read_only_scope: AvailabilityState,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CapabilitySurface {
+    pub exec_allowed: AvailabilityState,
+    pub process_allowed: AvailabilityState,
+    pub shell_allowed: AvailabilityState,
+    pub child_process_allowed: AvailabilityState,
+    pub write_allowed: AvailabilityState,
+    pub edit_allowed: AvailabilityState,
+    pub apply_patch_allowed: AvailabilityState,
+    pub direct_network: AvailabilityState,
+    pub browser_network: AvailabilityState,
+    pub web_fetch: AvailabilityState,
+    pub gateway: AvailabilityState,
+    pub nodes: AvailabilityState,
+    pub cron: AvailabilityState,
+    pub env_available: AvailabilityState,
+    pub config_available: AvailabilityState,
+    pub auth_profiles_available: AvailabilityState,
+    pub local_secret_paths_available: AvailabilityState,
+    pub browser_store_proximity: AvailabilityState,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PermissionSchema {
+    pub schema_version: String,
+    pub capability_surface: CapabilitySurface,
+    pub environment_scope: EnvironmentScope,
+    pub privilege_hint: PrivilegeHint,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -574,6 +640,7 @@ pub struct RuntimeAssumptionStatus {
 pub struct RuntimeManifest {
     pub execution_environment: RuntimeEnvironment,
     pub permission_surface: PermissionSurface,
+    pub permission_schema: PermissionSchema,
     pub expected_env_vars: Vec<String>,
     pub present_env_vars: Vec<String>,
     pub expected_config_files: Vec<String>,
@@ -663,6 +730,9 @@ pub struct ValidationResult {
     pub success: bool,
     pub validated_constraints: Vec<ValidatedConstraint>,
     pub missing_constraints: Vec<MissingConstraint>,
+    pub capability_checks: Vec<CapabilityCheck>,
+    pub constraint_checks: Vec<ConstraintCheck>,
+    pub sandbox_constraint_effects: Vec<SandboxConstraintEffect>,
     pub note: String,
 }
 
@@ -731,9 +801,39 @@ pub struct EnvironmentAmplifier {
 pub struct PathValidationStatus {
     pub path_id: String,
     pub status: PathValidationDisposition,
+    pub guard_status: PathGuardStatus,
     pub validated_constraints: Vec<ValidatedConstraint>,
     pub missing_constraints: Vec<MissingConstraint>,
     pub note: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CapabilityCheck {
+    pub name: String,
+    pub available: AvailabilityState,
+    pub rationale: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ConstraintCheck {
+    pub name: String,
+    pub status: RuntimeAssumptionState,
+    pub rationale: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SandboxConstraintEffect {
+    pub name: String,
+    pub effect: String,
+    pub rationale: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GuardedValidationResult {
+    pub summary: String,
+    pub capability_checks: Vec<CapabilityCheck>,
+    pub constraint_checks: Vec<ConstraintCheck>,
+    pub sandbox_constraint_effects: Vec<SandboxConstraintEffect>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -902,6 +1002,7 @@ pub struct ScanReport {
     pub consequence_summary: ConsequenceAssessment,
     pub host_vs_sandbox_split: HostSandboxSplit,
     pub runtime_manifest_summary: String,
+    pub guarded_validation: GuardedValidationResult,
     pub runtime_facts: Vec<RuntimeFact>,
     pub runtime_assumption_status: Vec<RuntimeAssumptionStatus>,
     pub validation_plan: ValidationPlan,

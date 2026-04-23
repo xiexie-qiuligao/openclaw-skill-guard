@@ -40,7 +40,7 @@ They do **not** execute attacker-controlled code or replace the static verifier.
   - records unknowns when runtime facts are absent
 - `guarded`
   - still does not execute untrusted code
-  - applies manifest-backed permission checks, scope checks, and safe local presence checks
+  - applies manifest-backed permission checks, scope checks, capability checks, and safe local presence checks
   - refines attack-path status and consequence output
 
 ## Why this follows recent OpenClaw signals

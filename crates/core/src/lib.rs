@@ -3,6 +3,7 @@ pub mod compound_rules;
 pub mod consequence;
 pub mod context;
 pub mod frontmatter;
+pub mod guarded_validator;
 pub mod inventory;
 pub mod install;
 pub mod instruction;

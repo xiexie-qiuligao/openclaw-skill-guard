@@ -1,6 +1,6 @@
 # Runtime Manifest
 
-Phase 7 adds a first formal runtime manifest layer so the verifier can refine static risk with controlled runtime facts.
+The current release includes a runtime-manifest layer plus a finer permission schema that drive guarded runtime refinement without executing untrusted content.
 
 ## Supported inputs
 
@@ -8,6 +8,7 @@ Phase 7 adds a first formal runtime manifest layer so the verifier can refine st
 - YAML
 - partial manifests
 - unknown extra fields are tolerated
+- backward-compatible manifests that only provide the older `permission_surface`
 
 ## Current modeled fields
 
@@ -32,6 +33,39 @@ Phase 7 adds a first formal runtime manifest layer so the verifier can refine st
   - `root_admin_hint`
   - `user_identity_hint`
   - `home_directory_access`
+- `permission_schema`
+  - `schema_version`
+  - `capability_surface`
+    - `exec_allowed`
+    - `process_allowed`
+    - `shell_allowed`
+    - `child_process_allowed`
+    - `write_allowed`
+    - `edit_allowed`
+    - `apply_patch_allowed`
+    - `direct_network`
+    - `browser_network`
+    - `web_fetch`
+    - `gateway`
+    - `nodes`
+    - `cron`
+    - `env_available`
+    - `config_available`
+    - `auth_profiles_available`
+    - `local_secret_paths_available`
+    - `browser_store_proximity`
+  - `environment_scope`
+    - `workspace_only`
+    - `home_access`
+    - `mounted_paths`
+    - `mounted_secrets`
+    - `writable_scope`
+    - `read_only_scope`
+  - `privilege_hint`
+    - `root_admin`
+    - `standard_user`
+    - `sandbox_restricted`
+    - `unknown`
 - secret/config surfaces
   - `present_env_vars`
   - `present_config_files`
@@ -49,3 +83,7 @@ When the user does not provide every fact, the verifier may still perform guarde
 - observed target root
 
 These checks only confirm presence or scope. They do not read secret contents or execute skill logic.
+
+## Why the schema is version-tolerant
+
+The runtime schema is intentionally more abstract than any single OpenClaw build artifact. It models durable capability families and scope families instead of binding the verifier to one exact app version or one exact manifest shape.

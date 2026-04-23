@@ -1,7 +1,7 @@
 {
   "target": {
     "path": ".\\fixtures\\v1\\precedence-shadowing",
-    "canonical_path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing",
+    "canonical_path": ".\\fixtures\\v1\\precedence-shadowing",
     "target_kind": "skills_root"
   },
   "scan_mode": "skills_root",
@@ -28,7 +28,7 @@
       "hard_trigger": false,
       "evidence_kind": "structured_metadata",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
+        "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -36,7 +36,7 @@
         {
           "kind": "structured_metadata",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -64,7 +64,7 @@
       "hard_trigger": false,
       "evidence_kind": "tool_dispatch",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
+        "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -72,7 +72,7 @@
         {
           "kind": "tool_dispatch",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -100,7 +100,7 @@
       "hard_trigger": false,
       "evidence_kind": "precedence_collision",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+        "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -108,7 +108,7 @@
         {
           "kind": "precedence_collision",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -136,7 +136,7 @@
       "hard_trigger": false,
       "evidence_kind": "precedence_collision",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+        "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -144,7 +144,7 @@
         {
           "kind": "precedence_collision",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -172,7 +172,7 @@
       "hard_trigger": false,
       "evidence_kind": "prompt_injection_signal",
       "location": {
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
+        "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
         "line": 2,
         "column": null
       },
@@ -180,7 +180,7 @@
         {
           "kind": "prompt_injection_signal",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
             "line": 2,
             "column": null
           },
@@ -231,8 +231,8 @@
         "winning_source": "unknown",
         "losing_source": "unknown",
         "paths": [
-          "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
-          "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md"
+          ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+          ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md"
         ],
         "limited_by_scope": true,
         "confidence": "possible_scope_limited",
@@ -246,8 +246,8 @@
         "winning_source": "unknown",
         "losing_source": "unknown",
         "paths": [
-          "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
-          "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md"
+          ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+          ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md"
         ],
         "limited_by_scope": true,
         "confidence": "possible_scope_limited",
@@ -308,7 +308,7 @@
         {
           "kind": "prompt_injection_signal",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy\\SKILL.md",
             "line": 2,
             "column": null
           },
@@ -365,7 +365,7 @@
         {
           "kind": "tool_dispatch",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -420,7 +420,7 @@
         {
           "kind": "precedence_collision",
           "location": {
-            "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
+            "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -508,7 +508,7 @@
   "runtime_facts": [
     {
       "key": "home_directory_present",
-      "value": "C:\\Users\\29345",
+      "value": "<user-home>",
       "source_kind": "safe_local_check",
       "confirmed": true
     },
@@ -1067,12 +1067,12 @@
     "known_roots": [
       {
         "source": "unknown",
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper",
+        "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper",
         "present": true
       },
       {
         "source": "unknown",
-        "path": "\\\\?\\D:\\©ɨskill\\standalone-openclaw-skill-guard\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy",
+        "path": ".\\fixtures\\v1\\precedence-shadowing\\trusted-helper-copy",
         "present": true
       }
     ],

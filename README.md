@@ -2,6 +2,10 @@
 
 [中文说明](./README.zh-CN.md)
 
+**面向 OpenClaw Skills 的安全验证器。**
+
+`openclaw-skill-guard` 是一个面向 Windows 交付的 Rust verifier，用于在发布或审查前扫描 `SKILL.md`、skill 目录、skills 根目录或更大工作区。它不是通用漏洞扫描器，也不是 exploit runner；它的目标是基于可见证据回答一个更实际的问题：这个 skill 在 OpenClaw 语境下是否可能形成真实攻击路径，以及结论背后的证据是什么。
+
 **OpenClaw-aware verifier for security review of OpenClaw Skills.**
 
 `openclaw-skill-guard` is a Windows-friendly Rust project for verifying OpenClaw Skills before release or review. It scans `SKILL.md`, skill directories, skills roots, and broader workspaces to answer a practical question: under visible OpenClaw runtime conditions, can a skill plausibly become a real attack path, and what evidence supports that conclusion?
@@ -140,12 +144,6 @@ Representative GUI screenshots are included under `docs/gui-screenshots/`:
 - `gui-home-empty.png`
 - `gui-overview-demo.png`
 - `gui-validation-demo.png`
-
-Preview:
-
-![GUI empty state](./docs/gui-screenshots/gui-home-empty.png)
-![GUI overview](./docs/gui-screenshots/gui-overview-demo.png)
-![GUI validation](./docs/gui-screenshots/gui-validation-demo.png)
 
 ## Canonical output
 

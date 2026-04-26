@@ -1,102 +1,38 @@
-# Packaging Notes
+# Packaging
 
-`openclaw-skill-guard` ships with two Windows-friendly executables:
+This project ships two Windows executables:
 
-- GUI EXE
-  - primary desktop product surface
-  - `target\release\openclaw-skill-guard-gui.exe`
-- CLI EXE
-  - automation and advanced-user entry point
-  - `target\release\openclaw-skill-guard.exe`
+- `openclaw-skill-guard-gui.exe`
+  - primary desktop product
+  - recommended for normal users
+- `openclaw-skill-guard.exe`
+  - CLI entry point
+  - intended for automation and advanced users
 
-Both executables front the same verifier core and the same canonical report pipeline.
-The v3 release keeps that contract intact while adding OpenClaw-specific config/control-plane, capability, companion-document, and source-identity review.
-
-## Build both executables
+Build both executables:
 
 ```powershell
 cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
 ```
 
-## GUI EXE usage
+Build outputs:
 
-Launch the desktop app:
-
-```powershell
-.\target\release\openclaw-skill-guard-gui.exe
+```text
+target\release\openclaw-skill-guard-gui.exe
+target\release\openclaw-skill-guard.exe
 ```
 
-Minimal startup smoke validation:
+Recommended release asset:
 
-```powershell
-.\target\release\openclaw-skill-guard-gui.exe --smoke-test
+```text
+openclaw-skill-guard-gui-windows.zip
 ```
 
-Best for:
-
-- day-to-day desktop review
-- guided target selection and scan execution
-- overview-first result reading
-- findings, paths, validation, and audit review
-- exporting JSON, SARIF, Markdown, and HTML from the GUI
-
-## CLI EXE usage
-
-Show help:
-
-```powershell
-.\target\release\openclaw-skill-guard.exe --help
-```
-
-Scan a benign sample:
-
-```powershell
-.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\benign\SKILL.md --format json
-```
-
-Best for:
-
-- automation
-- CI or review pipelines
-- direct canonical JSON consumption
-- scripted validation workflows
-- reproducible export generation
-
-## Files worth shipping
+The GUI zip should contain:
 
 - `openclaw-skill-guard-gui.exe`
-- `openclaw-skill-guard.exe`
-- `README.md`
-- `README.zh-CN.md`
-- `CHANGELOG.md`
-- `schemas/report.schema.json`
-- `docs/packaging.md`
-- `docs/release-ready.md`
-- optional demo and support materials:
-  - `examples/`
-  - `fixtures/`
-  - `docs/reporting.md`
-  - `docs/runtime-manifest.md`
-  - `docs/validation-adapter.md`
-  - `docs/gui-screenshots/`
+- `README.txt`
 
-## Packaging intent
+The CLI executable can be shipped separately when automation users need it.
 
-The release bundle should remain:
-
-- clear about GUI as the primary product entry point
-- explicit about CLI as the auxiliary automation surface
-- safe to hand over without local-only artifacts
-- complete enough to explain the canonical JSON report contract
-- explicit about the v3 OpenClaw-specific summaries included in that report contract
-- Windows-friendly for both desktop and terminal usage
-
-## What this package is not
-
-- not an exploit runner
-- not a dynamic malware sandbox
-- not an online reputation service
-- not a second report protocol
-
-JSON remains the canonical report contract. SARIF, Markdown, and HTML remain derived outputs from the same `ScanReport`.
-The v3-specific sections are `openclaw_config_audit_summary`, `capability_manifest`, `companion_doc_audit_summary`, and `source_identity_summary`.
+Do not include research folders, reference repositories, local build paths, or internal planning documents in the public release package.

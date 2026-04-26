@@ -110,22 +110,6 @@ These sections are still part of the contract, but their contents depend on scan
   - keeps the canonical contract in JSON rather than introducing a second schema
   - preserves the same canonical-report-derived v3 content rather than introducing a separate report protocol
 
-## Example reports
-
-The repository includes inert v2 demo reports under `examples/reports/`:
-
-- `v2-report-demo.json`
-- `v2-report-demo.sarif`
-- `v2-report-demo.md`
-- `v2-report-demo.html`
-
-These files are intended to show the current v2 shape of:
-
-- corpus-backed findings
-- dependency/source/API summaries
-- canonical JSON to SARIF derivation
-- minimal Markdown and HTML delivery outputs
-
 ## Experimental posture
 
 The following areas should be treated as evolving within the stable outer contract:

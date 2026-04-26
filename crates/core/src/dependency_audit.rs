@@ -92,7 +92,10 @@ pub fn analyze_dependency_audit(
     lockfile_gaps.sort();
     lockfile_gaps.dedup();
     if manifests_discovered.is_empty() {
-        notes.push("No supported dependency manifests were discovered in the current scan scope.".to_string());
+        notes.push(
+            "No supported dependency manifests were discovered in the current scan scope."
+                .to_string(),
+        );
     } else {
         notes.push(format!(
             "Dependency audit v1 scanned {} supported manifest or lockfile artifact(s).",
@@ -135,7 +138,10 @@ fn analyze_package_json(document: &TextArtifact) -> Vec<Finding> {
             1,
             "package.json parsing failed during dependency audit.",
             "The manifest could not be parsed, so dependency source analysis is incomplete.",
-            vec!["Dependency audit v1 relies on manifest parsing for explainable source signals.".to_string()],
+            vec![
+                "Dependency audit v1 relies on manifest parsing for explainable source signals."
+                    .to_string(),
+            ],
         ));
         return findings;
     };
@@ -237,7 +243,12 @@ fn analyze_requirements_txt(document: &TextArtifact) -> Vec<Finding> {
             }
             continue;
         }
-        findings.extend(analyze_pip_spec(document, index + 1, trimmed, "requirements.txt"));
+        findings.extend(analyze_pip_spec(
+            document,
+            index + 1,
+            trimmed,
+            "requirements.txt",
+        ));
     }
     findings
 }
@@ -249,13 +260,15 @@ fn analyze_pyproject_toml(document: &TextArtifact) -> Vec<Finding> {
     };
 
     if let Some(project) = value.get("project").and_then(toml::Value::as_table) {
-        if let Some(dependencies) = project
-            .get("dependencies")
-            .and_then(toml::Value::as_array)
-        {
+        if let Some(dependencies) = project.get("dependencies").and_then(toml::Value::as_array) {
             for dependency in dependencies {
                 if let Some(spec) = dependency.as_str() {
-                    findings.extend(analyze_pip_spec(document, 1, spec, "pyproject project.dependencies"));
+                    findings.extend(analyze_pip_spec(
+                        document,
+                        1,
+                        spec,
+                        "pyproject project.dependencies",
+                    ));
                 }
             }
         }
@@ -334,7 +347,9 @@ fn analyze_npm_spec(
             1,
             &format!("{name}: {spec}"),
             "The dependency declaration is not pinned to a specific reviewed artifact version.",
-            vec![format!("Found npm dependency `{name}` in {source} with spec `{spec}`.")],
+            vec![format!(
+                "Found npm dependency `{name}` in {source} with spec `{spec}`."
+            )],
         ));
     }
 
@@ -411,7 +426,11 @@ fn analyze_pip_spec(
         return findings;
     }
 
-    if lowered.contains(" @ http://") || lowered.contains(" @ https://") || lowered.starts_with("http://") || lowered.starts_with("https://") {
+    if lowered.contains(" @ http://")
+        || lowered.contains(" @ https://")
+        || lowered.starts_with("http://")
+        || lowered.starts_with("https://")
+    {
         findings.push(make_dependency_finding(
             "dependency.remote_source",
             "Python dependency resolves from a direct URL",
@@ -493,7 +512,9 @@ fn analyze_poetry_dependency(
                     1,
                     &format!("{name} = {url}"),
                     "The Poetry dependency is sourced from a direct URL.",
-                    vec![format!("Poetry dependency `{name}` uses direct URL `{url}`.")],
+                    vec![format!(
+                        "Poetry dependency `{name}` uses direct URL `{url}`."
+                    )],
                 ));
             }
         }
@@ -521,7 +542,9 @@ fn analyze_cargo_dependency(
                     1,
                     &format!("{name} = {version}"),
                     "The Cargo dependency declaration uses a wide or floating version constraint.",
-                    vec![format!("Cargo dependency `{name}` in {table_name} uses `{version}`.")],
+                    vec![format!(
+                        "Cargo dependency `{name}` in {table_name} uses `{version}`."
+                    )],
                 ));
             }
         }
@@ -644,9 +667,14 @@ fn analyze_install_chain_dependency_risk(install: &InstallAnalysis) -> Vec<Findi
 }
 
 fn has_npm_lockfile(documents: &[TextArtifact], manifest_path: &str) -> bool {
-    ["package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml"]
-        .iter()
-        .any(|candidate| has_sibling_file(manifest_path, documents, candidate))
+    [
+        "package-lock.json",
+        "npm-shrinkwrap.json",
+        "yarn.lock",
+        "pnpm-lock.yaml",
+    ]
+    .iter()
+    .any(|candidate| has_sibling_file(manifest_path, documents, candidate))
 }
 
 fn has_sibling_file(manifest_path: &str, documents: &[TextArtifact], file_name: &str) -> bool {

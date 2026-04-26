@@ -106,8 +106,10 @@ pub fn analyze_external_references(
             suspicious_references,
             risk_signal_counts,
             notes: vec![
-                "Reputation hints are local and explainable; they are not online trust verdicts.".to_string(),
-                "Signals come from taxonomy matches, seed hits, and URL structure heuristics.".to_string(),
+                "Reputation hints are local and explainable; they are not online trust verdicts."
+                    .to_string(),
+                "Signals come from taxonomy matches, seed hits, and URL structure heuristics."
+                    .to_string(),
             ],
         },
         external_references: extracted,
@@ -116,7 +118,10 @@ pub fn analyze_external_references(
     }
 }
 
-fn extract_references(documents: &[TextArtifact], corpora: &BuiltinCorpora) -> Vec<ExternalReference> {
+fn extract_references(
+    documents: &[TextArtifact],
+    corpora: &BuiltinCorpora,
+) -> Vec<ExternalReference> {
     let url_regex = Regex::new(r#"https?://[^\s"'`<>()]+"#).unwrap();
     let mut refs = BTreeMap::<String, ExternalReference>::new();
     let mut next_reference_id = 1usize;
@@ -136,19 +141,21 @@ fn extract_references(documents: &[TextArtifact], corpora: &BuiltinCorpora) -> V
                 let (category, service_kind, reputation, risk_signals, rationale, provenance) =
                     classify_reference(&cleaned, &host, corpora);
                 let reference_id = format!("ref-{next_reference_id:03}");
-                let entry = refs.entry(cleaned.clone()).or_insert_with(|| ExternalReference {
-                    reference_id,
-                    url: cleaned.clone(),
-                    host: host.clone(),
-                    category,
-                    service_kind,
-                    reputation,
-                    risk_signals,
-                    locations: Vec::new(),
-                    evidence_excerpt: line.trim().to_string(),
-                    rationale,
-                    provenance,
-                });
+                let entry = refs
+                    .entry(cleaned.clone())
+                    .or_insert_with(|| ExternalReference {
+                        reference_id,
+                        url: cleaned.clone(),
+                        host: host.clone(),
+                        category,
+                        service_kind,
+                        reputation,
+                        risk_signals,
+                        locations: Vec::new(),
+                        evidence_excerpt: line.trim().to_string(),
+                        rationale,
+                        provenance,
+                    });
                 if entry.locations.is_empty() {
                     next_reference_id += 1;
                 }
@@ -175,7 +182,10 @@ fn classify_reference(
     let mut matched_seed_ids = Vec::new();
     let mut risk_signals = Vec::new();
     let mut taxonomy_entry_id = None;
-    let mut asset_sources = vec!["api-taxonomy-v2.yaml".to_string(), "reputation-seeds-v2.yaml".to_string()];
+    let mut asset_sources = vec![
+        "api-taxonomy-v2.yaml".to_string(),
+        "reputation-seeds-v2.yaml".to_string(),
+    ];
 
     let raw_path = extract_path(url);
 
@@ -192,7 +202,9 @@ fn classify_reference(
         if matched {
             matched_seed_ids.push(seed.id.clone());
             match seed.seed_kind {
-                ReputationSeedKind::ShortlinkHost => risk_signals.push(ExternalRiskSignal::Shortlink),
+                ReputationSeedKind::ShortlinkHost => {
+                    risk_signals.push(ExternalRiskSignal::Shortlink)
+                }
                 ReputationSeedKind::DynamicDnsSuffix => {
                     risk_signals.push(ExternalRiskSignal::DynamicDnsSuffix)
                 }
@@ -230,7 +242,9 @@ fn classify_reference(
     } else if risk_signals.contains(&ExternalRiskSignal::Shortlink) {
         category = ExternalReferenceCategory::Shortlink;
         reputation = ExternalReferenceReputation::Suspicious;
-        rationale = "The URL host is a known shortlink provider that obscures the final destination.".to_string();
+        rationale =
+            "The URL host is a known shortlink provider that obscures the final destination."
+                .to_string();
     } else if risk_signals.contains(&ExternalRiskSignal::DynamicDnsSuffix) {
         category = ExternalReferenceCategory::DynamicDns;
         reputation = ExternalReferenceReputation::Suspicious;
@@ -269,9 +283,12 @@ fn classify_reference(
     }
     if matches!(category, ExternalReferenceCategory::Unknown) && raw_path.contains("/raw/") {
         category = ExternalReferenceCategory::RawContent;
-        rationale = "The URL path suggests raw content retrieval outside a repository view.".to_string();
+        rationale =
+            "The URL path suggests raw content retrieval outside a repository view.".to_string();
     }
-    if matches!(category, ExternalReferenceCategory::Unknown) && looks_like_api_endpoint(host, &raw_path) {
+    if matches!(category, ExternalReferenceCategory::Unknown)
+        && looks_like_api_endpoint(host, &raw_path)
+    {
         category = ExternalReferenceCategory::ApiEndpoint;
         service_kind = ExternalServiceKind::GeneralApi;
         rationale =
@@ -279,10 +296,12 @@ fn classify_reference(
                 .to_string();
     }
 
-    if risk_signals
-        .iter()
-        .any(|signal| matches!(signal, ExternalRiskSignal::KnownSuspiciousSeed | ExternalRiskSignal::SuspiciousTld))
-    {
+    if risk_signals.iter().any(|signal| {
+        matches!(
+            signal,
+            ExternalRiskSignal::KnownSuspiciousSeed | ExternalRiskSignal::SuspiciousTld
+        )
+    }) {
         reputation = ExternalReferenceReputation::Suspicious;
     }
 
@@ -538,17 +557,7 @@ fn is_pure_ip(host: &str) -> bool {
 fn looks_like_file_download(url: &str) -> bool {
     let lowered = url.to_ascii_lowercase();
     [
-        ".zip",
-        ".tar",
-        ".tar.gz",
-        ".tgz",
-        ".exe",
-        ".dll",
-        ".msi",
-        ".whl",
-        ".crate",
-        ".deb",
-        ".rpm",
+        ".zip", ".tar", ".tar.gz", ".tgz", ".exe", ".dll", ".msi", ".whl", ".crate", ".deb", ".rpm",
     ]
     .iter()
     .any(|suffix| lowered.contains(suffix))
@@ -576,7 +585,9 @@ fn looks_like_api_endpoint(host: &str, path: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::corpus::load_builtin_corpora;
-    use crate::types::{ExternalReferenceCategory, ExternalReferenceReputation, ExternalRiskSignal, TextArtifact};
+    use crate::types::{
+        ExternalReferenceCategory, ExternalReferenceReputation, ExternalRiskSignal, TextArtifact,
+    };
 
     use super::analyze_external_references;
 
@@ -590,10 +601,22 @@ mod tests {
 
         let analysis = analyze_external_references(&docs, &corpora);
 
-        assert!(analysis.external_references.iter().any(|item| item.category == ExternalReferenceCategory::Documentation));
-        assert!(analysis.external_references.iter().any(|item| item.category == ExternalReferenceCategory::SourceRepository));
-        assert!(analysis.external_references.iter().any(|item| item.category == ExternalReferenceCategory::RawContent));
-        assert!(analysis.external_references.iter().any(|item| item.category == ExternalReferenceCategory::ApiEndpoint));
+        assert!(analysis
+            .external_references
+            .iter()
+            .any(|item| item.category == ExternalReferenceCategory::Documentation));
+        assert!(analysis
+            .external_references
+            .iter()
+            .any(|item| item.category == ExternalReferenceCategory::SourceRepository));
+        assert!(analysis
+            .external_references
+            .iter()
+            .any(|item| item.category == ExternalReferenceCategory::RawContent));
+        assert!(analysis
+            .external_references
+            .iter()
+            .any(|item| item.category == ExternalReferenceCategory::ApiEndpoint));
     }
 
     #[test]
@@ -614,14 +637,12 @@ mod tests {
             .external_references
             .iter()
             .any(|item| item.risk_signals.contains(&ExternalRiskSignal::PureIp)));
-        assert!(analysis
-            .external_references
-            .iter()
-            .any(|item| item.risk_signals.contains(&ExternalRiskSignal::DynamicDnsSuffix)));
-        assert!(analysis
-            .external_references
-            .iter()
-            .any(|item| item.risk_signals.contains(&ExternalRiskSignal::SuspiciousTld)));
+        assert!(analysis.external_references.iter().any(|item| item
+            .risk_signals
+            .contains(&ExternalRiskSignal::DynamicDnsSuffix)));
+        assert!(analysis.external_references.iter().any(|item| item
+            .risk_signals
+            .contains(&ExternalRiskSignal::SuspiciousTld)));
         assert!(analysis
             .external_references
             .iter()

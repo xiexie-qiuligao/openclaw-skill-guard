@@ -289,7 +289,7 @@ These are the highest-value fusion targets.
 
 `V2-UPGRADE-GUIDE.md` exposes a local machine path:
 
-- `/Users/tanshow/Downloads/cls-certify-v2/`
+- a developer-machine absolute path pointing to a downloaded working copy
 
 This is a release-hygiene failure and should not be inherited.
 

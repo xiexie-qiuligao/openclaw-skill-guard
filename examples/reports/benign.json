@@ -1,7 +1,7 @@
 {
   "target": {
-    "path": ".\\fixtures\\v1\\benign\\SKILL.md",
-    "canonical_path": ".\\fixtures\\v1\\benign\\SKILL.md",
+    "path": "fixtures\\v1\\benign\\SKILL.md",
+    "canonical_path": "fixtures\\v1\\benign\\SKILL.md",
     "target_kind": "file"
   },
   "scan_mode": "file",
@@ -94,7 +94,7 @@
     },
     {
       "key": "observed_target_root",
-      "value": ".\\fixtures\\v1\\benign",
+      "value": "fixtures\\v1\\benign",
       "source_kind": "inferred_from_config",
       "confirmed": true
     }
@@ -225,7 +225,7 @@
     "known_roots": [
       {
         "source": "unknown",
-        "path": ".\\fixtures\\v1\\benign",
+        "path": "fixtures\\v1\\benign",
         "present": true
       }
     ],

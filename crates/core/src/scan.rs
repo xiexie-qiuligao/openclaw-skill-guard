@@ -3,17 +3,20 @@ use std::path::Path;
 use thiserror::Error;
 
 use crate::attack_paths::build_attack_paths;
+use crate::capability_manifest::build_capability_manifest;
+use crate::companion_docs::analyze_companion_docs;
 use crate::compound_rules::evaluate_compound_rules;
 use crate::consequence::analyze_consequences;
+use crate::context::build_context_analysis;
 use crate::corpus::{corpus_assets_used, load_builtin_corpora};
 use crate::corpus_findings::{analyze_sensitive_corpus, analyze_threat_corpus};
-use crate::context::build_context_analysis;
 use crate::dependency_audit::analyze_dependency_audit;
 use crate::install::{analyze_install_chain, InstallAnalysis};
 use crate::instruction::{extract_instruction_segments, InstructionAnalysis};
 use crate::inventory::{build_inventory, InventoryError};
 use crate::invocation::{analyze_invocation_policy, InvocationAnalysis};
 use crate::normalize::{build_scan_lines, read_text_document};
+use crate::openclaw_config::analyze_openclaw_config;
 use crate::precedence::analyze_precedence;
 use crate::prompt_injection::{analyze_instruction_segments, PromptInjectionAnalysis};
 use crate::provenance::refine_findings_and_paths;
@@ -26,6 +29,7 @@ use crate::runtime_manifest::load_runtime_manifest;
 use crate::runtime_validation::perform_runtime_validation;
 use crate::scoring::score_findings;
 use crate::skill_parse::parse_skill_file;
+use crate::source_identity::analyze_source_identity;
 use crate::suppression::{apply_suppressions, load_suppression_rules};
 use crate::types::{
     CorpusAssetUsage, FileSkip, InstructionSegment, ParseError, ParsedSkill, ProvenanceNote,
@@ -160,6 +164,24 @@ pub fn scan_path_with_options(
         analyze_sensitive_corpus(&text_artifacts, &corpora, &post_threat_findings);
     let dependency_audit = analyze_dependency_audit(&text_artifacts, &install_analysis);
     let url_classification = analyze_external_references(&text_artifacts, &corpora);
+    let openclaw_config_audit = analyze_openclaw_config(&text_artifacts);
+    let capability_manifest = build_capability_manifest(
+        &parsed_skills,
+        &install_analysis,
+        &invocation_analysis,
+        &tool_analysis,
+        &secret_analysis,
+        &dependency_audit,
+        &url_classification.external_references,
+    );
+    let companion_doc_audit =
+        analyze_companion_docs(&text_artifacts, &parsed_skills, &prompt_analysis);
+    let source_identity = analyze_source_identity(
+        &parsed_skills,
+        &text_artifacts,
+        &install_analysis,
+        &url_classification.external_references,
+    );
     let compound_analysis = evaluate_compound_rules(
         &parsed_skills,
         &instruction_analysis,
@@ -191,6 +213,10 @@ pub fn scan_path_with_options(
     findings.extend(sensitive_corpus_analysis.findings.clone());
     findings.extend(dependency_audit.findings.clone());
     findings.extend(url_classification.findings.clone());
+    findings.extend(openclaw_config_audit.findings.clone());
+    findings.extend(capability_manifest.findings.clone());
+    findings.extend(companion_doc_audit.findings.clone());
+    findings.extend(source_identity.findings.clone());
 
     findings.sort_by(|left, right| {
         right.severity.cmp(&left.severity).then_with(|| {
@@ -340,6 +366,10 @@ pub fn scan_path_with_options(
             &sensitive_corpus_analysis.summary,
             &dependency_audit,
             &url_classification,
+            &openclaw_config_audit,
+            &capability_manifest,
+            &companion_doc_audit,
+            &source_identity,
             &static_consequence_analysis,
         ),
         attack_paths: suppression_application.paths,
@@ -365,11 +395,16 @@ pub fn scan_path_with_options(
         api_classification_summary: url_classification.api_summary,
         source_reputation_summary: url_classification.reputation_summary,
         external_references: url_classification.external_references,
+        openclaw_config_audit_summary: openclaw_config_audit.summary,
+        capability_manifest: capability_manifest.summary,
+        companion_doc_audit_summary: companion_doc_audit.summary,
+        source_identity_summary: source_identity.summary,
         provenance_notes: {
             let mut notes = provenance_analysis.provenance_notes;
             notes.extend(threat_corpus_analysis.provenance_notes);
             notes.extend(sensitive_corpus_analysis.provenance_notes);
             notes.extend(url_classification.provenance_notes);
+            notes.extend(openclaw_config_audit.provenance_notes);
             notes.extend(build_corpus_provenance_notes(&corpus_assets));
             notes
         },

@@ -61,3 +61,51 @@
     source_ref: references/threat-patterns.md
     notes:
       - Preserved as corpus only in this round; not yet wired into core scanner logic.
+
+- id: v3.threat.openclaw_config_mutation
+  category: openclaw_control_plane
+  matcher:
+    kind: regex
+    pattern: '(?i)(openclaw\.json|skills\.entries|skills\.load\.extraDirs|gateway config|sandbox policy).{0,80}(edit|modify|patch|overwrite|append|set)'
+  description: Instruction or documentation attempts to mutate OpenClaw config/control-plane state.
+  severity_hint: high
+  false_positive_notes:
+    - Benign setup documentation can mention config keys; escalate only when text is operative.
+  provenance:
+    source_name: v3 OpenClaw gap analysis
+    source_kind: first_party
+    source_ref: docs/v3-openclaw-gap-analysis.md
+    notes:
+      - Targets OpenClaw control-plane mutation rather than generic config editing.
+
+- id: v3.threat.companion_follow_remote_instructions
+  category: companion_doc_poisoning
+  matcher:
+    kind: regex
+    pattern: '(?i)(read|fetch|open|download|load).{0,80}(url|http|external|remote).{0,80}(follow|obey).{0,80}(instruction|prompt|direction|rule|policy)'
+  description: Companion or setup text asks the workflow to follow remote instructions.
+  severity_hint: high
+  false_positive_notes:
+    - Security training text should be downgraded when explicitly marked as inert.
+  provenance:
+    source_name: v3 OpenClaw gap analysis
+    source_kind: first_party
+    source_ref: docs/v3-scope.md
+    notes:
+      - Mirrors the companion-document analyzer so corpus regressions cover the same family.
+
+- id: v3.threat.generated_skill_shadowing
+  category: generated_skill_shadowing
+  matcher:
+    kind: regex
+    pattern: '(?i)(write|create|generate).{0,80}(\.agents/skills|/skills/|skills/).{0,80}(same name|override|shadow|replace)'
+  description: Text suggests generating or writing a skill into a high-precedence location to shadow another skill.
+  severity_hint: high
+  false_positive_notes:
+    - Legitimate workshop examples should be reviewed for whether they actually write into active skill roots.
+  provenance:
+    source_name: v3 OpenClaw gap analysis
+    source_kind: first_party
+    source_ref: docs/v3-openclaw-gap-analysis.md
+    notes:
+      - Captures Skill Workshop and generated-skill provenance risk without treating generation itself as malicious.

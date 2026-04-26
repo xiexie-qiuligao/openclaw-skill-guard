@@ -91,4 +91,30 @@ cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\report-demo --format
 cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\report-demo --format html
 ```
 
+## V3 OpenClaw-specific samples
+
+Config / control-plane audit:
+
+```powershell
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v3\config-control-plane --format json
+```
+
+Capability / permission manifest:
+
+```powershell
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v3\capability-manifest --format json
+```
+
+Companion-document indirect instruction audit:
+
+```powershell
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v3\companion-doc-poisoning --format json
+```
+
+Source identity mismatch:
+
+```powershell
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v3\source-identity-mismatch --format json
+```
+
 Prebuilt example outputs live under `examples/reports/`.

@@ -115,7 +115,10 @@ impl PathStatusFilter {
                     | Some(PathValidationDisposition::PartiallyValidated)
             ),
             PathStatusFilter::Blocked => {
-                matches!(status, Some(PathValidationDisposition::BlockedByEnvironment))
+                matches!(
+                    status,
+                    Some(PathValidationDisposition::BlockedByEnvironment)
+                )
             }
             PathStatusFilter::Assumed => matches!(
                 status,
@@ -577,15 +580,13 @@ impl OpenClawGuardApp {
                 ui.horizontal_wrapped(|ui| {
                     for tab in UiTab::ALL {
                         let active = self.active_tab == tab;
-                        let button = egui::Button::new(
-                            RichText::new(tab.label())
-                                .strong()
-                                .color(if active {
-                                    Color32::WHITE
-                                } else {
-                                    Color32::from_rgb(54, 61, 70)
-                                }),
-                        )
+                        let button = egui::Button::new(RichText::new(tab.label()).strong().color(
+                            if active {
+                                Color32::WHITE
+                            } else {
+                                Color32::from_rgb(54, 61, 70)
+                            },
+                        ))
                         .fill(if active {
                             Color32::from_rgb(19, 106, 94)
                         } else {
@@ -613,10 +614,30 @@ impl OpenClawGuardApp {
         ui.add_space(12.0);
 
         ui.horizontal_wrapped(|ui| {
-            self.stat_card(ui, "最终结论", verdict_label(report.verdict), verdict_fg(report.verdict));
-            self.stat_card(ui, "风险分数", &report.score.to_string(), Color32::from_rgb(19, 106, 94));
-            self.stat_card(ui, "发现项", &report.findings.len().to_string(), Color32::from_rgb(172, 86, 13));
-            self.stat_card(ui, "攻击路径", &report.attack_paths.len().to_string(), Color32::from_rgb(144, 67, 38));
+            self.stat_card(
+                ui,
+                "最终结论",
+                verdict_label(report.verdict),
+                verdict_fg(report.verdict),
+            );
+            self.stat_card(
+                ui,
+                "风险分数",
+                &report.score.to_string(),
+                Color32::from_rgb(19, 106, 94),
+            );
+            self.stat_card(
+                ui,
+                "发现项",
+                &report.findings.len().to_string(),
+                Color32::from_rgb(172, 86, 13),
+            );
+            self.stat_card(
+                ui,
+                "攻击路径",
+                &report.attack_paths.len().to_string(),
+                Color32::from_rgb(144, 67, 38),
+            );
             self.stat_card(
                 ui,
                 "依赖风险",
@@ -685,9 +706,41 @@ impl OpenClawGuardApp {
                             .as_deref()
                             .unwrap_or("本次没有触发 sensitive corpus 摘要。"),
                     );
-                    self.summary_line(ui, "Dependency audit", &report.dependency_audit_summary.summary);
-                    self.summary_line(ui, "API classification", &report.api_classification_summary.summary);
-                    self.summary_line(ui, "Source reputation", &report.source_reputation_summary.summary);
+                    self.summary_line(
+                        ui,
+                        "Dependency audit",
+                        &report.dependency_audit_summary.summary,
+                    );
+                    self.summary_line(
+                        ui,
+                        "API classification",
+                        &report.api_classification_summary.summary,
+                    );
+                    self.summary_line(
+                        ui,
+                        "Source reputation",
+                        &report.source_reputation_summary.summary,
+                    );
+                    self.summary_line(
+                        ui,
+                        "Config / control-plane",
+                        &report.openclaw_config_audit_summary.summary,
+                    );
+                    self.summary_line(
+                        ui,
+                        "Capability manifest",
+                        &report.capability_manifest.summary,
+                    );
+                    self.summary_line(
+                        ui,
+                        "Companion docs",
+                        &report.companion_doc_audit_summary.summary,
+                    );
+                    self.summary_line(
+                        ui,
+                        "Source identity",
+                        &report.source_identity_summary.summary,
+                    );
                 },
             );
 
@@ -699,14 +752,23 @@ impl OpenClawGuardApp {
                     self.string_list(ui, "立即处理", &report.recommendations.immediate);
                     self.string_list(ui, "短期收敛", &report.recommendations.short_term);
                     self.string_list(ui, "加固建议", &report.recommendations.hardening);
-                    self.string_list(ui, "需要进一步验证时", &report.recommendations.dynamic_validation);
+                    self.string_list(
+                        ui,
+                        "需要进一步验证时",
+                        &report.recommendations.dynamic_validation,
+                    );
                 },
             );
         });
 
-        Self::section_card(ui, "执行摘要", "便于复制到内部审查或沟通语境。", |ui| {
-            ui.code(&completed.summary_text);
-        });
+        Self::section_card(
+            ui,
+            "执行摘要",
+            "便于复制到内部审查或沟通语境。",
+            |ui| {
+                ui.code(&completed.summary_text);
+            },
+        );
     }
 
     fn render_findings_tab(&mut self, ui: &mut Ui, report: &ScanReport) {
@@ -744,157 +806,278 @@ impl OpenClawGuardApp {
 
         let context = &report.context_analysis;
         ui.columns(2, |columns| {
-            Self::section_card_in(&mut columns[0], "基础上下文摘要", "先确认这次扫描到底看到了什么。", |ui| {
-                self.summary_line(ui, "解析", &context.parsing_summary);
-                self.optional_summary(ui, "元数据", context.metadata_summary.as_deref());
-                self.optional_summary(ui, "安装链", context.install_chain_summary.as_deref());
-                self.optional_summary(ui, "调用策略", context.invocation_summary.as_deref());
-                self.optional_summary(ui, "Prompt / 指令", context.prompt_injection_summary.as_deref());
-                self.optional_summary(ui, "Threat corpus", context.threat_corpus_summary.as_deref());
-                self.optional_summary(ui, "Sensitive corpus", context.sensitive_data_summary.as_deref());
-            });
+            Self::section_card_in(
+                &mut columns[0],
+                "基础上下文摘要",
+                "先确认这次扫描到底看到了什么。",
+                |ui| {
+                    self.summary_line(ui, "解析", &context.parsing_summary);
+                    self.optional_summary(ui, "元数据", context.metadata_summary.as_deref());
+                    self.optional_summary(ui, "安装链", context.install_chain_summary.as_deref());
+                    self.optional_summary(ui, "调用策略", context.invocation_summary.as_deref());
+                    self.optional_summary(
+                        ui,
+                        "Prompt / 指令",
+                        context.prompt_injection_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "Threat corpus",
+                        context.threat_corpus_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "Sensitive corpus",
+                        context.sensitive_data_summary.as_deref(),
+                    );
+                },
+            );
 
-            Self::section_card_in(&mut columns[1], "v2 摘要与来源判断", "dependency / API / source 新增能力集中显示。", |ui| {
-                self.optional_summary(ui, "Dependency audit", context.dependency_audit_summary.as_deref());
-                self.optional_summary(ui, "API classification", context.api_classification_summary.as_deref());
-                self.optional_summary(ui, "Source reputation", context.source_reputation_summary.as_deref());
-                self.optional_summary(ui, "宿主 / 沙箱判断", context.host_vs_sandbox_assessment.as_deref());
-                self.optional_summary(ui, "优先级 / 覆盖关系", context.precedence_summary.as_deref());
-            });
+            Self::section_card_in(
+                &mut columns[1],
+                "v2 摘要与来源判断",
+                "dependency / API / source 新增能力集中显示。",
+                |ui| {
+                    self.optional_summary(
+                        ui,
+                        "Dependency audit",
+                        context.dependency_audit_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "API classification",
+                        context.api_classification_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "Source reputation",
+                        context.source_reputation_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "OpenClaw config / control-plane",
+                        context.openclaw_config_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "Capability manifest",
+                        context.capability_manifest_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "Companion docs",
+                        context.companion_doc_audit_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "Source identity",
+                        context.source_identity_summary.as_deref(),
+                    );
+                    self.string_list(
+                        ui,
+                        "Config risky bindings",
+                        &report.openclaw_config_audit_summary.risky_bindings,
+                    );
+                    self.string_list(
+                        ui,
+                        "Capability risky combinations",
+                        &report.capability_manifest.risky_combinations,
+                    );
+                    self.string_list(
+                        ui,
+                        "Companion-doc signals",
+                        &report.companion_doc_audit_summary.poisoning_signals,
+                    );
+                    let identity_signals = report
+                        .source_identity_summary
+                        .signals
+                        .iter()
+                        .map(|signal| {
+                            let evidence = if signal.evidence.is_empty() {
+                                "no direct evidence excerpt".to_string()
+                            } else {
+                                signal.evidence.join("; ")
+                            };
+                            format!("{}: {} -> {}", signal.signal_kind, signal.summary, evidence)
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list(ui, "Source identity signals", &identity_signals);
+                    self.optional_summary(
+                        ui,
+                        "宿主 / 沙箱判断",
+                        context.host_vs_sandbox_assessment.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "优先级 / 覆盖关系",
+                        context.precedence_summary.as_deref(),
+                    );
+                },
+            );
         });
 
-        Self::section_card(ui, "依赖审计细读", "重点阅读 dependency finding 的来源、风险线索和 explainability。", |ui| {
-            let dependency_findings = report
-                .findings
-                .iter()
-                .filter(|finding| finding.category.starts_with("dependency."))
-                .collect::<Vec<_>>();
+        Self::section_card(
+            ui,
+            "依赖审计细读",
+            "重点阅读 dependency finding 的来源、风险线索和 explainability。",
+            |ui| {
+                let dependency_findings = report
+                    .findings
+                    .iter()
+                    .filter(|finding| finding.category.starts_with("dependency."))
+                    .collect::<Vec<_>>();
 
-            if dependency_findings.is_empty() {
-                ui.label("本次没有 dependency finding。");
-                return;
-            }
+                if dependency_findings.is_empty() {
+                    ui.label("本次没有 dependency finding。");
+                    return;
+                }
 
-            for finding in dependency_findings {
-                egui::CollapsingHeader::new(format!("{} | {}", finding.title, severity_text(finding.severity)))
+                for finding in dependency_findings {
+                    egui::CollapsingHeader::new(format!(
+                        "{} | {}",
+                        finding.title,
+                        severity_text(finding.severity)
+                    ))
                     .default_open(self.selected_subject_id.as_deref() == Some(finding.id.as_str()))
                     .show(ui, |ui| {
                         ui.label(&finding.explanation);
-                        self.render_expandable_text(ui, "分析说明", &finding.analyst_notes.join("\n"), 260);
+                        self.render_expandable_text(
+                            ui,
+                            "分析说明",
+                            &finding.analyst_notes.join("\n"),
+                            260,
+                        );
                         let notes = subject_provenance_notes(report, &finding.id);
                         if !notes.is_empty() {
                             self.render_expandable_text(ui, "来源说明", &notes.join("\n"), 260);
                         }
                         let score_notes = subject_score_rationales(report, &finding.id);
                         if !score_notes.is_empty() {
-                            self.render_expandable_text(ui, "评分理由", &score_notes.join("\n"), 260);
+                            self.render_expandable_text(
+                                ui,
+                                "评分理由",
+                                &score_notes.join("\n"),
+                                260,
+                            );
                         }
                         if ui.button("查看审计 / 来源说明").clicked() {
                             self.selected_subject_id = Some(finding.id.clone());
                             self.active_tab = UiTab::Audit;
                         }
                     });
-            }
-        });
-
-        Self::section_card(ui, "外部引用与来源信誉", "支持快速过滤并展开细节。", |ui| {
-            ui.horizontal_wrapped(|ui| {
-                ui.label("筛选：");
-                for filter in [
-                    ReferenceFilter::All,
-                    ReferenceFilter::SuspiciousOnly,
-                    ReferenceFilter::ReviewNeededOnly,
-                ] {
-                    ui.selectable_value(&mut self.reference_filter, filter, filter.label());
                 }
-            });
+            },
+        );
 
-            let references = report
-                .external_references
-                .iter()
-                .filter(|reference| self.reference_filter.matches(reference))
-                .collect::<Vec<_>>();
-
-            if report.external_references.is_empty() {
-                ui.label("本次没有抽取到外部引用。");
-                return;
-            }
-            if references.is_empty() {
-                ui.label("当前筛选条件下没有匹配的外部引用。");
-                return;
-            }
-
-            for reference in references {
-                egui::CollapsingHeader::new(format!(
-                    "{} | {} | {}",
-                    reference.host,
-                    pretty_debug(reference.category),
-                    pretty_debug(reference.reputation)
-                ))
-                .default_open(false)
-                .show(ui, |ui| {
-                    ui.label(RichText::new(&reference.url).strong());
-                    ui.label(format!("服务类型：{}", pretty_debug(reference.service_kind)));
-                    if !reference.risk_signals.is_empty() {
-                        ui.label(format!(
-                            "风险信号：{}",
-                            reference
-                                .risk_signals
-                                .iter()
-                                .map(|item| pretty_debug(*item))
-                                .collect::<Vec<_>>()
-                                .join(" / ")
-                        ));
-                    }
-                    self.render_expandable_text(ui, "判断理由", &reference.rationale, 260);
-                    self.render_expandable_text(ui, "证据摘录", &reference.evidence_excerpt, 220);
-                    if !reference.locations.is_empty() {
-                        let locations = reference
-                            .locations
-                            .iter()
-                            .map(|item| {
-                                format!("{}:{}", item.path, item.line.unwrap_or(1))
-                            })
-                            .collect::<Vec<_>>()
-                            .join("\n");
-                        self.render_expandable_text(ui, "出现位置", &locations, 200);
-                    }
-
-                    if reference.provenance.taxonomy_entry_id.is_some()
-                        || !reference.provenance.matched_seed_ids.is_empty()
-                        || !reference.provenance.asset_sources.is_empty()
-                    {
-                        let mut provenance_bits = Vec::new();
-                        if let Some(id) = &reference.provenance.taxonomy_entry_id {
-                            provenance_bits.push(format!("taxonomy entry: {id}"));
-                        }
-                        if !reference.provenance.matched_seed_ids.is_empty() {
-                            provenance_bits.push(format!(
-                                "matched seeds: {}",
-                                reference.provenance.matched_seed_ids.join(", ")
-                            ));
-                        }
-                        if !reference.provenance.asset_sources.is_empty() {
-                            provenance_bits.push(format!(
-                                "asset sources: {}",
-                                reference.provenance.asset_sources.join(", ")
-                            ));
-                        }
-                        self.render_expandable_text(
-                            ui,
-                            "分类来源",
-                            &provenance_bits.join("\n"),
-                            240,
-                        );
-                    }
-
-                    if ui.button("查看审计 / 来源说明").clicked() {
-                        self.selected_subject_id = Some(reference.reference_id.clone());
-                        self.active_tab = UiTab::Audit;
+        Self::section_card(
+            ui,
+            "外部引用与来源信誉",
+            "支持快速过滤并展开细节。",
+            |ui| {
+                ui.horizontal_wrapped(|ui| {
+                    ui.label("筛选：");
+                    for filter in [
+                        ReferenceFilter::All,
+                        ReferenceFilter::SuspiciousOnly,
+                        ReferenceFilter::ReviewNeededOnly,
+                    ] {
+                        ui.selectable_value(&mut self.reference_filter, filter, filter.label());
                     }
                 });
-            }
-        });
+
+                let references = report
+                    .external_references
+                    .iter()
+                    .filter(|reference| self.reference_filter.matches(reference))
+                    .collect::<Vec<_>>();
+
+                if report.external_references.is_empty() {
+                    ui.label("本次没有抽取到外部引用。");
+                    return;
+                }
+                if references.is_empty() {
+                    ui.label("当前筛选条件下没有匹配的外部引用。");
+                    return;
+                }
+
+                for reference in references {
+                    egui::CollapsingHeader::new(format!(
+                        "{} | {} | {}",
+                        reference.host,
+                        pretty_debug(reference.category),
+                        pretty_debug(reference.reputation)
+                    ))
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        ui.label(RichText::new(&reference.url).strong());
+                        ui.label(format!(
+                            "服务类型：{}",
+                            pretty_debug(reference.service_kind)
+                        ));
+                        if !reference.risk_signals.is_empty() {
+                            ui.label(format!(
+                                "风险信号：{}",
+                                reference
+                                    .risk_signals
+                                    .iter()
+                                    .map(|item| pretty_debug(*item))
+                                    .collect::<Vec<_>>()
+                                    .join(" / ")
+                            ));
+                        }
+                        self.render_expandable_text(ui, "判断理由", &reference.rationale, 260);
+                        self.render_expandable_text(
+                            ui,
+                            "证据摘录",
+                            &reference.evidence_excerpt,
+                            220,
+                        );
+                        if !reference.locations.is_empty() {
+                            let locations = reference
+                                .locations
+                                .iter()
+                                .map(|item| format!("{}:{}", item.path, item.line.unwrap_or(1)))
+                                .collect::<Vec<_>>()
+                                .join("\n");
+                            self.render_expandable_text(ui, "出现位置", &locations, 200);
+                        }
+
+                        if reference.provenance.taxonomy_entry_id.is_some()
+                            || !reference.provenance.matched_seed_ids.is_empty()
+                            || !reference.provenance.asset_sources.is_empty()
+                        {
+                            let mut provenance_bits = Vec::new();
+                            if let Some(id) = &reference.provenance.taxonomy_entry_id {
+                                provenance_bits.push(format!("taxonomy entry: {id}"));
+                            }
+                            if !reference.provenance.matched_seed_ids.is_empty() {
+                                provenance_bits.push(format!(
+                                    "matched seeds: {}",
+                                    reference.provenance.matched_seed_ids.join(", ")
+                                ));
+                            }
+                            if !reference.provenance.asset_sources.is_empty() {
+                                provenance_bits.push(format!(
+                                    "asset sources: {}",
+                                    reference.provenance.asset_sources.join(", ")
+                                ));
+                            }
+                            self.render_expandable_text(
+                                ui,
+                                "分类来源",
+                                &provenance_bits.join("\n"),
+                                240,
+                            );
+                        }
+
+                        if ui.button("查看审计 / 来源说明").clicked() {
+                            self.selected_subject_id = Some(reference.reference_id.clone());
+                            self.active_tab = UiTab::Audit;
+                        }
+                    });
+                }
+            },
+        );
     }
 
     fn render_paths_tab(&mut self, ui: &mut Ui, report: &ScanReport) {
@@ -911,7 +1094,10 @@ impl OpenClawGuardApp {
             .collect::<Vec<_>>();
 
         if report.attack_paths.is_empty() {
-            self.empty_panel(ui, "本次没有组装出满足阈值的攻击路径。孤立 finding 仍可能需要单独审查。");
+            self.empty_panel(
+                ui,
+                "本次没有组装出满足阈值的攻击路径。孤立 finding 仍可能需要单独审查。",
+            );
             return;
         }
         if filtered.is_empty() {
@@ -931,51 +1117,68 @@ impl OpenClawGuardApp {
         ui.add_space(8.0);
 
         ui.columns(2, |columns| {
-            Self::section_card_in(&mut columns[0], "验证与环境摘要", "先判断是环境阻断了风险，还是环境放大了风险。", |ui| {
-                self.key_value(ui, "运行时 manifest", &report.runtime_manifest_summary);
-                self.key_value(ui, "验证计划", &report.validation_plan.summary);
-                self.key_value(ui, "Guarded validation", &report.guarded_validation.summary);
-                self.key_value(ui, "影响模型", &report.consequence_summary.summary);
-                self.key_value(ui, "宿主 / 沙箱", &report.host_vs_sandbox_split.summary);
-            });
+            Self::section_card_in(
+                &mut columns[0],
+                "验证与环境摘要",
+                "先判断是环境阻断了风险，还是环境放大了风险。",
+                |ui| {
+                    self.key_value(ui, "运行时 manifest", &report.runtime_manifest_summary);
+                    self.key_value(ui, "验证计划", &report.validation_plan.summary);
+                    self.key_value(ui, "Guarded validation", &report.guarded_validation.summary);
+                    self.key_value(ui, "影响模型", &report.consequence_summary.summary);
+                    self.key_value(ui, "宿主 / 沙箱", &report.host_vs_sandbox_split.summary);
+                },
+            );
 
-            Self::section_card_in(&mut columns[1], "环境调节项", "查看 block / amplify / score adjustment 如何改变结论。", |ui| {
-                self.string_list_from_validated(
-                    ui,
-                    "路径验证状态",
-                    &report
-                        .path_validation_status
-                        .iter()
-                        .map(|item| {
-                            format!(
-                                "{} | {} / {} | {}",
-                                item.path_id,
-                                pretty_debug(item.status),
-                                pretty_debug(item.guard_status),
-                                item.note
-                            )
-                        })
-                        .collect::<Vec<_>>(),
-                );
-                self.string_list_from_validated(
-                    ui,
-                    "环境阻断项",
-                    &report
-                        .environment_blockers
-                        .iter()
-                        .map(|item| format!("{} | {} | {}", item.path_id, item.blocker, item.rationale))
-                        .collect::<Vec<_>>(),
-                );
-                self.string_list_from_validated(
-                    ui,
-                    "环境放大项",
-                    &report
-                        .environment_amplifiers
-                        .iter()
-                        .map(|item| format!("{} | {} | {}", item.path_id, item.amplifier, item.rationale))
-                        .collect::<Vec<_>>(),
-                );
-            });
+            Self::section_card_in(
+                &mut columns[1],
+                "环境调节项",
+                "查看 block / amplify / score adjustment 如何改变结论。",
+                |ui| {
+                    self.string_list_from_validated(
+                        ui,
+                        "路径验证状态",
+                        &report
+                            .path_validation_status
+                            .iter()
+                            .map(|item| {
+                                format!(
+                                    "{} | {} / {} | {}",
+                                    item.path_id,
+                                    pretty_debug(item.status),
+                                    pretty_debug(item.guard_status),
+                                    item.note
+                                )
+                            })
+                            .collect::<Vec<_>>(),
+                    );
+                    self.string_list_from_validated(
+                        ui,
+                        "环境阻断项",
+                        &report
+                            .environment_blockers
+                            .iter()
+                            .map(|item| {
+                                format!("{} | {} | {}", item.path_id, item.blocker, item.rationale)
+                            })
+                            .collect::<Vec<_>>(),
+                    );
+                    self.string_list_from_validated(
+                        ui,
+                        "环境放大项",
+                        &report
+                            .environment_amplifiers
+                            .iter()
+                            .map(|item| {
+                                format!(
+                                    "{} | {} | {}",
+                                    item.path_id, item.amplifier, item.rationale
+                                )
+                            })
+                            .collect::<Vec<_>>(),
+                    );
+                },
+            );
         });
     }
 
@@ -985,113 +1188,146 @@ impl OpenClawGuardApp {
         ui.add_space(8.0);
 
         if let Some(subject_id) = self.selected_subject_id.clone() {
-            Self::section_card(ui, "当前焦点", "你是从某个 finding / path / reference 跳转过来的。", |ui| {
-                ui.horizontal_wrapped(|ui| {
-                    ui.label(format!("当前聚焦：{subject_id}"));
-                    if ui.button("清除焦点").clicked() {
-                        self.selected_subject_id = None;
-                    }
-                });
-            });
+            Self::section_card(
+                ui,
+                "当前焦点",
+                "你是从某个 finding / path / reference 跳转过来的。",
+                |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(format!("当前聚焦：{subject_id}"));
+                        if ui.button("清除焦点").clicked() {
+                            self.selected_subject_id = None;
+                        }
+                    });
+                },
+            );
         }
 
         ui.columns(2, |columns| {
-            Self::section_card_in(&mut columns[0], "抑制与审计摘要", "确保例外处理可见，而不是静默消失。", |ui| {
-                self.key_value(ui, "审计摘要", &report.audit_summary.summary);
-                self.key_value(
-                    ui,
-                    "高风险 suppression 数量",
-                    &report.audit_summary.high_risk_suppressions.to_string(),
-                );
+            Self::section_card_in(
+                &mut columns[0],
+                "抑制与审计摘要",
+                "确保例外处理可见，而不是静默消失。",
+                |ui| {
+                    self.key_value(ui, "审计摘要", &report.audit_summary.summary);
+                    self.key_value(
+                        ui,
+                        "高风险 suppression 数量",
+                        &report.audit_summary.high_risk_suppressions.to_string(),
+                    );
 
-                let suppression_items = report
-                    .suppression_matches
+                    let suppression_items = report
+                        .suppression_matches
+                        .iter()
+                        .filter(|item| self.subject_filter_matches(&item.target_id))
+                        .map(|item| {
+                            format!(
+                                "{} | {} | {} | {}",
+                                item.scope,
+                                item.target_id,
+                                item.reason,
+                                pretty_debug(item.lifecycle)
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list_from_validated(ui, "命中的 suppression", &suppression_items);
+
+                    let expired_items = report
+                        .audit_summary
+                        .expired_suppressions
+                        .iter()
+                        .filter(|item| self.subject_filter_matches(&item.target_id))
+                        .map(|item| {
+                            format!("{} | {} | {}", item.target_id, item.expires_on, item.note)
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list_from_validated(ui, "过期 suppression", &expired_items);
+                },
+            );
+
+            Self::section_card_in(
+                &mut columns[1],
+                "解释层",
+                "把评分、confidence、provenance 和 false-positive shaping 放到一起。",
+                |ui| {
+                    let score_items = report
+                        .scoring_summary
+                        .score_rationale
+                        .iter()
+                        .filter(|item| self.subject_filter_matches(&item.source))
+                        .map(|item| {
+                            format!("{} | {} | {}", item.source, item.delta, item.explanation)
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list_from_validated(ui, "评分理由", &score_items);
+
+                    let confidence_items = report
+                        .confidence_factors
+                        .iter()
+                        .filter(|item| self.subject_filter_matches(&item.subject_id))
+                        .map(|item| {
+                            format!("{} | {} | {}", item.subject_id, item.delta, item.rationale)
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list_from_validated(ui, "置信度因子", &confidence_items);
+
+                    let mitigation_items = report
+                        .false_positive_mitigations
+                        .iter()
+                        .filter(|item| self.subject_filter_matches(&item.subject_id))
+                        .map(|item| {
+                            format!("{} | {} | {}", item.subject_id, item.delta, item.rationale)
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list_from_validated(ui, "误报修正", &mitigation_items);
+                },
+            );
+        });
+
+        Self::section_card(
+            ui,
+            "Provenance 与审计记录",
+            "适合审查“为什么系统相信这条结论”。",
+            |ui| {
+                let provenance_items = report
+                    .provenance_notes
                     .iter()
-                    .filter(|item| self.subject_filter_matches(&item.target_id))
+                    .filter(|item| self.subject_filter_matches(&item.subject_id))
                     .map(|item| {
                         format!(
-                            "{} | {} | {} | {}",
-                            item.scope,
-                            item.target_id,
-                            item.reason,
-                            pretty_debug(item.lifecycle)
+                            "{} | {} | {}",
+                            item.subject_id, item.source_layer, item.note
                         )
                     })
                     .collect::<Vec<_>>();
-                self.string_list_from_validated(ui, "命中的 suppression", &suppression_items);
+                self.string_list_from_validated(ui, "Provenance notes", &provenance_items);
 
-                let expired_items = report
+                let audit_items = report
                     .audit_summary
-                    .expired_suppressions
+                    .records
                     .iter()
-                    .filter(|item| self.subject_filter_matches(&item.target_id))
-                    .map(|item| format!("{} | {} | {}", item.target_id, item.expires_on, item.note))
+                    .map(|item| format!("{} | {}", pretty_debug(item.level), item.message))
                     .collect::<Vec<_>>();
-                self.string_list_from_validated(ui, "过期 suppression", &expired_items);
-            });
+                self.string_list_from_validated(ui, "审计记录", &audit_items);
 
-            Self::section_card_in(&mut columns[1], "解释层", "把评分、confidence、provenance 和 false-positive shaping 放到一起。", |ui| {
-                let score_items = report
-                    .scoring_summary
-                    .score_rationale
-                    .iter()
-                    .filter(|item| self.subject_filter_matches(&item.source))
-                    .map(|item| format!("{} | {} | {}", item.source, item.delta, item.explanation))
-                    .collect::<Vec<_>>();
-                self.string_list_from_validated(ui, "评分理由", &score_items);
-
-                let confidence_items = report
-                    .confidence_factors
+                let validation_notes = report
+                    .audit_summary
+                    .validation_aware_notes
                     .iter()
                     .filter(|item| self.subject_filter_matches(&item.subject_id))
-                    .map(|item| format!("{} | {} | {}", item.subject_id, item.delta, item.rationale))
+                    .map(|item| format!("{} | {}", item.subject_id, item.note))
                     .collect::<Vec<_>>();
-                self.string_list_from_validated(ui, "置信度因子", &confidence_items);
+                self.string_list_from_validated(ui, "验证相关审计说明", &validation_notes);
 
-                let mitigation_items = report
-                    .false_positive_mitigations
-                    .iter()
-                    .filter(|item| self.subject_filter_matches(&item.subject_id))
-                    .map(|item| format!("{} | {} | {}", item.subject_id, item.delta, item.rationale))
-                    .collect::<Vec<_>>();
-                self.string_list_from_validated(ui, "误报修正", &mitigation_items);
-            });
-        });
-
-        Self::section_card(ui, "Provenance 与审计记录", "适合审查“为什么系统相信这条结论”。", |ui| {
-            let provenance_items = report
-                .provenance_notes
-                .iter()
-                .filter(|item| self.subject_filter_matches(&item.subject_id))
-                .map(|item| format!("{} | {} | {}", item.subject_id, item.source_layer, item.note))
-                .collect::<Vec<_>>();
-            self.string_list_from_validated(ui, "Provenance notes", &provenance_items);
-
-            let audit_items = report
-                .audit_summary
-                .records
-                .iter()
-                .map(|item| format!("{} | {}", pretty_debug(item.level), item.message))
-                .collect::<Vec<_>>();
-            self.string_list_from_validated(ui, "审计记录", &audit_items);
-
-            let validation_notes = report
-                .audit_summary
-                .validation_aware_notes
-                .iter()
-                .filter(|item| self.subject_filter_matches(&item.subject_id))
-                .map(|item| format!("{} | {}", item.subject_id, item.note))
-                .collect::<Vec<_>>();
-            self.string_list_from_validated(ui, "验证相关审计说明", &validation_notes);
-
-            if self.selected_subject_id.is_some()
-                && provenance_items.is_empty()
-                && validation_notes.is_empty()
-                && audit_items.is_empty()
-            {
-                ui.label("当前焦点下没有额外的 provenance 或审计记录。");
-            }
-        });
+                if self.selected_subject_id.is_some()
+                    && provenance_items.is_empty()
+                    && validation_notes.is_empty()
+                    && audit_items.is_empty()
+                {
+                    ui.label("当前焦点下没有额外的 provenance 或审计记录。");
+                }
+            },
+        );
     }
 
     fn render_raw_json_tab(&self, ui: &mut Ui, completed: &CompletedScan) {
@@ -1135,13 +1371,23 @@ impl OpenClawGuardApp {
                     if response.clicked() {
                         self.selected_finding_id = Some(finding.id.clone());
                     }
-                    self.small_badge(ui, &format!("严重级别：{}", severity_text(finding.severity)));
-                    self.small_badge(ui, &format!("置信度：{}", confidence_text(finding.confidence)));
+                    self.small_badge(
+                        ui,
+                        &format!("严重级别：{}", severity_text(finding.severity)),
+                    );
+                    self.small_badge(
+                        ui,
+                        &format!("置信度：{}", confidence_text(finding.confidence)),
+                    );
                     self.small_badge(ui, &format!("分类：{}", finding.category));
                 });
 
                 if let Some(location) = &finding.location {
-                    ui.label(format!("位置：{}:{}", location.path, location.line.unwrap_or(1)));
+                    ui.label(format!(
+                        "位置：{}:{}",
+                        location.path,
+                        location.line.unwrap_or(1)
+                    ));
                 }
 
                 self.render_expandable_text(ui, "风险解释", &finding.explanation, 280);
@@ -1375,7 +1621,11 @@ impl OpenClawGuardApp {
                                 SeverityFilter::High,
                                 SeverityFilter::Critical,
                             ] {
-                                ui.selectable_value(&mut self.path_severity_filter, filter, filter.label());
+                                ui.selectable_value(
+                                    &mut self.path_severity_filter,
+                                    filter,
+                                    filter.label(),
+                                );
                             }
                         });
                     ComboBox::from_id_salt("path_type_filter")
@@ -1399,7 +1649,11 @@ impl OpenClawGuardApp {
                                 PathStatusFilter::Blocked,
                                 PathStatusFilter::Assumed,
                             ] {
-                                ui.selectable_value(&mut self.path_status_filter, filter, filter.label());
+                                ui.selectable_value(
+                                    &mut self.path_status_filter,
+                                    filter,
+                                    filter.label(),
+                                );
                             }
                         });
                 });
@@ -1533,7 +1787,11 @@ impl OpenClawGuardApp {
             .fill(Color32::from_rgb(237, 247, 246))
             .stroke(Stroke::new(1.0, Color32::from_rgb(19, 106, 94)))
             .show(ui, |ui| {
-                ui.label(RichText::new(label).strong().color(Color32::from_rgb(19, 106, 94)));
+                ui.label(
+                    RichText::new(label)
+                        .strong()
+                        .color(Color32::from_rgb(19, 106, 94)),
+                );
             });
     }
 
@@ -1696,8 +1954,7 @@ impl OpenClawGuardApp {
             Some(path) => match save_report_to_file(&path, &content) {
                 Ok(()) => {
                     self.error_message = None;
-                    self.status_message =
-                        Some(format!("{} 导出已完成。", format.label()));
+                    self.status_message = Some(format!("{} 导出已完成。", format.label()));
                 }
                 Err(err) => {
                     self.error_message = Some(err);
@@ -1866,7 +2123,10 @@ fn related_path_ids_for_finding(report: &ScanReport, finding: &Finding) -> Vec<S
             matched = path.title.to_lowercase().contains(&title)
                 || path.explanation.to_lowercase().contains(&title)
                 || path.explanation.to_lowercase().contains(&category)
-                || path.prerequisites.iter().any(|item| item.to_lowercase().contains(&category));
+                || path
+                    .prerequisites
+                    .iter()
+                    .any(|item| item.to_lowercase().contains(&category));
         }
 
         if matched {

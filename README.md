@@ -2,142 +2,104 @@
 
 [中文说明](./README.zh-CN.md)
 
+## 中文介绍
+
 **面向 OpenClaw Skills 的安全验证器。**
 
-`openclaw-skill-guard` 是一个面向 Windows 交付的 Rust verifier，用于在发布或审查前扫描 `SKILL.md`、skill 目录、skills 根目录或更大工作区。它不是通用漏洞扫描器，也不是 exploit runner；它的目标是基于可见证据回答一个更实际的问题：这个 skill 在 OpenClaw 语境下是否可能形成真实攻击路径，以及结论背后的证据是什么。
+`openclaw-skill-guard` 是一个面向 Windows 交付的 Rust verifier，用于在发布或审查前扫描 `SKILL.md`、skill 目录、skills 根目录或更大的工作区。它不是通用漏洞扫描器，也不是 exploit runner；它的目标是基于可见证据回答一个更实际的问题：这个 skill 在 OpenClaw 语境下是否可能形成真实攻击路径，以及结论背后的证据是什么。
+
+GUI 是主要产品入口，适合日常审查、结果阅读和报告导出。CLI 保留为自动化、流水线和高级用户入口。两者复用同一条 Rust core 扫描链和同一份 canonical report。
+
+v3 继续保持 verifier / guard 边界，只补 OpenClaw 本体特性相关缺口：config / control-plane audit、capability / permission manifest、companion-document 间接指令审计，以及离线 source identity / mismatch signals。
+
+## English Summary
 
 **OpenClaw-aware verifier for security review of OpenClaw Skills.**
 
 `openclaw-skill-guard` is a Windows-friendly Rust project for verifying OpenClaw Skills before release or review. It scans `SKILL.md`, skill directories, skills roots, and broader workspaces to answer a practical question: under visible OpenClaw runtime conditions, can a skill plausibly become a real attack path, and what evidence supports that conclusion?
 
-This project is not a generic scanner and not an exploit runner. It combines baseline scanning, structured context analysis, frontmatter and `metadata.openclaw` parsing, install-chain and invocation-policy analysis, tool and secret reachability, precedence and shadowing analysis, prompt and instruction analysis, attack-path reasoning, compound scoring, host-vs-sandbox consequence modeling, guarded runtime validation, and suppression with audit visibility.
+The GUI is the primary desktop product surface for target selection, scan execution, result review, and export. The CLI remains the automation and advanced-user entry point. Both surfaces reuse the same core scanner and canonical report pipeline.
 
-## Delivery surfaces
+The v3 layer stays inside the same verifier boundary and adds OpenClaw-specific coverage for config/control-plane audit, capability manifest summaries, companion-document indirect-instruction review, and offline source-identity mismatch signals.
 
-`openclaw-skill-guard` now ships with two Windows-friendly entry points:
-
-- GUI
-  - the primary desktop product surface for target selection, scan execution, result review, and JSON export
-- CLI
-  - the automation and advanced-user entry point for pipelines and canonical output
-
-The canonical public output remains the JSON report. The GUI does not replace the verifier logic; it reuses the same core scanning and report pipeline as the CLI.
-
-## What it does
+## Current Capabilities
 
 - baseline dangerous-pattern scanning
 - structured OpenClaw context extraction
-- frontmatter parsing
-- `metadata.openclaw` normalization and parsing
+- frontmatter and `metadata.openclaw` parsing
 - install-chain analysis
 - dependency audit
 - invocation-policy analysis
-- tool reachability
-- secret reachability
-- URL and API classification
+- tool and secret reachability
+- URL / API classification
 - source and domain reputation hints
-- precedence and shadowing analysis
-- prompt and instruction analysis
-- attack-path reasoning
-- compound scoring
+- OpenClaw config / control-plane audit
+- capability / permission manifest
+- companion-document / indirect-instruction audit
+- offline source identity / mismatch signals
+- prompt / instruction analysis
+- corpus-backed threat and sensitive analyzers
+- attack-path reasoning and compound scoring
 - host-vs-sandbox consequence modeling
 - guarded runtime validation
 - suppression and audit support
+- canonical JSON report
+- SARIF / Markdown / HTML derived outputs
 
-## Quick start
+## Quick Start
 
-### Build both release executables
+Build both release executables:
 
 ```powershell
 cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
 ```
 
-### Windows executables
+Windows executables:
 
 ```text
-target\release\openclaw-skill-guard.exe
 target\release\openclaw-skill-guard-gui.exe
+target\release\openclaw-skill-guard.exe
 ```
 
-### CLI usage
-
-Show help:
-
-```powershell
-cargo run -p openclaw-skill-guard-cli -- --help
-```
-
-Scan a benign sample:
-
-```powershell
-cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\benign\SKILL.md --format json
-```
-
-Scan a risky sample:
-
-```powershell
-cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\prompt-risk\SKILL.md --format json
-```
-
-Export derived SARIF from the canonical report pipeline:
-
-```powershell
-cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\suspicious-sources\SKILL.md --format sarif
-```
-
-Use runtime validation inputs:
-
-```powershell
-cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v1\runtime-refinement\SKILL.md --format json --runtime-manifest .\fixtures\v1\runtime-refinement\runtime-sandbox.json --validation-mode guarded
-```
-
-Run the release CLI EXE directly:
-
-```powershell
-.\target\release\openclaw-skill-guard.exe scan .\fixtures\v1\benign\SKILL.md --format json
-```
-
-### GUI usage
-
-Run the GUI from Cargo:
+Run the GUI:
 
 ```powershell
 cargo run -p openclaw-skill-guard-gui
 ```
 
-Run the release GUI EXE directly:
+Run the release GUI EXE:
 
 ```powershell
 .\target\release\openclaw-skill-guard-gui.exe
 ```
 
-Minimal GUI workflow:
+Run a CLI scan:
 
-1. Choose a `SKILL.md` file or a directory.
-2. Start the scan from the main action area.
-3. Expand advanced options only if you need runtime manifest, suppression, or guarded validation inputs.
-4. Review the Overview page first for verdict, score, key risks, environment conclusions, and v2 summaries.
-5. Drill into Findings, Paths, Context, Validation, Audit, and Raw JSON as needed.
-6. Save the canonical JSON report.
+```powershell
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\report-demo --format json
+```
 
-## GUI product shape
+Export derived formats:
+
+```powershell
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\report-demo --format sarif
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\report-demo --format markdown
+cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\report-demo --format html
+```
+
+## GUI Product Shape
 
 The GUI is now shaped as the primary product surface instead of a thin CLI configuration shell. It supports:
 
 - Chinese-first desktop flow
 - target selection for a single `SKILL.md`, skill directory, skills root, or workspace
 - a simplified main scan path with collapsible advanced options
-- scan execution without freezing the whole window
-- an overview-first results home with verdict, score, key risks, and environment conclusions
-- findings, context, attack path, validation, audit, and raw JSON views
-- lightweight in-page filtering for findings and attack paths
+- overview-first results with verdict, score, key risks, and environment conclusions
+- Findings, Paths, Context, Validation, Audit, and Raw JSON views
+- lightweight filtering for findings, paths, and external references
 - basic cross-linking between findings, paths, and provenance-oriented audit notes
-- clear display of v2 summaries for threat corpus, sensitive corpus, dependency audit, API classification, and source reputation
+- readable v2 / v3 summaries for corpus, dependency, API/source, config/control-plane, capability, companion-doc, and source-identity signals
 - JSON, SARIF, Markdown, and HTML export from the same canonical report pipeline
-
-It does not introduce a second analysis engine or a different report contract.
-
-## GUI screenshots
 
 Representative GUI screenshots are included under `docs/gui-screenshots/`:
 
@@ -145,9 +107,9 @@ Representative GUI screenshots are included under `docs/gui-screenshots/`:
 - `gui-overview-demo.png`
 - `gui-validation-demo.png`
 
-## Canonical output
+## Canonical Report
 
-JSON is the canonical v2 report format. SARIF, Markdown, and HTML are available as derived exports from the same `ScanReport`.
+JSON is the canonical report format. SARIF, Markdown, and HTML are derived exports from the same `ScanReport`, not a second report protocol.
 
 Key sections include:
 
@@ -159,6 +121,10 @@ Key sections include:
 - `api_classification_summary`
 - `source_reputation_summary`
 - `external_references`
+- `openclaw_config_audit_summary`
+- `capability_manifest`
+- `companion_doc_audit_summary`
+- `source_identity_summary`
 - `scoring_summary`
 - `consequence_summary`
 - `validation_*`
@@ -175,35 +141,32 @@ More detail is available in:
 - [validation-adapter.md](./docs/validation-adapter.md)
 - [examples/reports/README.md](./examples/reports/README.md)
 
-Example derived reports for the inert v2 demo fixture are included under:
+Example v2 and v3 reports are included under `examples/reports/`, including canonical JSON, SARIF, Markdown, and HTML variants.
 
-- `examples/reports/v2-report-demo.json`
-- `examples/reports/v2-report-demo.sarif`
-- `examples/reports/v2-report-demo.md`
-- `examples/reports/v2-report-demo.html`
-
-## Packaging and release docs
+## Packaging And Release Docs
 
 - [packaging.md](./docs/packaging.md)
 - [release-ready.md](./docs/release-ready.md)
 - [CHANGELOG.md](./CHANGELOG.md)
-- [examples/demo-commands.md](./examples/demo-commands.md)
+- [demo-commands.md](./examples/demo-commands.md)
 
-## Safety boundary
+## Safety Boundary
 
 `openclaw-skill-guard` is a verifier, not an exploit runner.
 
 - It does not intentionally execute dangerous payloads.
 - Runtime validation is guarded and non-executing.
+- Local reputation and source-identity signals are explainable hints, not an online trust oracle.
 - The CLI and GUI both use the same evidence-driven scanning core.
 - Suppression handling remains auditable rather than hiding risk silently.
 
-## Current release position
+## Current Release Position
 
-The project is in final deliverable shape for a Windows-friendly release with both CLI and GUI entry points:
+The project is in final deliverable shape for a Windows-friendly release with:
 
 - desktop GUI as the main product surface
 - CLI retained for automation and advanced workflows
-- canonical JSON report contract
+- canonical JSON report contract with SARIF / Markdown / HTML derived exports
 - Windows EXE delivery path for both executables
+- v3 OpenClaw-specific config, capability, companion-doc, and source-identity coverage
 - root-level tests in place

@@ -1,7 +1,7 @@
 {
   "target": {
-    "path": ".\\fixtures\\v1\\install-risk",
-    "canonical_path": ".\\fixtures\\v1\\install-risk",
+    "path": "fixtures\\v1\\install-risk",
+    "canonical_path": "fixtures\\v1\\install-risk",
     "target_kind": "skill_dir"
   },
   "scan_mode": "skill_dir",
@@ -27,7 +27,7 @@
       "hard_trigger": true,
       "evidence_kind": "text_pattern",
       "location": {
-        "path": ".\\fixtures\\v1\\install-risk\\SKILL.md",
+        "path": "fixtures\\v1\\install-risk\\SKILL.md",
         "line": 10,
         "column": null
       },
@@ -35,7 +35,7 @@
         {
           "kind": "text_pattern",
           "location": {
-            "path": ".\\fixtures\\v1\\install-risk\\SKILL.md",
+            "path": "fixtures\\v1\\install-risk\\SKILL.md",
             "line": 10,
             "column": null
           },
@@ -63,7 +63,7 @@
       "hard_trigger": false,
       "evidence_kind": "install_action",
       "location": {
-        "path": ".\\fixtures\\v1\\install-risk\\SKILL.md",
+        "path": "fixtures\\v1\\install-risk\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -71,7 +71,7 @@
         {
           "kind": "install_action",
           "location": {
-            "path": ".\\fixtures\\v1\\install-risk\\SKILL.md",
+            "path": "fixtures\\v1\\install-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -99,7 +99,7 @@
       "hard_trigger": false,
       "evidence_kind": "install_action",
       "location": {
-        "path": ".\\fixtures\\v1\\install-risk\\SKILL.md",
+        "path": "fixtures\\v1\\install-risk\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -107,7 +107,7 @@
         {
           "kind": "install_action",
           "location": {
-            "path": ".\\fixtures\\v1\\install-risk\\SKILL.md",
+            "path": "fixtures\\v1\\install-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -181,7 +181,7 @@
         {
           "kind": "install_action",
           "location": {
-            "path": ".\\fixtures\\v1\\install-risk\\SKILL.md",
+            "path": "fixtures\\v1\\install-risk\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -253,7 +253,7 @@
     },
     {
       "key": "observed_target_root",
-      "value": ".\\fixtures\\v1",
+      "value": "fixtures\\v1",
       "source_kind": "inferred_from_config",
       "confirmed": true
     }
@@ -538,7 +538,7 @@
     "known_roots": [
       {
         "source": "unknown",
-        "path": ".\\fixtures\\v1\\install-risk",
+        "path": "fixtures\\v1\\install-risk",
         "present": true
       }
     ],

@@ -10,6 +10,7 @@
   - `target\release\openclaw-skill-guard.exe`
 
 Both executables front the same verifier core and the same canonical report pipeline.
+The v3 release keeps that contract intact while adding OpenClaw-specific config/control-plane, capability, companion-document, and source-identity review.
 
 ## Build both executables
 
@@ -87,6 +88,7 @@ The release bundle should remain:
 - explicit about CLI as the auxiliary automation surface
 - safe to hand over without local-only artifacts
 - complete enough to explain the canonical JSON report contract
+- explicit about the v3 OpenClaw-specific summaries included in that report contract
 - Windows-friendly for both desktop and terminal usage
 
 ## What this package is not
@@ -97,3 +99,4 @@ The release bundle should remain:
 - not a second report protocol
 
 JSON remains the canonical report contract. SARIF, Markdown, and HTML remain derived outputs from the same `ScanReport`.
+The v3-specific sections are `openclaw_config_audit_summary`, `capability_manifest`, `companion_doc_audit_summary`, and `source_identity_summary`.

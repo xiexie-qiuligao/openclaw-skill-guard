@@ -1,0 +1,16 @@
+{
+  "skills": {
+    "entries": {
+      "config-demo": {
+        "apiKey": "fake-placeholder-api-key",
+        "env": {
+          "NODE_OPTIONS": "--require ./placeholder.js"
+        }
+      }
+    },
+    "load": {
+      "extraDirs": ["./untrusted-fixture-skills"]
+    }
+  },
+  "sandbox": false
+}

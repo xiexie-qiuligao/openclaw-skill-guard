@@ -61,3 +61,19 @@
     source_ref: references/sensitive-data-patterns.md
     notes:
       - Useful for corpus regression even before full analyzer integration.
+
+- id: v3.sensitive.openclaw_api_key_binding
+  category: openclaw_config_secret
+  matcher:
+    kind: regex
+    pattern: '(?i)(skills\.entries|apiKey|primaryEnv).{0,120}(api[_-]?key|token|secret|credential)'
+  description: OpenClaw skill config or metadata appears to bind API key or secret material.
+  severity_hint: high
+  false_positive_notes:
+    - Placeholder examples should be downgraded when clearly inert and not paired with real-looking values.
+  provenance:
+    source_name: v3 OpenClaw gap analysis
+    source_kind: first_party
+    source_ref: docs/v3-openclaw-gap-analysis.md
+    notes:
+      - Focuses on OpenClaw host-side secret binding surfaces rather than generic inline secret strings.

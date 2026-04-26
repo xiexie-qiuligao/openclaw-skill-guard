@@ -1,6 +1,6 @@
 # Release-Ready Self-Check
 
-Date: 2026-04-23
+Date: 2026-04-24
 
 ## Scope
 
@@ -13,6 +13,7 @@ This document captures the final release-readiness pass for `openclaw-skill-guar
 - Both surfaces reuse the same core scanning and reporting logic.
 - JSON remains the canonical report contract.
 - SARIF, Markdown, and HTML remain derived exports from the same `ScanReport`.
+- v3 adds OpenClaw-specific config/control-plane, capability manifest, companion-document, and source-identity coverage without changing the verifier boundary.
 
 ## Checks performed
 
@@ -57,7 +58,9 @@ This document captures the final release-readiness pass for `openclaw-skill-guar
 - Verified:
   - CLI still emits canonical JSON output
   - GUI exposes summary, findings, context, paths, validation, audit, and raw JSON views
+  - GUI exposes v3 config/control-plane, capability, companion-doc, and source-identity summaries in the result reading flow
   - GUI can export JSON, SARIF, Markdown, and HTML from the same report pipeline
+  - canonical JSON, SARIF, Markdown, and HTML example reports include the current v3 report sections
 - Result:
   - CLI and GUI remain consistent with the same report contract
 
@@ -88,6 +91,7 @@ No release blocker was found during this final pass.
 - runtime validation remains guarded and non-executing
 - the canonical public contract remains the JSON report
 - no online service layer, exploit execution, or plugin marketplace workflow is included in this release
+- v3 source identity and reputation signals are offline, explainable hints rather than an online trust oracle
 
 ## Recommendation
 
@@ -96,5 +100,6 @@ No release blocker was found during this final pass.
 - a desktop GUI as the main product surface
 - a CLI EXE for automation and advanced workflows
 - a canonical JSON report contract with derived export formats
+- OpenClaw-aware v3 coverage for control-plane config, capability mismatch, companion-doc poisoning, and source identity mismatch
 - consistent docs, screenshots, and packaging guidance
 - root-level tests in passing state

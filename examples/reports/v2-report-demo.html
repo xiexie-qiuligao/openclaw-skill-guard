@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>openclaw-skill-guard report</title><style>body{font-family:Segoe UI,Arial,sans-serif;max-width:1100px;margin:0 auto;padding:24px;line-height:1.5;background:#f7f7f7;color:#222}section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:16px;margin:0 0 16px}code{background:#f0f0f0;padding:2px 4px;border-radius:4px}pre{white-space:pre-wrap;word-break:break-word}</style></head><body><section><pre># openclaw-skill-guard report
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>openclaw-skill-guard report</title><style>body{font-family:Segoe UI,Arial,sans-serif;max-width:1100px;margin:0 auto;padding:24px;line-height:1.5;background:#f7f7f7;color:#222}section{background:#fff;border:1px solid #ddd;border-radius:10px;padding:16px;margin:0 0 16px}code{background:#f0f0f0;padding:2px 4px;border-radius:4px}pre{white-space:pre-wrap;word-break:break-word}</style></head><body><section><pre># openclaw-skill-guard report
 
 ## Summary
 
-- Target: `fixtures/v2/report-demo`
+- Target: `fixtures\v2\report-demo`
 - Verdict: `block`
 - Score: `5`
 - Blocked: `yes`
@@ -17,6 +17,18 @@
 - Dependency audit: Discovered 1 dependency manifest or lockfile artifact(s) and generated 3 dependency audit finding(s).
 - API classification: Extracted 3 external reference(s) across scanned text artifacts.
 - Source reputation: Generated reputation hints for 3 external reference(s), with 1 marked suspicious.
+
+## V3 OpenClaw Summaries
+
+- Config / control-plane: No OpenClaw config/control-plane audit findings were generated from local evidence.
+- Capability manifest: Capability manifest summarized 2 capability entry or entries, 0 risky combination(s), and 0 mismatch note(s).
+- Companion docs: Scanned 1 companion document(s) with no companion-doc audit findings.
+- Source identity: No offline source identity mismatch signals were generated from local evidence.
+
+### Capability manifest entries
+
+- `dependency_pull` | `inferred` | `dependency_audit`: Discovered 1 dependency manifest or lockfile artifact(s) and generated 3 dependency audit finding(s).
+- `network_or_external_reference` | `inferred` | `url_api_classification`: The scan extracted 3 external reference(s).
 
 ## Findings
 
@@ -193,6 +205,22 @@ Extracted 3 external reference(s) across scanned text artifacts.
 
 Generated reputation hints for 3 external reference(s), with 1 marked suspicious.
 
+### OpenClaw config / control-plane
+
+No OpenClaw config/control-plane audit findings were generated from local evidence.
+
+### Capability manifest
+
+Capability manifest summarized 2 capability entry or entries, 0 risky combination(s), and 0 mismatch note(s).
+
+### Companion docs
+
+Scanned 1 companion document(s) with no companion-doc audit findings.
+
+### Source identity
+
+No offline source identity mismatch signals were generated from local evidence.
+
 ## Attack Paths
 
 No attack paths.
@@ -251,9 +279,8 @@ Provenance notes:
 - `corpus.sensitive.openai-key`: This finding came from typed corpus entry `v2.sensitive.openai_key` in `sensitive-data-corpus-v2.yaml`.
 - `corpus.sensitive.generic-bearer-token`: This finding came from typed corpus entry `v2.sensitive.generic_bearer_token` in `sensitive-data-corpus-v2.yaml`.
 - `ref-001`: External reference classification used taxonomy/seeds from api-taxonomy-v2.yaml, reputation-seeds-v2.yaml.
-- `threat-corpus-v2.yaml`: Loaded corpus asset `threat-corpus-v2.yaml` with 4 entry or entries.
-- `sensitive-data-corpus-v2.yaml`: Loaded corpus asset `sensitive-data-corpus-v2.yaml` with 4 entry or entries.
+- `threat-corpus-v2.yaml`: Loaded corpus asset `threat-corpus-v2.yaml` with 7 entry or entries.
+- `sensitive-data-corpus-v2.yaml`: Loaded corpus asset `sensitive-data-corpus-v2.yaml` with 5 entry or entries.
 - `api-taxonomy-v2.yaml`: Loaded corpus asset `api-taxonomy-v2.yaml` with 9 entry or entries.
 - `reputation-seeds-v2.yaml`: Loaded corpus asset `reputation-seeds-v2.yaml` with 7 entry or entries.
 </pre></section></body></html>
-

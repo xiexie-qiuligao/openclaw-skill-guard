@@ -110,7 +110,10 @@ pub fn run_gui() -> Result<(), String> {
     run_gui_with_state(None, UiTab::Summary)
 }
 
-pub fn run_gui_with_state(initial_scan: Option<CompletedScan>, initial_tab: UiTab) -> Result<(), String> {
+pub fn run_gui_with_state(
+    initial_scan: Option<CompletedScan>,
+    initial_tab: UiTab,
+) -> Result<(), String> {
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_title("OpenClaw Skill Guard")
@@ -162,7 +165,10 @@ pub fn scan_with_request(request: &ScanRequest) -> Result<CompletedScan, String>
     })
 }
 
-pub fn render_report_for_export(report: &ScanReport, format: ExportFormat) -> Result<String, String> {
+pub fn render_report_for_export(
+    report: &ScanReport,
+    format: ExportFormat,
+) -> Result<String, String> {
     match format {
         ExportFormat::Json => render_json(report).map_err(|err| err.to_string()),
         ExportFormat::Sarif => render_sarif(report).map_err(|err| err.to_string()),
@@ -191,7 +197,7 @@ pub fn save_report_to_file(path: &Path, content: &str) -> Result<(), String> {
 
 pub fn build_summary_text(report: &ScanReport) -> String {
     format!(
-        "目标：{}\n结论：{}\n风险分数：{}\n是否阻断：{}\n发现项：{}\n攻击路径：{}\nThreat corpus：{}\nSensitive corpus：{}\nDependency audit：{}\n外部引用：{}",
+        "目标：{}\n结论：{}\n风险分数：{}\n是否阻断：{}\n发现项：{}\n攻击路径：{}\nThreat corpus：{}\nSensitive corpus：{}\nDependency audit：{}\n外部引用：{}\nConfig / control-plane：{}\nCapability manifest：{}\nCompanion docs：{}\nSource identity：{}",
         report.target.path,
         verdict_label(report.verdict),
         report.score,
@@ -209,7 +215,11 @@ pub fn build_summary_text(report: &ScanReport) -> String {
             .as_deref()
             .unwrap_or("n/a"),
         report.dependency_audit_summary.summary,
-        report.external_references.len()
+        report.external_references.len(),
+        report.openclaw_config_audit_summary.summary,
+        report.capability_manifest.summary,
+        report.companion_doc_audit_summary.summary,
+        report.source_identity_summary.summary,
     )
 }
 
@@ -287,7 +297,10 @@ mod tests {
         })
         .unwrap();
 
-        assert_eq!(completed.report.verdict, openclaw_skill_guard_core::Verdict::Allow);
+        assert_eq!(
+            completed.report.verdict,
+            openclaw_skill_guard_core::Verdict::Allow
+        );
         assert!(completed.raw_json.contains("\"findings\""));
     }
 
@@ -345,8 +358,7 @@ mod tests {
 
         let json = render_report_for_export(&completed.report, ExportFormat::Json).unwrap();
         let sarif = render_report_for_export(&completed.report, ExportFormat::Sarif).unwrap();
-        let markdown =
-            render_report_for_export(&completed.report, ExportFormat::Markdown).unwrap();
+        let markdown = render_report_for_export(&completed.report, ExportFormat::Markdown).unwrap();
         let html = render_report_for_export(&completed.report, ExportFormat::Html).unwrap();
 
         assert!(json.contains("\"findings\""));

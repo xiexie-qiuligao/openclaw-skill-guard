@@ -1,6 +1,6 @@
-﻿{
+{
   "target": {
-    "path": "fixtures/v2/report-demo",
+    "path": "fixtures\\v2\\report-demo",
     "canonical_path": "fixtures\\v2\\report-demo",
     "target_kind": "skill_dir"
   },
@@ -415,11 +415,16 @@
     "dependency_audit_summary": "Discovered 1 dependency manifest or lockfile artifact(s) and generated 3 dependency audit finding(s).",
     "api_classification_summary": "Extracted 3 external reference(s) across scanned text artifacts.",
     "source_reputation_summary": "Generated reputation hints for 3 external reference(s), with 1 marked suspicious.",
+    "openclaw_config_summary": "No OpenClaw config/control-plane audit findings were generated from local evidence.",
+    "capability_manifest_summary": "Capability manifest summarized 2 capability entry or entries, 0 risky combination(s), and 0 mismatch note(s).",
+    "companion_doc_audit_summary": "Scanned 1 companion document(s) with no companion-doc audit findings.",
+    "source_identity_summary": "No offline source identity mismatch signals were generated from local evidence.",
     "notes": [
       "Phase 7 runtime validation refines static conclusions with manifest-backed permission facts, guarded local checks, and explicit unknowns.",
       "Precedence analysis records known roots, missing roots, and scope limitations instead of assuming global completeness.",
       "V2 dependency, URL/API, and reputation signals are explainable overlays derived from built-in corpora and local heuristics rather than online trust services.",
-      "Threat and sensitive-data corpus analyzers are additive explainable detectors; they do not replace baseline, prompt, or reachability analysis."
+      "Threat and sensitive-data corpus analyzers are additive explainable detectors; they do not replace baseline, prompt, or reachability analysis.",
+      "V3 OpenClaw config, capability manifest, companion-doc, and source-identity signals remain local and explainable; they do not execute installs or query online trust services."
     ]
   },
   "attack_paths": [],
@@ -538,13 +543,13 @@
   "runtime_facts": [
     {
       "key": "home_directory_present",
-      "value": "<user-home>",
+      "value": "%USERPROFILE%",
       "source_kind": "safe_local_check",
       "confirmed": true
     },
     {
       "key": "observed_target_root",
-      "value": "fixtures/v2",
+      "value": "fixtures\\v2",
       "source_kind": "inferred_from_config",
       "confirmed": true
     }
@@ -690,8 +695,10 @@
   "corpus_assets_used": [
     {
       "asset_name": "threat-corpus-v2.yaml",
-      "entry_count": 4,
+      "entry_count": 7,
       "source_refs": [
+        "docs/v3-openclaw-gap-analysis.md",
+        "docs/v3-scope.md",
         "references/threat-patterns.md"
       ],
       "notes": [
@@ -700,9 +707,10 @@
     },
     {
       "asset_name": "sensitive-data-corpus-v2.yaml",
-      "entry_count": 4,
+      "entry_count": 5,
       "source_refs": [
         "baseline.private_key_material",
+        "docs/v3-openclaw-gap-analysis.md",
         "references/sensitive-data-patterns.md"
       ],
       "notes": [
@@ -857,6 +865,60 @@
       }
     }
   ],
+  "openclaw_config_audit_summary": {
+    "summary": "No OpenClaw config/control-plane audit findings were generated from local evidence.",
+    "config_files_discovered": [],
+    "explicit_dependencies": [],
+    "risky_bindings": [],
+    "findings_count": 0,
+    "notes": [
+      "Config audit is local and static; it does not mutate OpenClaw configuration or execute installer paths.",
+      "Host-side env/apiKey bindings are treated as control-plane evidence because they can change skill authority without appearing in SKILL.md body text."
+    ]
+  },
+  "capability_manifest": {
+    "summary": "Capability manifest summarized 2 capability entry or entries, 0 risky combination(s), and 0 mismatch note(s).",
+    "entries": [
+      {
+        "capability": "dependency_pull",
+        "status": "inferred",
+        "source": "dependency_audit",
+        "rationale": "Discovered 1 dependency manifest or lockfile artifact(s) and generated 3 dependency audit finding(s)."
+      },
+      {
+        "capability": "network_or_external_reference",
+        "status": "inferred",
+        "source": "url_api_classification",
+        "rationale": "The scan extracted 3 external reference(s)."
+      }
+    ],
+    "risky_combinations": [],
+    "mismatch_notes": [],
+    "unknowns": [
+      "No direct invocation/tool authority was found; absence of evidence is not proof of no authority."
+    ]
+  },
+  "companion_doc_audit_summary": {
+    "summary": "Scanned 1 companion document(s) with no companion-doc audit findings.",
+    "companion_files_scanned": [
+      "fixtures\\v2\\report-demo\\README.md"
+    ],
+    "poisoning_signals": [],
+    "findings_count": 0,
+    "false_positive_notes": []
+  },
+  "source_identity_summary": {
+    "summary": "No offline source identity mismatch signals were generated from local evidence.",
+    "identity_surfaces": [
+      "skill name: report-demo"
+    ],
+    "mismatch_count": 0,
+    "signals": [],
+    "notes": [
+      "Source identity checks are offline and explainable; they do not query registries or reputation APIs.",
+      "Mismatches require review rather than proving impersonation."
+    ]
+  },
   "provenance_notes": [
     {
       "subject_id": "dependency.remote_source",
@@ -1070,12 +1132,14 @@
       "subject_kind": "corpus_asset",
       "source_layer": "corpus_asset",
       "evidence_sources": [
+        "docs/v3-openclaw-gap-analysis.md",
+        "docs/v3-scope.md",
         "references/threat-patterns.md"
       ],
       "inferred_sources": [],
       "recent_signal_class": "v2_builtin_corpus",
       "long_term_pattern": "typed asset-backed verifier enrichment",
-      "note": "Loaded corpus asset `threat-corpus-v2.yaml` with 4 entry or entries."
+      "note": "Loaded corpus asset `threat-corpus-v2.yaml` with 7 entry or entries."
     },
     {
       "subject_id": "sensitive-data-corpus-v2.yaml",
@@ -1083,12 +1147,13 @@
       "source_layer": "corpus_asset",
       "evidence_sources": [
         "baseline.private_key_material",
+        "docs/v3-openclaw-gap-analysis.md",
         "references/sensitive-data-patterns.md"
       ],
       "inferred_sources": [],
       "recent_signal_class": "v2_builtin_corpus",
       "long_term_pattern": "typed asset-backed verifier enrichment",
-      "note": "Loaded corpus asset `sensitive-data-corpus-v2.yaml` with 4 entry or entries."
+      "note": "Loaded corpus asset `sensitive-data-corpus-v2.yaml` with 5 entry or entries."
     },
     {
       "subject_id": "api-taxonomy-v2.yaml",
@@ -1344,4 +1409,3 @@
   "suppressions": [],
   "scan_integrity_notes": []
 }
-

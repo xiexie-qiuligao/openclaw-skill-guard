@@ -31,6 +31,10 @@ These top-level sections are treated as stable for v1:
 - `api_classification_summary`
 - `source_reputation_summary`
 - `external_references`
+- `openclaw_config_audit_summary`
+- `capability_manifest`
+- `companion_doc_audit_summary`
+- `source_identity_summary`
 - `scoring_summary`
 - `consequence_summary`
 - `validation_plan`
@@ -76,6 +80,14 @@ These sections are still part of the contract, but their contents depend on scan
   - manifest discovery, lockfile gaps, and explainable dependency-source risk signals
 - `api_classification_summary`, `source_reputation_summary`, and `external_references`
   - structured URL/API classification, local reputation hints, and extracted external reference narratives
+- `openclaw_config_audit_summary`
+  - OpenClaw config/control-plane findings such as skill env/API key bindings, dangerous env names, broad extraDirs, sandbox/elevated hints, and config mutation guidance
+- `capability_manifest`
+  - synthesized declared/inferred/required capability view derived from existing analyzers, not a second permission system
+- `companion_doc_audit_summary`
+  - companion README/docs/examples audit for indirect instructions, approval bypass wording, maintenance execution lures, and narrative mismatch
+- `source_identity_summary`
+  - offline source identity and mismatch signals across homepage, repository, install/download, package metadata, and local documentation claims
 - `provenance_notes` and `confidence_factors`
   - why the verifier trusts or discounts a conclusion
 - `suppression_matches` and `audit_summary`
@@ -91,10 +103,12 @@ These sections are still part of the contract, but their contents depend on scan
   - it does not currently serialize attack-path graphs, runtime validation internals, or suppression audit history in full detail
 - `markdown`
   - human-readable summary export derived from the same `ScanReport`
-  - emphasizes summary, findings, context, validation/consequence, external references, and score/provenance
+  - emphasizes summary, findings, context, validation/consequence, external references, v3 OpenClaw summaries, and score/provenance
+  - includes v3 OpenClaw config/control-plane, capability, companion-document, and source-identity detail blocks when present
 - `html`
   - minimal browser-friendly rendering of the derived Markdown view
   - keeps the canonical contract in JSON rather than introducing a second schema
+  - preserves the same canonical-report-derived v3 content rather than introducing a separate report protocol
 
 ## Example reports
 

@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\README.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The scanned content references `skills.entries.*.apiKey`. In OpenClaw this is a host-side secret injection surface, not just descriptive metadata."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "high",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.plaintext_api_key"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\SKILL.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The scanned content references `skills.entries.*.apiKey`. In OpenClaw this is a host-side secret injection surface, not just descriptive metadata."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "high",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.plaintext_api_key"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\openclaw.json"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 5
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The scanned content references `skills.entries.*.apiKey`. In OpenClaw this is a host-side secret injection surface, not just descriptive metadata."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "high",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.plaintext_api_key"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\openclaw.json"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The content references `NODE_OPTIONS`, an environment name that can alter OpenClaw, interpreter startup, or host control-plane behavior."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "high",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.dangerous_env_override"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\SKILL.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Typed threat corpus entry `v3.threat.openclaw_config_mutation` matched this text as `openclaw_control_plane`. Instruction or documentation attempts to mutate OpenClaw config/control-plane state."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "high",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "Threat corpus entries are adapted to OpenClaw instruction, tool-authority, and agent-context surfaces rather than generic code-search noise."
+          },
+          "ruleId": "corpus.threat.openclaw-config-mutation"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\SKILL.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The text tells the operator or agent to edit OpenClaw config, env, trust roots, sandbox policy, or gateway/tool settings. Configuration mutation is an OpenClaw control-plane authority surface."
+          },
+          "properties": {
+            "confidence": "medium",
+            "hard_trigger": false,
+            "severity": "high",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.control_plane_mutation"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\README.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The scanned content references `skills.entries.*.env`, which can bind per-skill environment values into the OpenClaw host process for a run."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "medium",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.secret_binding"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\SKILL.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The scanned content references `skills.entries.*.env`, which can bind per-skill environment values into the OpenClaw host process for a run."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "medium",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.secret_binding"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\SKILL.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The scanned content references `skills.entries.*.env`, which can bind per-skill environment values into the OpenClaw host process for a run."
+          },
+          "properties": {
+            "confidence": "high",
+            "hard_trigger": false,
+            "severity": "medium",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.secret_binding"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\openclaw.json"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "`skills.load.extraDirs` can introduce additional low-precedence skill roots; broad or unreviewed paths can change the effective skill supply chain."
+          },
+          "properties": {
+            "confidence": "medium",
+            "hard_trigger": false,
+            "severity": "medium",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.extra_dir_trust_expansion"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\openclaw.json"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The scanned content suggests sandbox execution may be disabled. That changes OpenClaw risk from sandbox-contained to host-reachable."
+          },
+          "properties": {
+            "confidence": "medium",
+            "hard_trigger": false,
+            "severity": "medium",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body."
+          },
+          "ruleId": "openclaw_config.sandbox_disabled"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\README.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Sensitive-data corpus entry `v3.sensitive.openclaw_api_key_binding` matched `openclaw_config_secret` material, but the surrounding text also looks like documentation, placeholders, or fake values. The finding is kept as a review signal rather than a high-confidence live-secret exposure."
+          },
+          "properties": {
+            "confidence": "medium",
+            "hard_trigger": false,
+            "severity": "low",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "Inline credentials and secret-looking material inside skill repositories change the OpenClaw review boundary: they are directly packaged alongside install, invocation, and runtime guidance."
+          },
+          "ruleId": "corpus.sensitive.openclaw-api-key-binding"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\SKILL.md"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Sensitive-data corpus entry `v3.sensitive.openclaw_api_key_binding` matched `openclaw_config_secret` material, but the surrounding text also looks like documentation, placeholders, or fake values. The finding is kept as a review signal rather than a high-confidence live-secret exposure."
+          },
+          "properties": {
+            "confidence": "medium",
+            "hard_trigger": false,
+            "severity": "low",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "Inline credentials and secret-looking material inside skill repositories change the OpenClaw review boundary: they are directly packaged alongside install, invocation, and runtime guidance."
+          },
+          "ruleId": "corpus.sensitive.openclaw-api-key-binding"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "fixtures\\v3\\config-control-plane\\openclaw.json"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 5
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Sensitive-data corpus entry `v3.sensitive.openclaw_api_key_binding` matched `openclaw_config_secret` material, but the surrounding text also looks like documentation, placeholders, or fake values. The finding is kept as a review signal rather than a high-confidence live-secret exposure."
+          },
+          "properties": {
+            "confidence": "medium",
+            "hard_trigger": false,
+            "severity": "low",
+            "suppression_status": "not_suppressed",
+            "why_openclaw_specific": "Inline credentials and secret-looking material inside skill repositories change the OpenClaw review boundary: they are directly packaged alongside install, invocation, and runtime guidance."
+          },
+          "ruleId": "corpus.sensitive.openclaw-api-key-binding"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://example.invalid/standalone-openclaw-skill-guard",
+          "name": "openclaw-skill-guard",
+          "rules": [
+            {
+              "id": "corpus.sensitive.openclaw-api-key-binding",
+              "name": "sensitive_corpus",
+              "properties": {
+                "category": "sensitive_corpus"
+              },
+              "shortDescription": {
+                "text": "Example-like openclaw_config_secret pattern needs review"
+              }
+            },
+            {
+              "id": "corpus.threat.openclaw-config-mutation",
+              "name": "threat_corpus",
+              "properties": {
+                "category": "threat_corpus"
+              },
+              "shortDescription": {
+                "text": "Threat corpus matched openclaw_control_plane"
+              }
+            },
+            {
+              "id": "openclaw_config.control_plane_mutation",
+              "name": "openclaw_config.control_plane_mutation",
+              "properties": {
+                "category": "openclaw_config.control_plane_mutation"
+              },
+              "shortDescription": {
+                "text": "Skill content instructs mutation of OpenClaw control-plane configuration"
+              }
+            },
+            {
+              "id": "openclaw_config.dangerous_env_override",
+              "name": "openclaw_config.dangerous_env_override",
+              "properties": {
+                "category": "openclaw_config.dangerous_env_override"
+              },
+              "shortDescription": {
+                "text": "Control-plane config references a dangerous environment override"
+              }
+            },
+            {
+              "id": "openclaw_config.extra_dir_trust_expansion",
+              "name": "openclaw_config.extra_dir_trust_expansion",
+              "properties": {
+                "category": "openclaw_config.extra_dir_trust_expansion"
+              },
+              "shortDescription": {
+                "text": "OpenClaw skill loading expands to extra directories"
+              }
+            },
+            {
+              "id": "openclaw_config.plaintext_api_key",
+              "name": "openclaw_config.plaintext_api_key",
+              "properties": {
+                "category": "openclaw_config.plaintext_api_key"
+              },
+              "shortDescription": {
+                "text": "OpenClaw skill config may contain a plaintext apiKey binding"
+              }
+            },
+            {
+              "id": "openclaw_config.sandbox_disabled",
+              "name": "openclaw_config.sandbox_disabled",
+              "properties": {
+                "category": "openclaw_config.sandbox_disabled"
+              },
+              "shortDescription": {
+                "text": "OpenClaw sandboxing appears disabled or bypassed"
+              }
+            },
+            {
+              "id": "openclaw_config.secret_binding",
+              "name": "openclaw_config.secret_binding",
+              "properties": {
+                "category": "openclaw_config.secret_binding"
+              },
+              "shortDescription": {
+                "text": "OpenClaw skill config exposes a host env binding surface"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

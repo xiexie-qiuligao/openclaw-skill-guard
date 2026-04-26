@@ -1061,7 +1061,7 @@ pub struct ExternalReference {
     pub provenance: ReferenceClassificationProvenance,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DependencyAuditSummary {
     pub summary: String,
     pub manifests_discovered: Vec<String>,
@@ -1087,6 +1087,59 @@ pub struct SourceReputationSummary {
     pub notes: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct OpenClawConfigAuditSummary {
+    pub summary: String,
+    pub config_files_discovered: Vec<String>,
+    pub explicit_dependencies: Vec<String>,
+    pub risky_bindings: Vec<String>,
+    pub findings_count: usize,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CapabilityManifestEntry {
+    pub capability: String,
+    pub status: String,
+    pub source: String,
+    pub rationale: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct CapabilityManifestSummary {
+    pub summary: String,
+    pub entries: Vec<CapabilityManifestEntry>,
+    pub risky_combinations: Vec<String>,
+    pub mismatch_notes: Vec<String>,
+    pub unknowns: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct CompanionDocAuditSummary {
+    pub summary: String,
+    pub companion_files_scanned: Vec<String>,
+    pub poisoning_signals: Vec<String>,
+    pub findings_count: usize,
+    pub false_positive_notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceIdentitySignal {
+    pub signal_id: String,
+    pub signal_kind: String,
+    pub summary: String,
+    pub evidence: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct SourceIdentitySummary {
+    pub summary: String,
+    pub identity_surfaces: Vec<String>,
+    pub mismatch_count: usize,
+    pub signals: Vec<SourceIdentitySignal>,
+    pub notes: Vec<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContextAnalysis {
     pub phase: String,
@@ -1107,6 +1160,10 @@ pub struct ContextAnalysis {
     pub dependency_audit_summary: Option<String>,
     pub api_classification_summary: Option<String>,
     pub source_reputation_summary: Option<String>,
+    pub openclaw_config_summary: Option<String>,
+    pub capability_manifest_summary: Option<String>,
+    pub companion_doc_audit_summary: Option<String>,
+    pub source_identity_summary: Option<String>,
     pub notes: Vec<String>,
 }
 
@@ -1154,6 +1211,14 @@ pub struct ScanReport {
     pub api_classification_summary: ApiClassificationSummary,
     pub source_reputation_summary: SourceReputationSummary,
     pub external_references: Vec<ExternalReference>,
+    #[serde(default)]
+    pub openclaw_config_audit_summary: OpenClawConfigAuditSummary,
+    #[serde(default)]
+    pub capability_manifest: CapabilityManifestSummary,
+    #[serde(default)]
+    pub companion_doc_audit_summary: CompanionDocAuditSummary,
+    #[serde(default)]
+    pub source_identity_summary: SourceIdentitySummary,
     pub provenance_notes: Vec<ProvenanceNote>,
     pub confidence_factors: Vec<ConfidenceFactor>,
     pub false_positive_mitigations: Vec<FalsePositiveMitigation>,

@@ -371,7 +371,8 @@ fn is_legitimate_package_manager_install(finding: &Finding) -> bool {
         let lowered = node.excerpt.to_ascii_lowercase();
         let pinned_npm = lowered.contains("npm install") && lowered.contains('@');
         let pinned_go = lowered.contains("go install") && lowered.contains("@v");
-        let pinned_uv = lowered.contains("uv tool install") && (lowered.contains("==") || lowered.contains('@'));
+        let pinned_uv = lowered.contains("uv tool install")
+            && (lowered.contains("==") || lowered.contains('@'));
         let pinned_brew = lowered.contains("brew install") && !lowered.contains("http");
         (pinned_npm || pinned_go || pinned_uv || pinned_brew)
             && !lowered.contains("curl")
@@ -498,8 +499,13 @@ mod tests {
         let prompt = analyze_instruction_segments(&instructions.segments);
         let precedence = analyze_precedence(&[skill], TargetKind::File);
 
-        let analysis =
-            refine_findings_and_paths(&prompt.findings, &[], &instructions, &precedence, TargetKind::File);
+        let analysis = refine_findings_and_paths(
+            &prompt.findings,
+            &[],
+            &instructions,
+            &precedence,
+            TargetKind::File,
+        );
 
         assert!(analysis
             .false_positive_mitigations
@@ -518,8 +524,13 @@ mod tests {
         let instructions = extract_instruction_segments(&skill);
         let precedence = analyze_precedence(&[skill], TargetKind::File);
 
-        let analysis =
-            refine_findings_and_paths(&install.findings, &[], &instructions, &precedence, TargetKind::File);
+        let analysis = refine_findings_and_paths(
+            &install.findings,
+            &[],
+            &instructions,
+            &precedence,
+            TargetKind::File,
+        );
 
         assert!(analysis
             .false_positive_mitigations

@@ -108,10 +108,7 @@ pub struct ReputationSeedEntry {
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum CorpusLoadError {
     #[error("failed to parse {asset_name}: {message}")]
-    Parse {
-        asset_name: String,
-        message: String,
-    },
+    Parse { asset_name: String, message: String },
     #[error("duplicate id `{id}` in {asset_name}")]
     DuplicateId { asset_name: String, id: String },
     #[error("invalid matcher in {asset_name} for `{id}`: {message}")]
@@ -135,11 +132,15 @@ pub enum CorpusLoadError {
 }
 
 pub fn load_builtin_corpora() -> Result<BuiltinCorpora, CorpusLoadError> {
-    let threat_patterns = parse_asset::<ThreatCorpusEntry>("threat-corpus-v2.yaml", THREAT_CORPUS_ASSET)?;
-    let sensitive_data_patterns =
-        parse_asset::<SensitiveDataCorpusEntry>("sensitive-data-corpus-v2.yaml", SENSITIVE_DATA_CORPUS_ASSET)?;
+    let threat_patterns =
+        parse_asset::<ThreatCorpusEntry>("threat-corpus-v2.yaml", THREAT_CORPUS_ASSET)?;
+    let sensitive_data_patterns = parse_asset::<SensitiveDataCorpusEntry>(
+        "sensitive-data-corpus-v2.yaml",
+        SENSITIVE_DATA_CORPUS_ASSET,
+    )?;
     let api_taxonomy = parse_api_taxonomy("api-taxonomy-v2.yaml", API_TAXONOMY_ASSET)?;
-    let reputation_seeds = parse_reputation_seeds("reputation-seeds-v2.yaml", REPUTATION_SEEDS_ASSET)?;
+    let reputation_seeds =
+        parse_reputation_seeds("reputation-seeds-v2.yaml", REPUTATION_SEEDS_ASSET)?;
 
     Ok(BuiltinCorpora {
         threat_patterns,
@@ -233,7 +234,10 @@ where
     Ok(entries)
 }
 
-fn parse_api_taxonomy(asset_name: &str, input: &str) -> Result<Vec<ApiTaxonomyEntry>, CorpusLoadError> {
+fn parse_api_taxonomy(
+    asset_name: &str,
+    input: &str,
+) -> Result<Vec<ApiTaxonomyEntry>, CorpusLoadError> {
     parse_asset(asset_name, input)
 }
 
@@ -422,7 +426,10 @@ mod tests {
     fn host_pattern_supports_suffix_matching() {
         assert!(host_pattern_matches("*.github.com", "raw.github.com"));
         assert!(host_pattern_matches("github.com", "github.com"));
-        assert!(!host_pattern_matches("*.github.com", "githubusercontent.com"));
+        assert!(!host_pattern_matches(
+            "*.github.com",
+            "githubusercontent.com"
+        ));
     }
 
     #[test]

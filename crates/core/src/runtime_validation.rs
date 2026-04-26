@@ -852,9 +852,7 @@ fn build_guarded_validation_result(
     }
 }
 
-fn capability_checks_from_permissions(
-    permissions: &PermissionSurface,
-) -> Vec<CapabilityCheck> {
+fn capability_checks_from_permissions(permissions: &PermissionSurface) -> Vec<CapabilityCheck> {
     [
         ("network", permissions.network),
         ("exec_allowed", permissions.exec_allowed),

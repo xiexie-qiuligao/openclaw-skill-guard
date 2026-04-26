@@ -33,3 +33,17 @@ The v2 demo is intended to show:
 - dependency audit findings
 - URL/API/source reputation summaries
 - canonical-report-first derived exports
+
+V3 demo reports are included from the inert fixture under [fixtures/v3/config-control-plane](../../fixtures/v3/config-control-plane):
+
+- [v3-config-demo.json](./v3-config-demo.json)
+- [v3-config-demo.sarif](./v3-config-demo.sarif)
+- [v3-config-demo.md](./v3-config-demo.md)
+- [v3-config-demo.html](./v3-config-demo.html)
+
+The v3 demo is intended to show:
+
+- OpenClaw config / control-plane audit findings
+- capability and permission summary fields
+- companion-doc and source-identity summary fields
+- the same canonical-report-first derivation into SARIF, Markdown, and HTML

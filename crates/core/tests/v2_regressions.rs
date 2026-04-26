@@ -30,10 +30,12 @@ fn load_text_artifacts(dir: &Path) -> Vec<TextArtifact> {
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter_map(|entry| {
-            fs::read_to_string(entry.path()).ok().map(|content| TextArtifact {
-                path: entry.path().display().to_string(),
-                content,
-            })
+            fs::read_to_string(entry.path())
+                .ok()
+                .map(|content| TextArtifact {
+                    path: entry.path().display().to_string(),
+                    content,
+                })
         })
         .collect()
 }
@@ -82,7 +84,11 @@ fn dependency_audit_fixture_emits_explainable_findings() {
             summary: String::new(),
         },
     );
-    let ids: BTreeSet<&str> = analysis.findings.iter().map(|finding| finding.id.as_str()).collect();
+    let ids: BTreeSet<&str> = analysis
+        .findings
+        .iter()
+        .map(|finding| finding.id.as_str())
+        .collect();
 
     assert!(ids.contains("dependency.unpinned_requirement"));
     assert!(ids.contains("dependency.remote_source"));
@@ -129,14 +135,12 @@ fn suspicious_source_fixture_emits_reputation_signals() {
         .external_references
         .iter()
         .any(|item| item.risk_signals.contains(&ExternalRiskSignal::PureIp)));
-    assert!(analysis
-        .external_references
-        .iter()
-        .any(|item| item.risk_signals.contains(&ExternalRiskSignal::DynamicDnsSuffix)));
-    assert!(analysis
-        .external_references
-        .iter()
-        .any(|item| item.risk_signals.contains(&ExternalRiskSignal::SuspiciousTld)));
+    assert!(analysis.external_references.iter().any(|item| item
+        .risk_signals
+        .contains(&ExternalRiskSignal::DynamicDnsSuffix)));
+    assert!(analysis.external_references.iter().any(|item| item
+        .risk_signals
+        .contains(&ExternalRiskSignal::SuspiciousTld)));
 }
 
 #[test]
@@ -157,8 +161,16 @@ fn scan_report_exposes_v2_sections_for_fixture_directory() {
     let report = scan_path(&fixture_file("api-classification")).unwrap();
 
     assert_eq!(report.corpus_assets_used.len(), 4);
-    assert!(report.dependency_audit_summary.summary.contains("No supported dependency manifests")
-        || report.dependency_audit_summary.summary.contains("Discovered"));
+    assert!(
+        report
+            .dependency_audit_summary
+            .summary
+            .contains("No supported dependency manifests")
+            || report
+                .dependency_audit_summary
+                .summary
+                .contains("Discovered")
+    );
     assert!(report.api_classification_summary.total_references >= 4);
     assert!(!report.external_references.is_empty());
     assert!(report.context_analysis.api_classification_summary.is_some());

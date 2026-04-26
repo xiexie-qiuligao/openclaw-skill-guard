@@ -109,6 +109,50 @@ pub fn render_markdown(report: &ScanReport) -> String {
         report.source_reputation_summary.summary,
     ));
 
+    out.push_str("## V3 OpenClaw Summaries\n\n");
+    out.push_str(&format!(
+        "- Config / control-plane: {}\n- Capability manifest: {}\n- Companion docs: {}\n- Source identity: {}\n\n",
+        report.openclaw_config_audit_summary.summary,
+        report.capability_manifest.summary,
+        report.companion_doc_audit_summary.summary,
+        report.source_identity_summary.summary,
+    ));
+    push_string_list_markdown(
+        &mut out,
+        "Config / control-plane risky bindings",
+        &report.openclaw_config_audit_summary.risky_bindings,
+    );
+    if !report.capability_manifest.entries.is_empty() {
+        out.push_str("### Capability manifest entries\n\n");
+        for entry in &report.capability_manifest.entries {
+            out.push_str(&format!(
+                "- `{}` | `{}` | `{}`: {}\n",
+                entry.capability, entry.status, entry.source, entry.rationale
+            ));
+        }
+        out.push('\n');
+    }
+    push_string_list_markdown(
+        &mut out,
+        "Capability risky combinations",
+        &report.capability_manifest.risky_combinations,
+    );
+    push_string_list_markdown(
+        &mut out,
+        "Companion-doc poisoning signals",
+        &report.companion_doc_audit_summary.poisoning_signals,
+    );
+    if !report.source_identity_summary.signals.is_empty() {
+        out.push_str("### Source identity signals\n\n");
+        for signal in &report.source_identity_summary.signals {
+            out.push_str(&format!(
+                "- `{}` | `{}`: {}\n",
+                signal.signal_id, signal.signal_kind, signal.summary
+            ));
+        }
+        out.push('\n');
+    }
+
     out.push_str("## Findings\n\n");
     if report.findings.is_empty() {
         out.push_str("No findings.\n\n");
@@ -123,7 +167,11 @@ pub fn render_markdown(report: &ScanReport) -> String {
                 finding.category,
             ));
             if let Some(location) = &finding.location {
-                out.push_str(&format!("- Location: `{}`:{}\n", location.path, location.line.unwrap_or(1)));
+                out.push_str(&format!(
+                    "- Location: `{}`:{}\n",
+                    location.path,
+                    location.line.unwrap_or(1)
+                ));
             }
             out.push_str(&format!("\n{}\n\n", finding.explanation));
             if !finding.analyst_notes.is_empty() {
@@ -137,7 +185,11 @@ pub fn render_markdown(report: &ScanReport) -> String {
     }
 
     out.push_str("## Context\n\n");
-    push_optional_markdown(&mut out, "Parsing", Some(&report.context_analysis.parsing_summary));
+    push_optional_markdown(
+        &mut out,
+        "Parsing",
+        Some(&report.context_analysis.parsing_summary),
+    );
     push_optional_markdown(
         &mut out,
         "Metadata",
@@ -171,12 +223,41 @@ pub fn render_markdown(report: &ScanReport) -> String {
     push_optional_markdown(
         &mut out,
         "API classification",
-        report.context_analysis.api_classification_summary.as_deref(),
+        report
+            .context_analysis
+            .api_classification_summary
+            .as_deref(),
     );
     push_optional_markdown(
         &mut out,
         "Source reputation",
         report.context_analysis.source_reputation_summary.as_deref(),
+    );
+    push_optional_markdown(
+        &mut out,
+        "OpenClaw config / control-plane",
+        report.context_analysis.openclaw_config_summary.as_deref(),
+    );
+    push_optional_markdown(
+        &mut out,
+        "Capability manifest",
+        report
+            .context_analysis
+            .capability_manifest_summary
+            .as_deref(),
+    );
+    push_optional_markdown(
+        &mut out,
+        "Companion docs",
+        report
+            .context_analysis
+            .companion_doc_audit_summary
+            .as_deref(),
+    );
+    push_optional_markdown(
+        &mut out,
+        "Source identity",
+        report.context_analysis.source_identity_summary.as_deref(),
     );
 
     out.push_str("## Attack Paths\n\n");
@@ -240,10 +321,7 @@ pub fn render_markdown(report: &ScanReport) -> String {
     if !report.provenance_notes.is_empty() {
         out.push_str("\nProvenance notes:\n");
         for note in &report.provenance_notes {
-            out.push_str(&format!(
-                "- `{}`: {}\n",
-                note.subject_id, note.note
-            ));
+            out.push_str(&format!("- `{}`: {}\n", note.subject_id, note.note));
         }
     }
 
@@ -276,6 +354,17 @@ fn push_optional_markdown(out: &mut String, label: &str, value: Option<&str>) {
     }
 }
 
+fn push_string_list_markdown(out: &mut String, label: &str, values: &[String]) {
+    if values.is_empty() {
+        return;
+    }
+    out.push_str(&format!("### {}\n\n", label));
+    for value in values {
+        out.push_str(&format!("- {}\n", value));
+    }
+    out.push('\n');
+}
+
 fn escape_html(input: &str) -> String {
     input
         .replace('&', "&amp;")
@@ -287,11 +376,11 @@ fn escape_html(input: &str) -> String {
 mod tests {
     use openclaw_skill_guard_core::{
         ApiClassificationSummary, AuditSummary, ConsequenceAssessment, ConstraintEffect,
-        ContextAnalysis, DependencyAuditSummary, ExternalReference, ReferenceClassificationProvenance,
-        EnvironmentAmplifier, EnvironmentBlocker, ExecutionSurface, HostSandboxSplit,
-        Recommendations, RootResolutionSummary, RuntimeAssumptionStatus, RuntimeFact,
-        RuntimeRefinementNote, RuntimeScoreAdjustment, RuntimeSourceKind, ScanReport, ScanTarget,
-        ScoringSummary, SourceReputationSummary, SuppressionLifecycle, TargetKind,
+        ContextAnalysis, DependencyAuditSummary, EnvironmentAmplifier, EnvironmentBlocker,
+        ExecutionSurface, ExternalReference, HostSandboxSplit, Recommendations,
+        ReferenceClassificationProvenance, RootResolutionSummary, RuntimeAssumptionStatus,
+        RuntimeFact, RuntimeRefinementNote, RuntimeScoreAdjustment, RuntimeSourceKind, ScanReport,
+        ScanTarget, ScoringSummary, SourceReputationSummary, SuppressionLifecycle, TargetKind,
         ValidationPlan, ValidationResult, ValidationTarget, Verdict,
     };
     use serde_json::Value;
@@ -334,6 +423,10 @@ mod tests {
                 dependency_audit_summary: None,
                 api_classification_summary: None,
                 source_reputation_summary: None,
+                openclaw_config_summary: None,
+                capability_manifest_summary: None,
+                companion_doc_audit_summary: None,
+                source_identity_summary: None,
                 notes: Vec::new(),
             },
             attack_paths: Vec::new(),
@@ -456,6 +549,10 @@ mod tests {
                     asset_sources: vec!["api-taxonomy-v2.yaml".to_string()],
                 },
             }],
+            openclaw_config_audit_summary: Default::default(),
+            capability_manifest: Default::default(),
+            companion_doc_audit_summary: Default::default(),
+            source_identity_summary: Default::default(),
             provenance_notes: Vec::new(),
             confidence_factors: Vec::new(),
             false_positive_mitigations: Vec::new(),
@@ -557,6 +654,10 @@ mod tests {
                     dependency_audit_summary: None,
                     api_classification_summary: None,
                     source_reputation_summary: None,
+                    openclaw_config_summary: None,
+                    capability_manifest_summary: None,
+                    companion_doc_audit_summary: None,
+                    source_identity_summary: None,
                     notes: Vec::new(),
                 },
                 attack_paths: Vec::new(),
@@ -624,6 +725,10 @@ mod tests {
                     notes: Vec::new(),
                 },
                 external_references: Vec::new(),
+                openclaw_config_audit_summary: Default::default(),
+                capability_manifest: Default::default(),
+                companion_doc_audit_summary: Default::default(),
+                source_identity_summary: Default::default(),
                 provenance_notes: Vec::new(),
                 confidence_factors: Vec::new(),
                 false_positive_mitigations: Vec::new(),
@@ -691,11 +796,15 @@ mod tests {
         let json: Value = serde_json::from_str(&rendered).unwrap();
 
         assert_eq!(json["version"], "2.1.0");
-        assert_eq!(json["runs"][0]["tool"]["driver"]["name"], "openclaw-skill-guard");
+        assert_eq!(
+            json["runs"][0]["tool"]["driver"]["name"],
+            "openclaw-skill-guard"
+        );
         assert_eq!(json["runs"][0]["results"][0]["ruleId"], "source.direct_ip");
         assert_eq!(json["runs"][0]["results"][0]["level"], "error");
         assert_eq!(
-            json["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            json["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["artifactLocation"]
+                ["uri"],
             "SKILL.md"
         );
         assert_eq!(
@@ -741,6 +850,10 @@ mod tests {
                     dependency_audit_summary: Some("dependency summary".to_string()),
                     api_classification_summary: Some("api summary".to_string()),
                     source_reputation_summary: Some("source summary".to_string()),
+                    openclaw_config_summary: Some("config summary".to_string()),
+                    capability_manifest_summary: Some("capability summary".to_string()),
+                    companion_doc_audit_summary: Some("companion summary".to_string()),
+                    source_identity_summary: Some("identity summary".to_string()),
                     notes: Vec::new(),
                 },
                 attack_paths: Vec::new(),
@@ -811,9 +924,11 @@ mod tests {
                     reference_id: "ref-001".to_string(),
                     url: "https://github.com/example/project".to_string(),
                     host: "github.com".to_string(),
-                    category: openclaw_skill_guard_core::ExternalReferenceCategory::SourceRepository,
+                    category:
+                        openclaw_skill_guard_core::ExternalReferenceCategory::SourceRepository,
                     service_kind: openclaw_skill_guard_core::ExternalServiceKind::SourceCodeHost,
-                    reputation: openclaw_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
+                    reputation:
+                        openclaw_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
                     risk_signals: Vec::new(),
                     locations: Vec::new(),
                     evidence_excerpt: "https://github.com/example/project".to_string(),
@@ -824,6 +939,23 @@ mod tests {
                         asset_sources: vec!["api-taxonomy-v2.yaml".to_string()],
                     },
                 }],
+                openclaw_config_audit_summary:
+                    openclaw_skill_guard_core::OpenClawConfigAuditSummary {
+                        summary: "config summary".to_string(),
+                        ..Default::default()
+                    },
+                capability_manifest: openclaw_skill_guard_core::CapabilityManifestSummary {
+                    summary: "capability summary".to_string(),
+                    ..Default::default()
+                },
+                companion_doc_audit_summary: openclaw_skill_guard_core::CompanionDocAuditSummary {
+                    summary: "companion summary".to_string(),
+                    ..Default::default()
+                },
+                source_identity_summary: openclaw_skill_guard_core::SourceIdentitySummary {
+                    summary: "identity summary".to_string(),
+                    ..Default::default()
+                },
                 provenance_notes: Vec::new(),
                 confidence_factors: Vec::new(),
                 false_positive_mitigations: Vec::new(),

@@ -1,7 +1,7 @@
 {
   "target": {
-    "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
-    "canonical_path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+    "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
+    "canonical_path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
     "target_kind": "file"
   },
   "scan_mode": "file",
@@ -28,7 +28,7 @@
       "hard_trigger": false,
       "evidence_kind": "structured_metadata",
       "location": {
-        "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+        "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -36,7 +36,7 @@
         {
           "kind": "structured_metadata",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -64,7 +64,7 @@
       "hard_trigger": false,
       "evidence_kind": "tool_dispatch",
       "location": {
-        "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+        "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -72,7 +72,7 @@
         {
           "kind": "tool_dispatch",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -100,7 +100,7 @@
       "hard_trigger": false,
       "evidence_kind": "secret_reference",
       "location": {
-        "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+        "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
         "line": 1,
         "column": null
       },
@@ -108,7 +108,7 @@
         {
           "kind": "secret_reference",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -136,7 +136,7 @@
       "hard_trigger": false,
       "evidence_kind": "prompt_injection_signal",
       "location": {
-        "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+        "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
         "line": 2,
         "column": null
       },
@@ -144,7 +144,7 @@
         {
           "kind": "prompt_injection_signal",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 2,
             "column": null
           },
@@ -172,7 +172,7 @@
       "hard_trigger": false,
       "evidence_kind": "prompt_injection_signal",
       "location": {
-        "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+        "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
         "line": 3,
         "column": null
       },
@@ -180,7 +180,7 @@
         {
           "kind": "prompt_injection_signal",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 3,
             "column": null
           },
@@ -208,7 +208,7 @@
       "hard_trigger": false,
       "evidence_kind": "prompt_injection_signal",
       "location": {
-        "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+        "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
         "line": 4,
         "column": null
       },
@@ -216,7 +216,7 @@
         {
           "kind": "prompt_injection_signal",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 4,
             "column": null
           },
@@ -322,7 +322,7 @@
         {
           "kind": "prompt_injection_signal",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 3,
             "column": null
           },
@@ -379,7 +379,7 @@
         {
           "kind": "prompt_injection_signal",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 4,
             "column": null
           },
@@ -511,7 +511,7 @@
         {
           "kind": "tool_dispatch",
           "location": {
-            "path": ".\\fixtures\\v1\\runtime-refinement\\SKILL.md",
+            "path": "fixtures\\v1\\runtime-refinement\\SKILL.md",
             "line": 1,
             "column": null
           },
@@ -705,7 +705,7 @@
     },
     {
       "key": "observed_target_root",
-      "value": ".\\fixtures\\v1\\runtime-refinement",
+      "value": "fixtures\\v1\\runtime-refinement",
       "source_kind": "inferred_from_config",
       "confirmed": true
     }
@@ -1384,7 +1384,7 @@
     "known_roots": [
       {
         "source": "unknown",
-        "path": ".\\fixtures\\v1\\runtime-refinement",
+        "path": "fixtures\\v1\\runtime-refinement",
         "present": true
       }
     ],

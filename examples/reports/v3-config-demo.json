@@ -1,0 +1,1680 @@
+{
+  "target": {
+    "path": "fixtures\\v3\\config-control-plane",
+    "canonical_path": "fixtures\\v3\\config-control-plane",
+    "target_kind": "skill_dir"
+  },
+  "scan_mode": "skill_dir",
+  "files_scanned": 3,
+  "files_skipped": [],
+  "parse_errors": [],
+  "score": 5,
+  "verdict": "block",
+  "blocked": true,
+  "top_risks": [
+    "OpenClaw skill config may contain a plaintext apiKey binding",
+    "OpenClaw skill config may contain a plaintext apiKey binding",
+    "OpenClaw skill config may contain a plaintext apiKey binding",
+    "Control-plane config references a dangerous environment override",
+    "Threat corpus matched openclaw_control_plane"
+  ],
+  "findings": [
+    {
+      "id": "openclaw_config.plaintext_api_key",
+      "title": "OpenClaw skill config may contain a plaintext apiKey binding",
+      "category": "openclaw_config.plaintext_api_key",
+      "severity": "high",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\README.md",
+        "line": 3,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\README.md",
+            "line": 3,
+            "column": null
+          },
+          "excerpt": "It intentionally uses fake placeholders and non-routable example hosts. It exists to verify that `skills.entries.*.env`, `apiKey`, dangerous env names, and sandbox-control wording become explainable review findings without executing anything.",
+          "direct": true
+        }
+      ],
+      "explanation": "The scanned content references `skills.entries.*.apiKey`. In OpenClaw this is a host-side secret injection surface, not just descriptive metadata.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Use indirection for secret material, avoid committing real values, and verify the related skill's tool and egress reachability.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.plaintext_api_key",
+      "title": "OpenClaw skill config may contain a plaintext apiKey binding",
+      "category": "openclaw_config.plaintext_api_key",
+      "severity": "high",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "line": 4,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+            "line": 4,
+            "column": null
+          },
+          "excerpt": "metadata: {\"openclaw\":{\"skillKey\":\"config-demo\",\"primaryEnv\":\"DEMO_API_TOKEN\",\"requires\":{\"env\":[\"DEMO_API_TOKEN\"],\"config\":[\"skills.entries.config-demo.apiKey\"]}}}",
+          "direct": true
+        }
+      ],
+      "explanation": "The scanned content references `skills.entries.*.apiKey`. In OpenClaw this is a host-side secret injection surface, not just descriptive metadata.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Use indirection for secret material, avoid committing real values, and verify the related skill's tool and egress reachability.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.plaintext_api_key",
+      "title": "OpenClaw skill config may contain a plaintext apiKey binding",
+      "category": "openclaw_config.plaintext_api_key",
+      "severity": "high",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+        "line": 5,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+            "line": 5,
+            "column": null
+          },
+          "excerpt": "\"apiKey\": \"fake-placeholder-api-key\",",
+          "direct": true
+        }
+      ],
+      "explanation": "The scanned content references `skills.entries.*.apiKey`. In OpenClaw this is a host-side secret injection surface, not just descriptive metadata.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Use indirection for secret material, avoid committing real values, and verify the related skill's tool and egress reachability.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.dangerous_env_override",
+      "title": "Control-plane config references a dangerous environment override",
+      "category": "openclaw_config.dangerous_env_override",
+      "severity": "high",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+        "line": 7,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+            "line": 7,
+            "column": null
+          },
+          "excerpt": "\"NODE_OPTIONS\": \"--require ./placeholder.js\"",
+          "direct": true
+        }
+      ],
+      "explanation": "The content references `NODE_OPTIONS`, an environment name that can alter OpenClaw, interpreter startup, or host control-plane behavior.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Remove this override unless it is a documented, reviewed, and narrowly scoped administrative configuration.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "corpus.threat.openclaw-config-mutation",
+      "title": "Threat corpus matched openclaw_control_plane",
+      "category": "threat_corpus",
+      "severity": "high",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "text_pattern",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "line": 9,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "text_pattern",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+            "line": 9,
+            "column": null
+          },
+          "excerpt": "For setup review, edit openclaw.json and set skills.entries.config-demo.env before running.",
+          "direct": true
+        }
+      ],
+      "explanation": "Typed threat corpus entry `v3.threat.openclaw_config_mutation` matched this text as `openclaw_control_plane`. Instruction or documentation attempts to mutate OpenClaw config/control-plane state.",
+      "why_openclaw_specific": "Threat corpus entries are adapted to OpenClaw instruction, tool-authority, and agent-context surfaces rather than generic code-search noise.",
+      "prerequisite_context": [
+        "The match came from a built-in typed corpus asset rather than a shell script.",
+        "Corpus-backed findings are additive and do not replace attack-path, scoring, or guarded validation logic."
+      ],
+      "analyst_notes": [
+        "corpus entry: v3.threat.openclaw_config_mutation",
+        "asset: threat-corpus-v2.yaml",
+        "provenance: docs/v3-openclaw-gap-analysis.md",
+        "false-positive note: Benign setup documentation can mention config keys; escalate only when text is operative."
+      ],
+      "remediation": "Remove coercive or agent-context manipulation language, or rewrite the text so the instruction is clearly descriptive rather than operative.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.control_plane_mutation",
+      "title": "Skill content instructs mutation of OpenClaw control-plane configuration",
+      "category": "openclaw_config.control_plane_mutation",
+      "severity": "high",
+      "confidence": "medium",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "line": 9,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+            "line": 9,
+            "column": null
+          },
+          "excerpt": "For setup review, edit openclaw.json and set skills.entries.config-demo.env before running.",
+          "direct": true
+        }
+      ],
+      "explanation": "The text tells the operator or agent to edit OpenClaw config, env, trust roots, sandbox policy, or gateway/tool settings. Configuration mutation is an OpenClaw control-plane authority surface.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Separate setup documentation from runtime skill instructions and require human review for config or trust-boundary changes.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.secret_binding",
+      "title": "OpenClaw skill config exposes a host env binding surface",
+      "category": "openclaw_config.secret_binding",
+      "severity": "medium",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\README.md",
+        "line": 3,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\README.md",
+            "line": 3,
+            "column": null
+          },
+          "excerpt": "It intentionally uses fake placeholders and non-routable example hosts. It exists to verify that `skills.entries.*.env`, `apiKey`, dangerous env names, and sandbox-control wording become explainable review findings without executing anything.",
+          "direct": true
+        }
+      ],
+      "explanation": "The scanned content references `skills.entries.*.env`, which can bind per-skill environment values into the OpenClaw host process for a run.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Move secrets to documented SecretRef-style configuration and review whether this skill really needs host environment access.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.secret_binding",
+      "title": "OpenClaw skill config exposes a host env binding surface",
+      "category": "openclaw_config.secret_binding",
+      "severity": "medium",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "line": 4,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+            "line": 4,
+            "column": null
+          },
+          "excerpt": "metadata: {\"openclaw\":{\"skillKey\":\"config-demo\",\"primaryEnv\":\"DEMO_API_TOKEN\",\"requires\":{\"env\":[\"DEMO_API_TOKEN\"],\"config\":[\"skills.entries.config-demo.apiKey\"]}}}",
+          "direct": true
+        }
+      ],
+      "explanation": "The scanned content references `skills.entries.*.env`, which can bind per-skill environment values into the OpenClaw host process for a run.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Move secrets to documented SecretRef-style configuration and review whether this skill really needs host environment access.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.secret_binding",
+      "title": "OpenClaw skill config exposes a host env binding surface",
+      "category": "openclaw_config.secret_binding",
+      "severity": "medium",
+      "confidence": "high",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "line": 9,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+            "line": 9,
+            "column": null
+          },
+          "excerpt": "For setup review, edit openclaw.json and set skills.entries.config-demo.env before running.",
+          "direct": true
+        }
+      ],
+      "explanation": "The scanned content references `skills.entries.*.env`, which can bind per-skill environment values into the OpenClaw host process for a run.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Move secrets to documented SecretRef-style configuration and review whether this skill really needs host environment access.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.extra_dir_trust_expansion",
+      "title": "OpenClaw skill loading expands to extra directories",
+      "category": "openclaw_config.extra_dir_trust_expansion",
+      "severity": "medium",
+      "confidence": "medium",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+        "line": 12,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+            "line": 12,
+            "column": null
+          },
+          "excerpt": "\"extraDirs\": [\"./untrusted-fixture-skills\"]",
+          "direct": true
+        }
+      ],
+      "explanation": "`skills.load.extraDirs` can introduce additional low-precedence skill roots; broad or unreviewed paths can change the effective skill supply chain.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Keep extra skill roots narrow, reviewed, and separate from untrusted workspace content.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "openclaw_config.sandbox_disabled",
+      "title": "OpenClaw sandboxing appears disabled or bypassed",
+      "category": "openclaw_config.sandbox_disabled",
+      "severity": "medium",
+      "confidence": "medium",
+      "hard_trigger": false,
+      "evidence_kind": "structured_config_or_text",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+        "line": 15,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "runtime_context",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+            "line": 15,
+            "column": null
+          },
+          "excerpt": "\"sandbox\": false",
+          "direct": true
+        }
+      ],
+      "explanation": "The scanned content suggests sandbox execution may be disabled. That changes OpenClaw risk from sandbox-contained to host-reachable.",
+      "why_openclaw_specific": "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.",
+      "prerequisite_context": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "analyst_notes": [
+        "Review whether the referenced config is operational or only documentation.",
+        "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence."
+      ],
+      "remediation": "Prefer sandboxed execution for untrusted skills and record any host-only exception explicitly.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "corpus.sensitive.openclaw-api-key-binding",
+      "title": "Example-like openclaw_config_secret pattern needs review",
+      "category": "sensitive_corpus",
+      "severity": "low",
+      "confidence": "medium",
+      "hard_trigger": false,
+      "evidence_kind": "text_pattern",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\README.md",
+        "line": 3,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "text_pattern",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\README.md",
+            "line": 3,
+            "column": null
+          },
+          "excerpt": "It intentionally uses fake placeholders and non-routable example hosts. It exists to verify that `skills.entries.*.env`, `apiKey`, dangerous env names, and sandbox-control wording become explainable review findings without executing anything.",
+          "direct": true
+        }
+      ],
+      "explanation": "Sensitive-data corpus entry `v3.sensitive.openclaw_api_key_binding` matched `openclaw_config_secret` material, but the surrounding text also looks like documentation, placeholders, or fake values. The finding is kept as a review signal rather than a high-confidence live-secret exposure.",
+      "why_openclaw_specific": "Inline credentials and secret-looking material inside skill repositories change the OpenClaw review boundary: they are directly packaged alongside install, invocation, and runtime guidance.",
+      "prerequisite_context": [
+        "Sensitive corpus findings complement secret reachability: this analyzer looks for inline material, while reachability models what the skill tries to access at runtime."
+      ],
+      "analyst_notes": [
+        "corpus entry: v3.sensitive.openclaw_api_key_binding",
+        "asset: sensitive-data-corpus-v2.yaml",
+        "sensitive category: openclaw_config_secret",
+        "provenance: docs/v3-openclaw-gap-analysis.md",
+        "context shaping: example/fake markers lowered confidence and severity for review-oriented handling.",
+        "false-positive note: Placeholder examples should be downgraded when clearly inert and not paired with real-looking values."
+      ],
+      "remediation": "Remove inline sensitive material, replace it with placeholders or documented environment requirements, and rotate any real credential if exposure is suspected.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "corpus.sensitive.openclaw-api-key-binding",
+      "title": "Example-like openclaw_config_secret pattern needs review",
+      "category": "sensitive_corpus",
+      "severity": "low",
+      "confidence": "medium",
+      "hard_trigger": false,
+      "evidence_kind": "text_pattern",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "line": 4,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "text_pattern",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\SKILL.md",
+            "line": 4,
+            "column": null
+          },
+          "excerpt": "metadata: {\"openclaw\":{\"skillKey\":\"config-demo\",\"primaryEnv\":\"DEMO_API_TOKEN\",\"requires\":{\"env\":[\"DEMO_API_TOKEN\"],\"config\":[\"skills.entries.config-demo.apiKey\"]}}}",
+          "direct": true
+        }
+      ],
+      "explanation": "Sensitive-data corpus entry `v3.sensitive.openclaw_api_key_binding` matched `openclaw_config_secret` material, but the surrounding text also looks like documentation, placeholders, or fake values. The finding is kept as a review signal rather than a high-confidence live-secret exposure.",
+      "why_openclaw_specific": "Inline credentials and secret-looking material inside skill repositories change the OpenClaw review boundary: they are directly packaged alongside install, invocation, and runtime guidance.",
+      "prerequisite_context": [
+        "Sensitive corpus findings complement secret reachability: this analyzer looks for inline material, while reachability models what the skill tries to access at runtime."
+      ],
+      "analyst_notes": [
+        "corpus entry: v3.sensitive.openclaw_api_key_binding",
+        "asset: sensitive-data-corpus-v2.yaml",
+        "sensitive category: openclaw_config_secret",
+        "provenance: docs/v3-openclaw-gap-analysis.md",
+        "context shaping: example/fake markers lowered confidence and severity for review-oriented handling.",
+        "false-positive note: Placeholder examples should be downgraded when clearly inert and not paired with real-looking values."
+      ],
+      "remediation": "Remove inline sensitive material, replace it with placeholders or documented environment requirements, and rotate any real credential if exposure is suspected.",
+      "suppression_status": "not_suppressed"
+    },
+    {
+      "id": "corpus.sensitive.openclaw-api-key-binding",
+      "title": "Example-like openclaw_config_secret pattern needs review",
+      "category": "sensitive_corpus",
+      "severity": "low",
+      "confidence": "medium",
+      "hard_trigger": false,
+      "evidence_kind": "text_pattern",
+      "location": {
+        "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+        "line": 5,
+        "column": null
+      },
+      "evidence": [
+        {
+          "kind": "text_pattern",
+          "location": {
+            "path": "fixtures\\v3\\config-control-plane\\openclaw.json",
+            "line": 5,
+            "column": null
+          },
+          "excerpt": "\"apiKey\": \"fake-placeholder-api-key\",",
+          "direct": true
+        }
+      ],
+      "explanation": "Sensitive-data corpus entry `v3.sensitive.openclaw_api_key_binding` matched `openclaw_config_secret` material, but the surrounding text also looks like documentation, placeholders, or fake values. The finding is kept as a review signal rather than a high-confidence live-secret exposure.",
+      "why_openclaw_specific": "Inline credentials and secret-looking material inside skill repositories change the OpenClaw review boundary: they are directly packaged alongside install, invocation, and runtime guidance.",
+      "prerequisite_context": [
+        "Sensitive corpus findings complement secret reachability: this analyzer looks for inline material, while reachability models what the skill tries to access at runtime."
+      ],
+      "analyst_notes": [
+        "corpus entry: v3.sensitive.openclaw_api_key_binding",
+        "asset: sensitive-data-corpus-v2.yaml",
+        "sensitive category: openclaw_config_secret",
+        "provenance: docs/v3-openclaw-gap-analysis.md",
+        "context shaping: example/fake markers lowered confidence and severity for review-oriented handling.",
+        "false-positive note: Placeholder examples should be downgraded when clearly inert and not paired with real-looking values."
+      ],
+      "remediation": "Remove inline sensitive material, replace it with placeholders or documented environment requirements, and rotate any real credential if exposure is suspected.",
+      "suppression_status": "not_suppressed"
+    }
+  ],
+  "context_analysis": {
+    "phase": "phase7_runtime_adapter",
+    "parsing_summary": "Parsed 1 skill file(s); malformed frontmatter detected in 0 file(s).",
+    "metadata_summary": "metadata.openclaw present in 1 skill(s) and normalized successfully in 1 skill(s).",
+    "install_chain_summary": "No install metadata or high-confidence manual install patterns were extracted.",
+    "invocation_summary": "Invocation policy: user_invocable=true, disable_model_invocation=false, dispatch=None, command_tool=none.",
+    "tool_reachability_summary": "No high-confidence OpenClaw tool dependencies or dispatch targets were inferred.",
+    "reachable_tools": [],
+    "secret_reachability_summary": "Detected 1 secret-related reachability signals, including env dependencies and local sensitive paths.",
+    "reachable_secret_scopes": [
+      {
+        "secret_kind": "env_dependency",
+        "target": "DEMO_API_TOKEN",
+        "direct": false,
+        "confidence": "medium",
+        "reason": "Declared via metadata.openclaw.primaryEnv."
+      }
+    ],
+    "precedence_summary": "Precedence analysis is limited by the current scan scope; no local naming collisions were detected. Observed 1 root(s); precedence remains incomplete until these roots are scanned: workspace, personal_agents, managed, bundled, plugin_extra_dir.",
+    "naming_collisions": [],
+    "host_vs_sandbox_assessment": "Execution surface is Sandbox; file-system=1, credentials=1, network=1, persistence=1.",
+    "prompt_injection_summary": "No prompt-injection or indirect-instruction signals were detected across parsed skills.",
+    "threat_corpus_summary": "Threat corpus produced 1 explainable finding(s) after overlap control against baseline and prompt analyzers.",
+    "sensitive_data_summary": "Sensitive-data corpus produced 3 explainable inline-material finding(s).",
+    "dependency_audit_summary": "No supported dependency manifests were discovered.",
+    "api_classification_summary": "No external references were extracted from scanned text artifacts.",
+    "source_reputation_summary": "No source or domain reputation hints were generated.",
+    "openclaw_config_summary": "OpenClaw config/control-plane audit generated 10 finding(s) from local evidence.",
+    "capability_manifest_summary": "Capability manifest summarized 3 capability entry or entries, 0 risky combination(s), and 0 mismatch note(s).",
+    "companion_doc_audit_summary": "Scanned 1 companion document(s) with no companion-doc audit findings.",
+    "source_identity_summary": "No offline source identity mismatch signals were generated from local evidence.",
+    "notes": [
+      "Phase 7 runtime validation refines static conclusions with manifest-backed permission facts, guarded local checks, and explicit unknowns.",
+      "Precedence analysis records known roots, missing roots, and scope limitations instead of assuming global completeness.",
+      "V2 dependency, URL/API, and reputation signals are explainable overlays derived from built-in corpora and local heuristics rather than online trust services.",
+      "Threat and sensitive-data corpus analyzers are additive explainable detectors; they do not replace baseline, prompt, or reachability analysis.",
+      "V3 OpenClaw config, capability manifest, companion-doc, and source-identity signals remain local and explainable; they do not execute installs or query online trust services."
+    ]
+  },
+  "attack_paths": [],
+  "path_explanations": [],
+  "prompt_injection_summary": "No prompt-injection or indirect-instruction signals were detected across parsed skills.",
+  "consequence_summary": {
+    "execution_surface": "sandbox",
+    "file_system_consequences": [
+      "unknown"
+    ],
+    "credential_consequences": [
+      "environment_secrets"
+    ],
+    "network_consequences": [
+      "no_meaningful_egress"
+    ],
+    "persistence_consequences": [
+      "none"
+    ],
+    "environment_assumptions": [
+      {
+        "environment": "sandbox",
+        "assumption": "sandbox mounts or forwarded secrets remain available",
+        "satisfied": null,
+        "rationale": "Secret reachability in a sandbox depends on mounted files, env forwarding, or config exposure."
+      }
+    ],
+    "evidence_nodes": [
+      {
+        "kind": "secret_reference",
+        "location": {
+          "path": "context",
+          "line": null,
+          "column": null
+        },
+        "excerpt": "reachable secret: DEMO_API_TOKEN",
+        "direct": false
+      }
+    ],
+    "inferred_notes": [],
+    "impact_deltas": [],
+    "summary": "Execution surface is Sandbox; file-system=1, credentials=1, network=1, persistence=1. Runtime refinement applied with environment=Unknown, network=Unknown, writable_scope=Unknown."
+  },
+  "host_vs_sandbox_split": {
+    "host_effects": [
+      "No explicit host-only consequence was confirmed from the current scan inputs."
+    ],
+    "sandbox_effects": [
+      "Sandbox impact remains limited or uncertain without mounted secrets, write access, or outward-capable tools."
+    ],
+    "blocked_in_sandbox": [],
+    "residual_sandbox_risks": [
+      "Forwarded env secrets remain exposed even when filesystem reach is reduced."
+    ],
+    "summary": "Phase 7 runtime validation refined host-vs-sandbox split using manifest-backed permission and environment facts."
+  },
+  "runtime_manifest_summary": "No runtime manifest supplied; runtime refinement is based on safe local checks and unknowns remain explicit.",
+  "guarded_validation": {
+    "summary": "Guarded validation collected 8 capability check(s), 7 assumption check(s), and refined 0 attack path(s) without executing untrusted code.",
+    "capability_checks": [
+      {
+        "name": "network",
+        "available": "unknown",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      },
+      {
+        "name": "exec_allowed",
+        "available": "unknown",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      },
+      {
+        "name": "process_allowed",
+        "available": "unknown",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      },
+      {
+        "name": "browser_available",
+        "available": "unknown",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      },
+      {
+        "name": "web_fetch_available",
+        "available": "unknown",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      },
+      {
+        "name": "gateway_available",
+        "available": "unknown",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      },
+      {
+        "name": "nodes_available",
+        "available": "unknown",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      },
+      {
+        "name": "home_directory_access",
+        "available": "enabled",
+        "rationale": "Guarded validation records runtime-exposed capabilities without invoking untrusted actions."
+      }
+    ],
+    "constraint_checks": [
+      {
+        "name": "execution_environment",
+        "status": "unknown",
+        "rationale": "Execution environment can come directly from a runtime manifest or remain unknown."
+      },
+      {
+        "name": "network",
+        "status": "unknown",
+        "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+      },
+      {
+        "name": "exec_allowed",
+        "status": "unknown",
+        "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+      },
+      {
+        "name": "process_allowed",
+        "status": "unknown",
+        "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+      },
+      {
+        "name": "home_directory_access",
+        "status": "validated",
+        "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+      },
+      {
+        "name": "env:DEMO_API_TOKEN",
+        "status": "missing",
+        "rationale": "Expected env-backed secret presence can be validated without reading the value."
+      },
+      {
+        "name": "precedence_scope_complete",
+        "status": "missing",
+        "rationale": "Missing roots keep global precedence conclusions incomplete."
+      }
+    ],
+    "sandbox_constraint_effects": []
+  },
+  "runtime_facts": [
+    {
+      "key": "home_directory_present",
+      "value": "%USERPROFILE%",
+      "source_kind": "safe_local_check",
+      "confirmed": true
+    },
+    {
+      "key": "observed_target_root",
+      "value": "fixtures\\v3",
+      "source_kind": "inferred_from_config",
+      "confirmed": true
+    }
+  ],
+  "runtime_assumption_status": [
+    {
+      "assumption": "execution_environment",
+      "state": "unknown",
+      "source_kind": "unknown",
+      "rationale": "Execution environment can come directly from a runtime manifest or remain unknown."
+    },
+    {
+      "assumption": "network",
+      "state": "unknown",
+      "source_kind": "unknown",
+      "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+    },
+    {
+      "assumption": "exec_allowed",
+      "state": "unknown",
+      "source_kind": "unknown",
+      "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+    },
+    {
+      "assumption": "process_allowed",
+      "state": "unknown",
+      "source_kind": "unknown",
+      "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+    },
+    {
+      "assumption": "home_directory_access",
+      "state": "validated",
+      "source_kind": "unknown",
+      "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+    },
+    {
+      "assumption": "env:DEMO_API_TOKEN",
+      "state": "missing",
+      "source_kind": "unknown",
+      "rationale": "Expected env-backed secret presence can be validated without reading the value."
+    },
+    {
+      "assumption": "precedence_scope_complete",
+      "state": "missing",
+      "source_kind": "inferred_from_config",
+      "rationale": "Missing roots keep global precedence conclusions incomplete."
+    }
+  ],
+  "validation_plan": {
+    "summary": "Planned 1 guarded validation hook(s) to confirm high-risk paths, runtime assumptions, or scan-scope limitations without executing dangerous content.",
+    "hooks": [
+      {
+        "hook_id": "validation.precedence.expand_scope",
+        "title": "Expand precedence scan to missing OpenClaw roots",
+        "target": "precedence_scope",
+        "reason": "scope_expansion",
+        "expected_outcome": "clarify_scope",
+        "guarded_check": "Scan additional OpenClaw roots to resolve precedence uncertainty: workspace, personal_agents, managed, bundled, plugin_extra_dir.",
+        "related_findings": [],
+        "related_paths": [],
+        "dangerous": false
+      }
+    ]
+  },
+  "validation_hooks": [
+    {
+      "hook_id": "validation.precedence.expand_scope",
+      "title": "Expand precedence scan to missing OpenClaw roots",
+      "target": "precedence_scope",
+      "reason": "scope_expansion",
+      "expected_outcome": "clarify_scope",
+      "guarded_check": "Scan additional OpenClaw roots to resolve precedence uncertainty: workspace, personal_agents, managed, bundled, plugin_extra_dir.",
+      "related_findings": [],
+      "related_paths": [],
+      "dangerous": false
+    }
+  ],
+  "validation_results": [
+    {
+      "check_id": "validation.precedence.expand_scope",
+      "target": "precedence_scope",
+      "success": false,
+      "validated_constraints": [],
+      "missing_constraints": [
+        {
+          "name": "missing_root:workspace",
+          "rationale": "Additional roots are needed for stronger precedence conclusions."
+        },
+        {
+          "name": "missing_root:personal_agents",
+          "rationale": "Additional roots are needed for stronger precedence conclusions."
+        },
+        {
+          "name": "missing_root:managed",
+          "rationale": "Additional roots are needed for stronger precedence conclusions."
+        },
+        {
+          "name": "missing_root:bundled",
+          "rationale": "Additional roots are needed for stronger precedence conclusions."
+        },
+        {
+          "name": "missing_root:plugin_extra_dir",
+          "rationale": "Additional roots are needed for stronger precedence conclusions."
+        }
+      ],
+      "capability_checks": [],
+      "constraint_checks": [
+        {
+          "name": "execution_environment",
+          "status": "unknown",
+          "rationale": "Execution environment can come directly from a runtime manifest or remain unknown."
+        },
+        {
+          "name": "network",
+          "status": "unknown",
+          "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+        },
+        {
+          "name": "exec_allowed",
+          "status": "unknown",
+          "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+        },
+        {
+          "name": "process_allowed",
+          "status": "unknown",
+          "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+        },
+        {
+          "name": "home_directory_access",
+          "status": "validated",
+          "rationale": "Permission surfaces refine whether a path is validated, blocked, or still assumed."
+        },
+        {
+          "name": "env:DEMO_API_TOKEN",
+          "status": "missing",
+          "rationale": "Expected env-backed secret presence can be validated without reading the value."
+        },
+        {
+          "name": "precedence_scope_complete",
+          "status": "missing",
+          "rationale": "Missing roots keep global precedence conclusions incomplete."
+        }
+      ],
+      "sandbox_constraint_effects": [],
+      "note": "Precedence validation can only clarify scope; it does not invent missing roots."
+    }
+  ],
+  "path_validation_status": [],
+  "runtime_refinement_notes": [],
+  "constraint_effects": [],
+  "environment_blockers": [],
+  "environment_amplifiers": [],
+  "validation_score_adjustments": [],
+  "corpus_assets_used": [
+    {
+      "asset_name": "threat-corpus-v2.yaml",
+      "entry_count": 7,
+      "source_refs": [
+        "docs/v3-openclaw-gap-analysis.md",
+        "docs/v3-scope.md",
+        "references/threat-patterns.md"
+      ],
+      "notes": [
+        "Threat pattern asset loaded from compile-time YAML."
+      ]
+    },
+    {
+      "asset_name": "sensitive-data-corpus-v2.yaml",
+      "entry_count": 5,
+      "source_refs": [
+        "baseline.private_key_material",
+        "docs/v3-openclaw-gap-analysis.md",
+        "references/sensitive-data-patterns.md"
+      ],
+      "notes": [
+        "Sensitive data corpus loaded from compile-time YAML."
+      ]
+    },
+    {
+      "asset_name": "api-taxonomy-v2.yaml",
+      "entry_count": 9,
+      "source_refs": [
+        "references/api-classification.md",
+        "v2 round 2 taxonomy seed"
+      ],
+      "notes": [
+        "API taxonomy loaded from compile-time YAML."
+      ]
+    },
+    {
+      "asset_name": "reputation-seeds-v2.yaml",
+      "entry_count": 7,
+      "source_refs": [
+        "references/known-malicious-patterns.md",
+        "tools/url-audit.sh"
+      ],
+      "notes": [
+        "Reputation seeds loaded from compile-time YAML."
+      ]
+    }
+  ],
+  "dependency_audit_summary": {
+    "summary": "No supported dependency manifests were discovered.",
+    "manifests_discovered": [],
+    "lockfile_gaps": [],
+    "findings_count": 0,
+    "notes": [
+      "No supported dependency manifests were discovered in the current scan scope."
+    ]
+  },
+  "api_classification_summary": {
+    "summary": "No external references were extracted from scanned text artifacts.",
+    "total_references": 0,
+    "category_counts": {},
+    "service_kind_counts": {},
+    "review_needed_count": 0
+  },
+  "source_reputation_summary": {
+    "summary": "No source or domain reputation hints were generated.",
+    "suspicious_references": 0,
+    "risk_signal_counts": {},
+    "notes": [
+      "Reputation hints are local and explainable; they are not online trust verdicts.",
+      "Signals come from taxonomy matches, seed hits, and URL structure heuristics."
+    ]
+  },
+  "external_references": [],
+  "openclaw_config_audit_summary": {
+    "summary": "OpenClaw config/control-plane audit generated 10 finding(s) from local evidence.",
+    "config_files_discovered": [
+      "fixtures\\v3\\config-control-plane\\README.md",
+      "fixtures\\v3\\config-control-plane\\SKILL.md",
+      "fixtures\\v3\\config-control-plane\\openclaw.json"
+    ],
+    "explicit_dependencies": [
+      "fixtures\\v3\\config-control-plane\\README.md: skills.entries apiKey binding",
+      "fixtures\\v3\\config-control-plane\\README.md: skills.entries env binding",
+      "fixtures\\v3\\config-control-plane\\SKILL.md: skills.entries apiKey binding",
+      "fixtures\\v3\\config-control-plane\\SKILL.md: skills.entries env binding",
+      "fixtures\\v3\\config-control-plane\\openclaw.json: skills.entries apiKey binding"
+    ],
+    "risky_bindings": [
+      "NODE_OPTIONS",
+      "sandbox disabled",
+      "skills.entries.*.apiKey",
+      "skills.entries.*.env",
+      "skills.load.extraDirs"
+    ],
+    "findings_count": 10,
+    "notes": [
+      "Config audit is local and static; it does not mutate OpenClaw configuration or execute installer paths.",
+      "Host-side env/apiKey bindings are treated as control-plane evidence because they can change skill authority without appearing in SKILL.md body text."
+    ]
+  },
+  "capability_manifest": {
+    "summary": "Capability manifest summarized 3 capability entry or entries, 0 risky combination(s), and 0 mismatch note(s).",
+    "entries": [
+      {
+        "capability": "secret:DEMO_API_TOKEN",
+        "status": "inferred",
+        "source": "secret_reachability",
+        "rationale": "Declared via metadata.openclaw.primaryEnv."
+      },
+      {
+        "capability": "env:DEMO_API_TOKEN",
+        "status": "required",
+        "source": "metadata.openclaw.requires.env",
+        "rationale": "The skill metadata declares an environment requirement."
+      },
+      {
+        "capability": "config:skills.entries.config-demo.apiKey",
+        "status": "required",
+        "source": "metadata.openclaw.requires.config",
+        "rationale": "The skill metadata declares a configuration requirement."
+      }
+    ],
+    "risky_combinations": [],
+    "mismatch_notes": [],
+    "unknowns": [
+      "No direct invocation/tool authority was found; absence of evidence is not proof of no authority."
+    ]
+  },
+  "companion_doc_audit_summary": {
+    "summary": "Scanned 1 companion document(s) with no companion-doc audit findings.",
+    "companion_files_scanned": [
+      "fixtures\\v3\\config-control-plane\\README.md"
+    ],
+    "poisoning_signals": [],
+    "findings_count": 0,
+    "false_positive_notes": []
+  },
+  "source_identity_summary": {
+    "summary": "No offline source identity mismatch signals were generated from local evidence.",
+    "identity_surfaces": [
+      "skill name: Config Control Plane Demo",
+      "skillKey: config-demo"
+    ],
+    "mismatch_count": 0,
+    "signals": [],
+    "notes": [
+      "Source identity checks are offline and explainable; they do not query registries or reputation APIs.",
+      "Mismatches require review rather than proving impersonation."
+    ]
+  },
+  "provenance_notes": [
+    {
+      "subject_id": "openclaw_config.plaintext_api_key",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.plaintext_api_key",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.plaintext_api_key",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.plaintext_api_key",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.plaintext_api_key",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.plaintext_api_key",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.dangerous_env_override",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.dangerous_env_override",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "corpus.threat.openclaw-config-mutation",
+      "subject_kind": "finding",
+      "source_layer": "threat_corpus",
+      "evidence_sources": [
+        "text_pattern",
+        "corpus entry: v3.threat.openclaw_config_mutation",
+        "asset: threat-corpus-v2.yaml"
+      ],
+      "inferred_sources": [
+        "The match came from a built-in typed corpus asset rather than a shell script.",
+        "Corpus-backed findings are additive and do not replace attack-path, scoring, or guarded validation logic."
+      ],
+      "recent_signal_class": "typed_threat_corpus",
+      "long_term_pattern": "corpus-backed instruction, tool, or agent-context risk",
+      "note": "Threat corpus provenance records the exact typed entry, asset file, and adapted reference that produced this additive finding."
+    },
+    {
+      "subject_id": "openclaw_config.control_plane_mutation",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.control_plane_mutation",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.secret_binding",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.secret_binding",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.secret_binding",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.secret_binding",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.secret_binding",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.secret_binding",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.extra_dir_trust_expansion",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.extra_dir_trust_expansion",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "openclaw_config.sandbox_disabled",
+      "subject_kind": "finding",
+      "source_layer": "openclaw_config.sandbox_disabled",
+      "evidence_sources": [
+        "structured_config_or_text"
+      ],
+      "inferred_sources": [
+        "The signal came from local scanned text or config evidence.",
+        "The analyzer is static and does not execute or mutate OpenClaw configuration."
+      ],
+      "recent_signal_class": "scanner_boundary_and_fp_control",
+      "long_term_pattern": "direct execution or control-surface exposure",
+      "note": "Finding provenance records where the signal originated and which longer-lived risk family it belongs to."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "subject_kind": "finding",
+      "source_layer": "sensitive_corpus",
+      "evidence_sources": [
+        "text_pattern",
+        "corpus entry: v3.sensitive.openclaw_api_key_binding",
+        "asset: sensitive-data-corpus-v2.yaml",
+        "sensitive category: openclaw_config_secret"
+      ],
+      "inferred_sources": [
+        "Sensitive corpus findings complement secret reachability: this analyzer looks for inline material, while reachability models what the skill tries to access at runtime."
+      ],
+      "recent_signal_class": "typed_sensitive_corpus",
+      "long_term_pattern": "inline secret or credential material packaged with skill content",
+      "note": "Sensitive-data corpus provenance records the exact typed entry and whether the analyzer treated the match as high-value inline material or example-like review content."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "subject_kind": "finding",
+      "source_layer": "sensitive_corpus",
+      "evidence_sources": [
+        "text_pattern",
+        "corpus entry: v3.sensitive.openclaw_api_key_binding",
+        "asset: sensitive-data-corpus-v2.yaml",
+        "sensitive category: openclaw_config_secret"
+      ],
+      "inferred_sources": [
+        "Sensitive corpus findings complement secret reachability: this analyzer looks for inline material, while reachability models what the skill tries to access at runtime."
+      ],
+      "recent_signal_class": "typed_sensitive_corpus",
+      "long_term_pattern": "inline secret or credential material packaged with skill content",
+      "note": "Sensitive-data corpus provenance records the exact typed entry and whether the analyzer treated the match as high-value inline material or example-like review content."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "subject_kind": "finding",
+      "source_layer": "sensitive_corpus",
+      "evidence_sources": [
+        "text_pattern",
+        "corpus entry: v3.sensitive.openclaw_api_key_binding",
+        "asset: sensitive-data-corpus-v2.yaml",
+        "sensitive category: openclaw_config_secret"
+      ],
+      "inferred_sources": [
+        "Sensitive corpus findings complement secret reachability: this analyzer looks for inline material, while reachability models what the skill tries to access at runtime."
+      ],
+      "recent_signal_class": "typed_sensitive_corpus",
+      "long_term_pattern": "inline secret or credential material packaged with skill content",
+      "note": "Sensitive-data corpus provenance records the exact typed entry and whether the analyzer treated the match as high-value inline material or example-like review content."
+    },
+    {
+      "subject_id": "corpus.threat.openclaw-config-mutation",
+      "subject_kind": "finding",
+      "source_layer": "corpus.threat",
+      "evidence_sources": [
+        "v3.threat.openclaw_config_mutation",
+        "threat-corpus-v2.yaml"
+      ],
+      "inferred_sources": [
+        "category:openclaw_control_plane"
+      ],
+      "recent_signal_class": "typed_corpus_match",
+      "long_term_pattern": "asset-backed verifier enrichment",
+      "note": "This finding came from typed corpus entry `v3.threat.openclaw_config_mutation` in `threat-corpus-v2.yaml`."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "subject_kind": "finding",
+      "source_layer": "corpus.sensitive",
+      "evidence_sources": [
+        "v3.sensitive.openclaw_api_key_binding",
+        "sensitive-data-corpus-v2.yaml"
+      ],
+      "inferred_sources": [
+        "category:openclaw_config_secret"
+      ],
+      "recent_signal_class": "typed_corpus_match",
+      "long_term_pattern": "asset-backed verifier enrichment",
+      "note": "This finding came from typed corpus entry `v3.sensitive.openclaw_api_key_binding` in `sensitive-data-corpus-v2.yaml`."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "subject_kind": "finding",
+      "source_layer": "corpus.sensitive",
+      "evidence_sources": [
+        "v3.sensitive.openclaw_api_key_binding",
+        "sensitive-data-corpus-v2.yaml"
+      ],
+      "inferred_sources": [
+        "category:openclaw_config_secret"
+      ],
+      "recent_signal_class": "typed_corpus_match",
+      "long_term_pattern": "asset-backed verifier enrichment",
+      "note": "This finding came from typed corpus entry `v3.sensitive.openclaw_api_key_binding` in `sensitive-data-corpus-v2.yaml`."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "subject_kind": "finding",
+      "source_layer": "corpus.sensitive",
+      "evidence_sources": [
+        "v3.sensitive.openclaw_api_key_binding",
+        "sensitive-data-corpus-v2.yaml"
+      ],
+      "inferred_sources": [
+        "category:openclaw_config_secret"
+      ],
+      "recent_signal_class": "typed_corpus_match",
+      "long_term_pattern": "asset-backed verifier enrichment",
+      "note": "This finding came from typed corpus entry `v3.sensitive.openclaw_api_key_binding` in `sensitive-data-corpus-v2.yaml`."
+    },
+    {
+      "subject_id": "openclaw_config.NODE_OPTIONS",
+      "subject_kind": "openclaw_config_signal",
+      "source_layer": "local_config_or_text",
+      "evidence_sources": [
+        "fixtures\\v3\\config-control-plane\\README.md",
+        "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "fixtures\\v3\\config-control-plane\\openclaw.json"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v3_control_plane_audit",
+      "long_term_pattern": "OpenClaw config and host secret/control-plane surfaces",
+      "note": "Control-plane audit observed `NODE_OPTIONS` in scanned local evidence."
+    },
+    {
+      "subject_id": "openclaw_config.sandbox disabled",
+      "subject_kind": "openclaw_config_signal",
+      "source_layer": "local_config_or_text",
+      "evidence_sources": [
+        "fixtures\\v3\\config-control-plane\\README.md",
+        "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "fixtures\\v3\\config-control-plane\\openclaw.json"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v3_control_plane_audit",
+      "long_term_pattern": "OpenClaw config and host secret/control-plane surfaces",
+      "note": "Control-plane audit observed `sandbox disabled` in scanned local evidence."
+    },
+    {
+      "subject_id": "openclaw_config.skills.entries.*.apiKey",
+      "subject_kind": "openclaw_config_signal",
+      "source_layer": "local_config_or_text",
+      "evidence_sources": [
+        "fixtures\\v3\\config-control-plane\\README.md",
+        "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "fixtures\\v3\\config-control-plane\\openclaw.json"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v3_control_plane_audit",
+      "long_term_pattern": "OpenClaw config and host secret/control-plane surfaces",
+      "note": "Control-plane audit observed `skills.entries.*.apiKey` in scanned local evidence."
+    },
+    {
+      "subject_id": "openclaw_config.skills.entries.*.env",
+      "subject_kind": "openclaw_config_signal",
+      "source_layer": "local_config_or_text",
+      "evidence_sources": [
+        "fixtures\\v3\\config-control-plane\\README.md",
+        "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "fixtures\\v3\\config-control-plane\\openclaw.json"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v3_control_plane_audit",
+      "long_term_pattern": "OpenClaw config and host secret/control-plane surfaces",
+      "note": "Control-plane audit observed `skills.entries.*.env` in scanned local evidence."
+    },
+    {
+      "subject_id": "openclaw_config.skills.load.extraDirs",
+      "subject_kind": "openclaw_config_signal",
+      "source_layer": "local_config_or_text",
+      "evidence_sources": [
+        "fixtures\\v3\\config-control-plane\\README.md",
+        "fixtures\\v3\\config-control-plane\\SKILL.md",
+        "fixtures\\v3\\config-control-plane\\openclaw.json"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v3_control_plane_audit",
+      "long_term_pattern": "OpenClaw config and host secret/control-plane surfaces",
+      "note": "Control-plane audit observed `skills.load.extraDirs` in scanned local evidence."
+    },
+    {
+      "subject_id": "threat-corpus-v2.yaml",
+      "subject_kind": "corpus_asset",
+      "source_layer": "corpus_asset",
+      "evidence_sources": [
+        "docs/v3-openclaw-gap-analysis.md",
+        "docs/v3-scope.md",
+        "references/threat-patterns.md"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v2_builtin_corpus",
+      "long_term_pattern": "typed asset-backed verifier enrichment",
+      "note": "Loaded corpus asset `threat-corpus-v2.yaml` with 7 entry or entries."
+    },
+    {
+      "subject_id": "sensitive-data-corpus-v2.yaml",
+      "subject_kind": "corpus_asset",
+      "source_layer": "corpus_asset",
+      "evidence_sources": [
+        "baseline.private_key_material",
+        "docs/v3-openclaw-gap-analysis.md",
+        "references/sensitive-data-patterns.md"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v2_builtin_corpus",
+      "long_term_pattern": "typed asset-backed verifier enrichment",
+      "note": "Loaded corpus asset `sensitive-data-corpus-v2.yaml` with 5 entry or entries."
+    },
+    {
+      "subject_id": "api-taxonomy-v2.yaml",
+      "subject_kind": "corpus_asset",
+      "source_layer": "corpus_asset",
+      "evidence_sources": [
+        "references/api-classification.md",
+        "v2 round 2 taxonomy seed"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v2_builtin_corpus",
+      "long_term_pattern": "typed asset-backed verifier enrichment",
+      "note": "Loaded corpus asset `api-taxonomy-v2.yaml` with 9 entry or entries."
+    },
+    {
+      "subject_id": "reputation-seeds-v2.yaml",
+      "subject_kind": "corpus_asset",
+      "source_layer": "corpus_asset",
+      "evidence_sources": [
+        "references/known-malicious-patterns.md",
+        "tools/url-audit.sh"
+      ],
+      "inferred_sources": [],
+      "recent_signal_class": "v2_builtin_corpus",
+      "long_term_pattern": "typed asset-backed verifier enrichment",
+      "note": "Loaded corpus asset `reputation-seeds-v2.yaml` with 7 entry or entries."
+    }
+  ],
+  "confidence_factors": [
+    {
+      "subject_id": "corpus.threat.openclaw-config-mutation",
+      "factor": "typed_corpus_provenance",
+      "delta": 1,
+      "rationale": "Typed corpus entries carry explicit provenance and false-positive notes, which makes the finding easier to audit and explain."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "factor": "typed_corpus_provenance",
+      "delta": 1,
+      "rationale": "Typed corpus entries carry explicit provenance and false-positive notes, which makes the finding easier to audit and explain."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "factor": "typed_corpus_provenance",
+      "delta": 1,
+      "rationale": "Typed corpus entries carry explicit provenance and false-positive notes, which makes the finding easier to audit and explain."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "factor": "typed_corpus_provenance",
+      "delta": 1,
+      "rationale": "Typed corpus entries carry explicit provenance and false-positive notes, which makes the finding easier to audit and explain."
+    },
+    {
+      "subject_id": "corpus.threat.openclaw-config-mutation",
+      "factor": "corpus_backed_threat_pattern",
+      "delta": 1,
+      "rationale": "The finding comes from typed threat corpus entry `v3.threat.openclaw_config_mutation` with direct text evidence."
+    }
+  ],
+  "false_positive_mitigations": [
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "mitigation_kind": "example_like_sensitive_material",
+      "delta": -1,
+      "rationale": "The matched secret-like material also carries example or fake-value cues, so the finding is shaped as a review-needed exposure rather than a high-confidence live secret."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "mitigation_kind": "example_like_sensitive_material",
+      "delta": -1,
+      "rationale": "The matched secret-like material also carries example or fake-value cues, so the finding is shaped as a review-needed exposure rather than a high-confidence live secret."
+    },
+    {
+      "subject_id": "corpus.sensitive.openclaw-api-key-binding",
+      "mitigation_kind": "example_like_sensitive_material",
+      "delta": -1,
+      "rationale": "The matched secret-like material also carries example or fake-value cues, so the finding is shaped as a review-needed exposure rather than a high-confidence live secret."
+    }
+  ],
+  "scoring_summary": {
+    "base_score": 0,
+    "compound_uplift": 0,
+    "path_uplift": 0,
+    "confidence_adjustment": 5,
+    "final_score": 5,
+    "score_rationale": [
+      {
+        "source": "openclaw_config.plaintext_api_key",
+        "delta": -20,
+        "explanation": "Finding `OpenClaw skill config may contain a plaintext apiKey binding` contributes a high severity penalty."
+      },
+      {
+        "source": "openclaw_config.plaintext_api_key",
+        "delta": -20,
+        "explanation": "Finding `OpenClaw skill config may contain a plaintext apiKey binding` contributes a high severity penalty."
+      },
+      {
+        "source": "openclaw_config.plaintext_api_key",
+        "delta": -20,
+        "explanation": "Finding `OpenClaw skill config may contain a plaintext apiKey binding` contributes a high severity penalty."
+      },
+      {
+        "source": "openclaw_config.dangerous_env_override",
+        "delta": -20,
+        "explanation": "Finding `Control-plane config references a dangerous environment override` contributes a high severity penalty."
+      },
+      {
+        "source": "corpus.threat.openclaw-config-mutation",
+        "delta": -20,
+        "explanation": "Corpus-backed threat finding `Threat corpus matched openclaw_control_plane` contributed a 20-point penalty at high severity because corpus entry: v3.threat.openclaw_config_mutation."
+      },
+      {
+        "source": "openclaw_config.control_plane_mutation",
+        "delta": -15,
+        "explanation": "Finding `Skill content instructs mutation of OpenClaw control-plane configuration` contributes a high severity penalty."
+      },
+      {
+        "source": "openclaw_config.secret_binding",
+        "delta": -10,
+        "explanation": "Finding `OpenClaw skill config exposes a host env binding surface` contributes a medium severity penalty."
+      },
+      {
+        "source": "openclaw_config.secret_binding",
+        "delta": -10,
+        "explanation": "Finding `OpenClaw skill config exposes a host env binding surface` contributes a medium severity penalty."
+      },
+      {
+        "source": "openclaw_config.secret_binding",
+        "delta": -10,
+        "explanation": "Finding `OpenClaw skill config exposes a host env binding surface` contributes a medium severity penalty."
+      },
+      {
+        "source": "openclaw_config.extra_dir_trust_expansion",
+        "delta": -8,
+        "explanation": "Finding `OpenClaw skill loading expands to extra directories` contributes a medium severity penalty."
+      },
+      {
+        "source": "openclaw_config.sandbox_disabled",
+        "delta": -8,
+        "explanation": "Finding `OpenClaw sandboxing appears disabled or bypassed` contributes a medium severity penalty."
+      },
+      {
+        "source": "corpus.sensitive.openclaw-api-key-binding",
+        "delta": -4,
+        "explanation": "Inline sensitive-material finding `Example-like openclaw_config_secret pattern needs review` contributed a 4-point penalty at low severity because sensitive category: openclaw_config_secret."
+      },
+      {
+        "source": "corpus.sensitive.openclaw-api-key-binding",
+        "delta": -4,
+        "explanation": "Inline sensitive-material finding `Example-like openclaw_config_secret pattern needs review` contributed a 4-point penalty at low severity because sensitive category: openclaw_config_secret."
+      },
+      {
+        "source": "corpus.sensitive.openclaw-api-key-binding",
+        "delta": -4,
+        "explanation": "Inline sensitive-material finding `Example-like openclaw_config_secret pattern needs review` contributed a 4-point penalty at low severity because sensitive category: openclaw_config_secret."
+      },
+      {
+        "source": "confidence_adjustment",
+        "delta": 5,
+        "explanation": "Scope-limited or lower-confidence context slightly reduced the overall escalation."
+      }
+    ]
+  },
+  "openclaw_specific_risk_summary": "No attack path met the current evidence threshold, but isolated findings may still require review.",
+  "scope_resolution_summary": {
+    "known_roots": [
+      {
+        "source": "unknown",
+        "path": "fixtures\\v3\\config-control-plane",
+        "present": true
+      }
+    ],
+    "missing_roots": [
+      "workspace",
+      "personal_agents",
+      "managed",
+      "bundled",
+      "plugin_extra_dir"
+    ],
+    "scope_notes": [
+      {
+        "message": "The following OpenClaw roots were not observed in the current scan and can affect precedence resolution: workspace, personal_agents, managed, bundled, plugin_extra_dir."
+      },
+      {
+        "message": "Single-file or single-skill scans cannot fully resolve precedence across personal, managed, bundled, plugin, and workspace roots."
+      }
+    ],
+    "summary": "Observed 1 root(s); precedence remains incomplete until these roots are scanned: workspace, personal_agents, managed, bundled, plugin_extra_dir."
+  },
+  "audit_summary": {
+    "summary": "No suppression rules matched the current findings or attack paths.",
+    "records": [],
+    "high_risk_suppressions": 0,
+    "expired_suppressions": [],
+    "validation_aware_notes": []
+  },
+  "suppression_matches": [],
+  "analysis_limitations": [
+    "Prompt analysis remains heuristic and does not attempt full natural-language understanding.",
+    "Host-vs-sandbox consequence modeling remains summary-level in Phase 5.",
+    "Global multi-root OpenClaw precedence was not fully resolved; collision analysis remains limited to the scanned scope.",
+    "The following OpenClaw roots were not observed in the current scan and can affect precedence resolution: workspace, personal_agents, managed, bundled, plugin_extra_dir.",
+    "Single-file or single-skill scans cannot fully resolve precedence across personal, managed, bundled, plugin, and workspace roots.",
+    "No runtime manifest was supplied; runtime validation will rely on safe local checks and remain partially assumed.",
+    "Guarded validation refines paths with runtime capabilities and scope constraints, but it still does not execute install chains, shell commands, or untrusted content."
+  ],
+  "confidence_notes": [
+    "Attack paths distinguish evidence-backed steps from inferred connectors.",
+    "Low-context or scope-limited scans can still produce warn-level paths without enough certainty for block.",
+    "Confidence refinement now considers structured metadata evidence, example-like context, localhost/RPC benign scenarios, and scope incompleteness.",
+    "False-positive mitigation reduces confidence instead of silently removing findings or paths.",
+    "Precedence-related confidence was reduced where missing roots prevented stronger global resolution.",
+    "Runtime validation only uses manifest ingestion and guarded local checks; it does not execute install chains or untrusted code.",
+    "Validated runtime facts can strengthen, narrow, or block an attack path without erasing the underlying static evidence.",
+    "Guarded validation collected 8 capability check(s), 7 assumption check(s), and refined 0 attack path(s) without executing untrusted code."
+  ],
+  "recommendations": {
+    "immediate": [
+      "Keep extra skill roots narrow, reviewed, and separate from untrusted workspace content.",
+      "Move secrets to documented SecretRef-style configuration and review whether this skill really needs host environment access.",
+      "Prefer sandboxed execution for untrusted skills and record any host-only exception explicitly.",
+      "Remove coercive or agent-context manipulation language, or rewrite the text so the instruction is clearly descriptive rather than operative.",
+      "Remove inline sensitive material, replace it with placeholders or documented environment requirements, and rotate any real credential if exposure is suspected.",
+      "Remove this override unless it is a documented, reviewed, and narrowly scoped administrative configuration.",
+      "Separate setup documentation from runtime skill instructions and require human review for config or trust-boundary changes.",
+      "Use indirection for secret material, avoid committing real values, and verify the related skill's tool and egress reachability."
+    ],
+    "short_term": [
+      "Review and minimize openclaw_config.control_plane_mutation behavior in the skill.",
+      "Review and minimize openclaw_config.dangerous_env_override behavior in the skill.",
+      "Review and minimize openclaw_config.extra_dir_trust_expansion behavior in the skill.",
+      "Review and minimize openclaw_config.plaintext_api_key behavior in the skill.",
+      "Review and minimize openclaw_config.sandbox_disabled behavior in the skill.",
+      "Review and minimize openclaw_config.secret_binding behavior in the skill.",
+      "Review and minimize sensitive_corpus behavior in the skill.",
+      "Review and minimize threat_corpus behavior in the skill."
+    ],
+    "hardening": [
+      "Keep direct execution helpers, approval bypass language, and secret-access instructions out of skill repositories."
+    ],
+    "dynamic_validation": [
+      "Use runtime manifests and guarded validation adapters to confirm or narrow high-risk paths before treating static verdicts as final operator guidance."
+    ]
+  },
+  "suppressions": [],
+  "scan_integrity_notes": []
+}

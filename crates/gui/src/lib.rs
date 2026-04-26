@@ -369,7 +369,19 @@ mod tests {
 
     #[test]
     fn gui_can_load_json_report_with_utf8_bom() {
-        let source = fs::read_to_string(fixture("examples/reports/v2-report-demo.json")).unwrap();
+        let source = render_report_for_export(
+            &scan_with_request(&ScanRequest {
+                target_path: fixture("fixtures/v2/report-demo"),
+                runtime_manifest_path: None,
+                suppression_path: None,
+                report_save_path: None,
+                validation_mode: ValidationExecutionMode::Planned,
+            })
+            .unwrap()
+            .report,
+            ExportFormat::Json,
+        )
+        .unwrap();
         let temp_path = fixture("target/gui-bom-report.json");
         fs::write(&temp_path, format!("\u{feff}{source}")).unwrap();
 

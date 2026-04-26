@@ -1,131 +1,87 @@
-# openclaw-skill-guard
+# OpenClaw Skill Guard
 
-[English README](./README.md)
+**OpenClaw Skill 安全扫描器。GUI 是主入口，CLI 适合自动化。**
 
-**面向 OpenClaw Skills 的安全验证器。**
+OpenClaw Skill Guard 用来在安装、发布或审查 OpenClaw Skill 之前做本地安全检查。它会读取 `SKILL.md`、skill 目录或 workspace，分析安装命令、权限声明、环境变量、外部链接、提示词、间接指令、攻击路径和运行时约束，最后给出一个可解释的风险报告。
 
-`openclaw-skill-guard` 是一个面向 Windows 交付的 Rust verifier，用于在发布或审查前扫描 `SKILL.md`、skill 目录、skills 根目录或更大的工作区。它不是通用漏洞扫描器，也不是 exploit runner；它的目标是基于可见证据回答一个更实际的问题：这个 skill 在 OpenClaw 语境下是否可能形成真实攻击路径，以及结论背后的证据是什么。
+它不是 exploit runner，也不会主动执行危险 payload。它的定位是 verifier / guard：用静态证据、结构化上下文和受保护的运行时信息，帮助你判断一个 skill 是否值得信任、哪里需要人工复核、哪些风险必须阻断。
 
-## 交付面
+## 下载 GUI
 
-- GUI 是主要产品入口，适合日常审查、结果阅读和报告导出。
-- CLI 是自动化、流水线和高级用户入口。
-- GUI 与 CLI 复用同一条 Rust core 扫描链，不引入第二套分析逻辑。
+普通用户建议直接下载 Windows GUI 压缩包：
 
-v3 继续保持 verifier / guard 边界，只补 OpenClaw 本体特性相关缺口：config / control-plane audit、capability / permission manifest、companion-document 间接指令审计，以及离线 source identity / mismatch signals。
+1. 打开仓库右侧的 **Releases**。
+2. 下载 `openclaw-skill-guard-gui-windows.zip`。
+3. 解压后运行 `openclaw-skill-guard-gui.exe`。
 
-## 当前能力
+## GUI 使用方法
 
-- baseline dangerous-pattern scanning
-- structured OpenClaw context extraction
-- frontmatter / `metadata.openclaw` parsing
-- install-chain analysis
-- dependency audit
-- invocation-policy analysis
-- tool reachability
-- secret reachability
-- URL / API classification
-- source / domain reputation hints
-- OpenClaw config / control-plane audit
-- capability / permission manifest
-- companion-document / indirect-instruction audit
-- offline source identity / mismatch signals
-- prompt / instruction analysis
-- corpus-backed threat analyzer
-- corpus-backed sensitive analyzer
-- attack-path reasoning
-- compound scoring
-- consequence model
+1. 打开 `openclaw-skill-guard-gui.exe`。
+2. 选择一个 `SKILL.md` 文件，或选择一个 skill 目录。
+3. 点击“开始扫描”。
+4. 先看“总览”：这里会显示最终结论、分数、关键风险和建议。
+5. 需要细看时，再进入发现项、攻击路径、上下文、运行时验证、审计和原始 JSON。
+6. 需要交付或存档时，可以导出 JSON、SARIF、Markdown 或 HTML。
+
+## 能检查什么
+
+- `SKILL.md`、frontmatter 和 `metadata.openclaw`
+- 安装链风险，例如远程脚本、依赖拉取和弱固定版本
+- invocation policy、tool reachability、secret reachability
+- prompt injection、间接指令和 companion docs 风险
+- attack path、compound scoring 和 consequence model
+- OpenClaw config / control-plane 风险
+- capability / permission manifest 与实际行为不一致
+- source identity / repository / homepage / install source 不一致
+- URL / API 分类、source / domain reputation hints
+- corpus-backed threat / sensitive analyzer
 - guarded runtime validation
-- suppression / audit support
-- canonical JSON report
-- SARIF / Markdown / HTML 派生输出
+- suppression / audit
 
-## 快速开始
+## 报告格式
 
-构建 CLI 与 GUI：
+JSON 是唯一 canonical report。其他格式都从同一个报告派生：
+
+- JSON：完整机器可读报告
+- SARIF：适合安全工具和代码扫描平台
+- Markdown：适合人工审查和 issue / PR 说明
+- HTML：适合直接打开阅读
+
+## 从源码构建
 
 ```powershell
 cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
 ```
 
-启动 GUI：
+构建产物：
 
-```powershell
-cargo run -p openclaw-skill-guard-gui
+```text
+target\release\openclaw-skill-guard-gui.exe
+target\release\openclaw-skill-guard.exe
 ```
 
-GUI 主流程：
-
-1. 选择 `SKILL.md` 或目录。
-2. 点击“开始扫描”。
-3. 仅在需要时展开高级选项，配置 runtime manifest、suppression 或 validation mode。
-4. 默认先阅读“总览”页，再进入发现项、攻击路径、上下文、运行时验证和审计页。
-5. 按需导出 JSON、SARIF、Markdown 或 HTML 报告。
-
-CLI 仍可用于自动化：
+运行 GUI：
 
 ```powershell
-cargo run -p openclaw-skill-guard-cli -- scan .\fixtures\v2\report-demo --format json
+.\target\release\openclaw-skill-guard-gui.exe
 ```
 
-## GUI 形态
+CLI 示例：
 
-GUI 现在不再是简单的 CLI 参数面板，而是默认中文、总览优先的正式桌面产品界面。当前重点包括：
+```powershell
+.\target\release\openclaw-skill-guard.exe scan .\fixtures\v2\report-demo --format json
+```
 
-- 主扫描流程收敛为“选目标 -> 开始扫描 -> 看总览”。
-- 高级项可折叠，不再默认把全部技术参数堆在首页。
-- 结果区默认先展示总览，而不是空白页或原始 JSON。
-- Findings / Paths / Context / Validation / Audit 按阅读体验重排。
-- Findings / Paths / External References 支持轻量筛选。
-- Findings / Paths / Provenance 之间已有基础联动跳转。
-- v2 / v3 新增 summary 会在 GUI 中清楚展示。
-- 仍然复用 canonical report 主链，并支持 JSON / SARIF / Markdown / HTML 导出。
+## 开发验证
 
-## GUI 截图
-
-最终交付附带了少量展示截图，位于 `docs/gui-screenshots/`：
-
-- `gui-home-empty.png`
-- `gui-overview-demo.png`
-- `gui-validation-demo.png`
-
-## 报告契约
-
-JSON 仍然是唯一 canonical report。SARIF、Markdown、HTML 都是从同一个 `ScanReport` 派生出来的输出，而不是第二套协议。
-
-关键 section 包括：
-
-- `findings`
-- `context_analysis`
-- `attack_paths`
-- `corpus_assets_used`
-- `dependency_audit_summary`
-- `api_classification_summary`
-- `source_reputation_summary`
-- `external_references`
-- `openclaw_config_audit_summary`
-- `capability_manifest`
-- `companion_doc_audit_summary`
-- `source_identity_summary`
-- `scoring_summary`
-- `consequence_summary`
-- `validation_*`
-- `audit_summary`
-
-更多说明见：
-
-- [report.schema.json](./schemas/report.schema.json)
-- [reporting.md](./docs/reporting.md)
-- [examples/reports/README.md](./examples/reports/README.md)
-
-`examples/reports/` 中包含 v2 与 v3 的 JSON、SARIF、Markdown、HTML 示例报告。
+```powershell
+cargo test
+```
 
 ## 安全边界
 
-`openclaw-skill-guard` 是 verifier，不是 exploit runner。
-
 - 不主动执行危险 payload。
+- 不做在线信誉平台。
+- 不把本地 hint 伪装成绝对可信结论。
 - runtime validation 保持 guarded、non-executing。
-- reputation 只做本地、可解释提示，不伪装成在线信誉真相。
-- suppression 保持 audit 可见性，不做静默隐藏。
+- suppression 必须可审计，不会静默隐藏风险。

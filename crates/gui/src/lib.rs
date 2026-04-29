@@ -1,4 +1,5 @@
 mod app;
+mod zh;
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -9,6 +10,7 @@ use openclaw_skill_guard_core::{
 use openclaw_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
 
 pub use app::OpenClawGuardApp;
+pub use zh::{display_text_zh, safe_target_label_zh};
 
 #[derive(Debug, Clone)]
 pub struct ScanRequest {
@@ -197,29 +199,33 @@ pub fn save_report_to_file(path: &Path, content: &str) -> Result<(), String> {
 
 pub fn build_summary_text(report: &ScanReport) -> String {
     format!(
-        "目标：{}\n结论：{}\n风险分数：{}\n是否阻断：{}\n发现项：{}\n攻击路径：{}\nThreat corpus：{}\nSensitive corpus：{}\nDependency audit：{}\n外部引用：{}\nConfig / control-plane：{}\nCapability manifest：{}\nCompanion docs：{}\nSource identity：{}",
-        report.target.path,
+        "目标：{}\n结论：{}\n风险分数：{}\n是否阻断：{}\n发现项：{}\n攻击路径：{}\n威胁模式库：{}\n敏感数据模式库：{}\n依赖审计：{}\n外部引用：{}\nOpenClaw 配置 / 控制面：{}\n能力 / 权限视图：{}\n配套文档审计：{}\n来源身份一致性：{}",
+        safe_target_label_zh(&report.target.path),
         verdict_label(report.verdict),
         report.score,
         if report.blocked { "是" } else { "否" },
         report.findings.len(),
         report.attack_paths.len(),
-        report
-            .context_analysis
-            .threat_corpus_summary
-            .as_deref()
-            .unwrap_or("n/a"),
-        report
-            .context_analysis
-            .sensitive_data_summary
-            .as_deref()
-            .unwrap_or("n/a"),
-        report.dependency_audit_summary.summary,
+        display_text_zh(
+            report
+                .context_analysis
+                .threat_corpus_summary
+                .as_deref()
+                .unwrap_or("无")
+        ),
+        display_text_zh(
+            report
+                .context_analysis
+                .sensitive_data_summary
+                .as_deref()
+                .unwrap_or("无")
+        ),
+        display_text_zh(&report.dependency_audit_summary.summary),
         report.external_references.len(),
-        report.openclaw_config_audit_summary.summary,
-        report.capability_manifest.summary,
-        report.companion_doc_audit_summary.summary,
-        report.source_identity_summary.summary,
+        display_text_zh(&report.openclaw_config_audit_summary.summary),
+        display_text_zh(&report.capability_manifest.summary),
+        display_text_zh(&report.companion_doc_audit_summary.summary),
+        display_text_zh(&report.source_identity_summary.summary),
     )
 }
 
@@ -248,6 +254,14 @@ pub fn verdict_label(verdict: Verdict) -> &'static str {
         Verdict::Warn => "警告",
         Verdict::Block => "阻断",
     }
+}
+
+pub fn safe_target_label(path: &str) -> String {
+    safe_target_label_zh(path)
+}
+
+pub fn display_text(input: &str) -> String {
+    display_text_zh(input)
 }
 
 fn validate_request(request: &ScanRequest) -> Result<(), String> {

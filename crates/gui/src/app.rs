@@ -15,8 +15,9 @@ use openclaw_skill_guard_core::{
 use rfd::FileDialog;
 
 use crate::{
-    pretty_debug, render_report_for_export, save_report_to_file, scan_with_request, verdict_label,
-    CompletedScan, ExportFormat, ScanRequest, UiTab,
+    display_text_zh, pretty_debug, render_report_for_export, safe_target_label_zh,
+    save_report_to_file, scan_with_request, verdict_label, CompletedScan, ExportFormat,
+    ScanRequest, UiTab,
 };
 
 enum ScanWorkerMessage {
@@ -258,16 +259,16 @@ impl OpenClawGuardApp {
         self.install_cjk_font(ctx);
 
         let mut visuals = egui::Visuals::light();
-        visuals.panel_fill = Color32::from_rgb(246, 243, 238);
-        visuals.window_fill = Color32::from_rgb(252, 250, 247);
-        visuals.extreme_bg_color = Color32::from_rgb(234, 230, 224);
-        visuals.faint_bg_color = Color32::from_rgb(240, 236, 231);
-        visuals.code_bg_color = Color32::from_rgb(241, 238, 233);
-        visuals.selection.bg_fill = Color32::from_rgb(27, 116, 106);
+        visuals.panel_fill = Color32::from_rgb(242, 246, 249);
+        visuals.window_fill = Color32::from_rgb(250, 252, 254);
+        visuals.extreme_bg_color = Color32::from_rgb(226, 233, 239);
+        visuals.faint_bg_color = Color32::from_rgb(236, 242, 247);
+        visuals.code_bg_color = Color32::from_rgb(239, 245, 250);
+        visuals.selection.bg_fill = Color32::from_rgb(18, 111, 122);
         visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
-        visuals.hyperlink_color = Color32::from_rgb(27, 116, 106);
-        visuals.widgets.active.bg_fill = Color32::from_rgb(27, 116, 106);
-        visuals.widgets.hovered.bg_fill = Color32::from_rgb(215, 233, 230);
+        visuals.hyperlink_color = Color32::from_rgb(18, 111, 122);
+        visuals.widgets.active.bg_fill = Color32::from_rgb(18, 111, 122);
+        visuals.widgets.hovered.bg_fill = Color32::from_rgb(222, 237, 244);
         visuals.widgets.inactive.bg_fill = Color32::from_rgb(255, 255, 255);
         visuals.override_text_color = Some(Color32::from_rgb(33, 37, 41));
         ctx.set_visuals(visuals);
@@ -318,8 +319,8 @@ impl OpenClawGuardApp {
 
     fn render_top_bar(&mut self, ui: &mut Ui) {
         Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 252, 248))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
+            .fill(Color32::from_rgb(255, 255, 255))
+            .stroke(Stroke::new(1.0, Color32::from_rgb(216, 226, 235)))
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
@@ -574,8 +575,8 @@ impl OpenClawGuardApp {
 
     fn render_tab_bar(&mut self, ui: &mut Ui) {
         Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 252, 248))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
+            .fill(Color32::from_rgb(255, 255, 255))
+            .stroke(Stroke::new(1.0, Color32::from_rgb(216, 226, 235)))
             .show(ui, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     for tab in UiTab::ALL {
@@ -588,9 +589,9 @@ impl OpenClawGuardApp {
                             },
                         ))
                         .fill(if active {
-                            Color32::from_rgb(19, 106, 94)
+                            Color32::from_rgb(18, 111, 122)
                         } else {
-                            Color32::from_rgb(243, 239, 234)
+                            Color32::from_rgb(239, 245, 249)
                         });
 
                         if ui.add(button).clicked() {
@@ -606,8 +607,12 @@ impl OpenClawGuardApp {
 
         self.hero_banner(
             ui,
-            &format!("{} | {}", verdict_label(report.verdict), report.target.path),
-            &report.openclaw_specific_risk_summary,
+            &format!(
+                "{}：{}",
+                verdict_label(report.verdict),
+                safe_target_label_zh(&report.target.path)
+            ),
+            &display_text_zh(&report.openclaw_specific_risk_summary),
             verdict_bg(report.verdict),
             verdict_fg(report.verdict),
         );
@@ -663,7 +668,7 @@ impl OpenClawGuardApp {
                         ui.label("这次扫描没有生成需要优先提醒的关键风险。");
                     } else {
                         for risk in report.top_risks.iter().take(6) {
-                            ui.label(format!("• {risk}"));
+                            ui.label(format!("• {}", display_text_zh(risk)));
                         }
                     }
                 },
@@ -706,21 +711,13 @@ impl OpenClawGuardApp {
                             .as_deref()
                             .unwrap_or("本次没有触发 sensitive corpus 摘要。"),
                     );
+                    self.summary_line(ui, "依赖审计", &report.dependency_audit_summary.summary);
                     self.summary_line(
                         ui,
-                        "Dependency audit",
-                        &report.dependency_audit_summary.summary,
-                    );
-                    self.summary_line(
-                        ui,
-                        "API classification",
+                        "API / URL 分类",
                         &report.api_classification_summary.summary,
                     );
-                    self.summary_line(
-                        ui,
-                        "Source reputation",
-                        &report.source_reputation_summary.summary,
-                    );
+                    self.summary_line(ui, "来源信誉", &report.source_reputation_summary.summary);
                     self.summary_line(
                         ui,
                         "Config / control-plane",
@@ -855,37 +852,37 @@ impl OpenClawGuardApp {
                     );
                     self.optional_summary(
                         ui,
-                        "OpenClaw config / control-plane",
+                        "OpenClaw 配置 / 控制面",
                         context.openclaw_config_summary.as_deref(),
                     );
                     self.optional_summary(
                         ui,
-                        "Capability manifest",
+                        "能力 / 权限视图",
                         context.capability_manifest_summary.as_deref(),
                     );
                     self.optional_summary(
                         ui,
-                        "Companion docs",
+                        "配套文档",
                         context.companion_doc_audit_summary.as_deref(),
                     );
                     self.optional_summary(
                         ui,
-                        "Source identity",
+                        "来源身份",
                         context.source_identity_summary.as_deref(),
                     );
                     self.string_list(
                         ui,
-                        "Config risky bindings",
+                        "配置风险绑定",
                         &report.openclaw_config_audit_summary.risky_bindings,
                     );
                     self.string_list(
                         ui,
-                        "Capability risky combinations",
+                        "能力风险组合",
                         &report.capability_manifest.risky_combinations,
                     );
                     self.string_list(
                         ui,
-                        "Companion-doc signals",
+                        "配套文档风险信号",
                         &report.companion_doc_audit_summary.poisoning_signals,
                     );
                     let identity_signals = report
@@ -901,7 +898,7 @@ impl OpenClawGuardApp {
                             format!("{}: {} -> {}", signal.signal_kind, signal.summary, evidence)
                         })
                         .collect::<Vec<_>>();
-                    self.string_list(ui, "Source identity signals", &identity_signals);
+                    self.string_list(ui, "来源身份不一致信号", &identity_signals);
                     self.optional_summary(
                         ui,
                         "宿主 / 沙箱判断",
@@ -935,12 +932,12 @@ impl OpenClawGuardApp {
                 for finding in dependency_findings {
                     egui::CollapsingHeader::new(format!(
                         "{} | {}",
-                        finding.title,
+                        display_text_zh(&finding.title),
                         severity_text(finding.severity)
                     ))
                     .default_open(self.selected_subject_id.as_deref() == Some(finding.id.as_str()))
                     .show(ui, |ui| {
-                        ui.label(&finding.explanation);
+                        ui.label(display_text_zh(&finding.explanation));
                         self.render_expandable_text(
                             ui,
                             "分析说明",
@@ -1036,7 +1033,13 @@ impl OpenClawGuardApp {
                             let locations = reference
                                 .locations
                                 .iter()
-                                .map(|item| format!("{}:{}", item.path, item.line.unwrap_or(1)))
+                                .map(|item| {
+                                    format!(
+                                        "{}:{}",
+                                        safe_target_label_zh(&item.path),
+                                        item.line.unwrap_or(1)
+                                    )
+                                })
                                 .collect::<Vec<_>>()
                                 .join("\n");
                             self.render_expandable_text(ui, "出现位置", &locations, 200);
@@ -1361,7 +1364,7 @@ impl OpenClawGuardApp {
                 ui.horizontal_wrapped(|ui| {
                     let response = ui.add(
                         egui::Label::new(
-                            RichText::new(&finding.title)
+                            RichText::new(display_text_zh(&finding.title))
                                 .strong()
                                 .size(19.0)
                                 .color(Color32::from_rgb(36, 41, 47)),
@@ -1385,7 +1388,7 @@ impl OpenClawGuardApp {
                 if let Some(location) = &finding.location {
                     ui.label(format!(
                         "位置：{}:{}",
-                        location.path,
+                        safe_target_label_zh(&location.path),
                         location.line.unwrap_or(1)
                     ));
                 }
@@ -1465,8 +1468,12 @@ impl OpenClawGuardApp {
             .show(ui, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     let response = ui.add(
-                        egui::Label::new(RichText::new(&path.title).strong().size(19.0))
-                            .sense(egui::Sense::click()),
+                        egui::Label::new(
+                            RichText::new(display_text_zh(&path.title))
+                                .strong()
+                                .size(19.0),
+                        )
+                        .sense(egui::Sense::click()),
                     );
                     if response.clicked() {
                         self.selected_path_id = Some(path.path_id.clone());
@@ -1687,14 +1694,15 @@ impl OpenClawGuardApp {
         if text.trim().is_empty() {
             return;
         }
-        let preview = truncate_text(text, preview_limit);
+        let translated = display_text_zh(text);
+        let preview = truncate_text(&translated, preview_limit);
         ui.label(RichText::new(label).strong());
         ui.label(&preview);
-        if preview != text {
+        if preview != translated {
             egui::CollapsingHeader::new(format!("展开{label}"))
                 .default_open(false)
                 .show(ui, |ui| {
-                    ui.label(text);
+                    ui.label(&translated);
                 });
         }
         ui.add_space(6.0);
@@ -1736,10 +1744,16 @@ impl OpenClawGuardApp {
     ) {
         Frame::group(ui.style())
             .fill(fill)
-            .stroke(Stroke::new(1.0, accent))
+            .stroke(Stroke::new(1.2, accent))
             .show(ui, |ui| {
-                ui.label(RichText::new(title).size(22.0).strong().color(accent));
-                ui.label(subtitle);
+                ui.add_space(2.0);
+                ui.label(RichText::new(title).size(26.0).strong().color(accent));
+                ui.label(
+                    RichText::new(subtitle)
+                        .size(15.0)
+                        .color(Color32::from_rgb(50, 61, 72)),
+                );
+                ui.add_space(2.0);
             });
     }
 
@@ -1774,11 +1788,11 @@ impl OpenClawGuardApp {
     fn stat_card(&self, ui: &mut Ui, label: &str, value: &str, accent: Color32) {
         Frame::group(ui.style())
             .fill(Color32::from_rgb(255, 255, 255))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
+            .stroke(Stroke::new(1.0, Color32::from_rgb(216, 226, 235)))
             .show(ui, |ui| {
-                ui.set_min_width(140.0);
-                ui.label(RichText::new(label).color(Color32::from_rgb(104, 113, 122)));
-                ui.label(RichText::new(value).size(24.0).strong().color(accent));
+                ui.set_min_width(150.0);
+                ui.label(RichText::new(label).color(Color32::from_rgb(91, 104, 117)));
+                ui.label(RichText::new(value).size(28.0).strong().color(accent));
             });
     }
 
@@ -1831,13 +1845,13 @@ impl OpenClawGuardApp {
 
     fn summary_line(&self, ui: &mut Ui, label: &str, value: &str) {
         ui.label(RichText::new(label).strong());
-        ui.label(value);
+        ui.label(display_text_zh(value));
         ui.add_space(4.0);
     }
 
     fn key_value(&self, ui: &mut Ui, label: &str, value: &str) {
         ui.label(RichText::new(label).strong());
-        ui.label(value);
+        ui.label(display_text_zh(value));
         ui.add_space(6.0);
     }
 
@@ -1855,7 +1869,7 @@ impl OpenClawGuardApp {
         }
         ui.label(RichText::new(label).strong());
         for item in items {
-            ui.label(format!("• {item}"));
+            ui.label(format!("• {}", display_text_zh(item)));
         }
         ui.add_space(6.0);
     }
@@ -1866,7 +1880,7 @@ impl OpenClawGuardApp {
         }
         ui.label(RichText::new(label).strong());
         for item in items {
-            ui.label(format!("• {item}"));
+            ui.label(format!("• {}", display_text_zh(item)));
         }
         ui.add_space(6.0);
     }

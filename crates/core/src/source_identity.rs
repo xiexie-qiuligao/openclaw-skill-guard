@@ -296,6 +296,8 @@ fn make_identity_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: id.to_string(),
         severity,
         confidence,
@@ -309,6 +311,7 @@ fn make_identity_finding(
             direct: false,
         }],
         explanation: explanation.to_string(),
+        explanation_zh: None,
         why_openclaw_specific: "OpenClaw skills rely on local metadata, companion docs, install sources, and workspace install identity. Mismatch across those surfaces can mislead review even when no payload is executed.".to_string(),
         prerequisite_context: vec![
             "The finding is based only on local source, package, URL, and metadata evidence.".to_string(),
@@ -318,6 +321,7 @@ fn make_identity_finding(
             "Check whether the mismatch is an expected CDN/package-host split or an unexplained identity drift.".to_string(),
         ],
         remediation: remediation.to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

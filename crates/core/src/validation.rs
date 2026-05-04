@@ -178,6 +178,8 @@ mod tests {
         let finding = Finding {
             id: "context.precedence.name_collision".to_string(),
             title: "collision".to_string(),
+            issue_code: None,
+            title_zh: None,
             category: "precedence".to_string(),
             severity: FindingSeverity::Medium,
             confidence: FindingConfidence::High,
@@ -186,10 +188,12 @@ mod tests {
             location: None,
             evidence: Vec::new(),
             explanation: String::new(),
+            explanation_zh: None,
             why_openclaw_specific: String::new(),
             prerequisite_context: Vec::new(),
             analyst_notes: Vec::new(),
             remediation: String::new(),
+            recommendation_zh: None,
             suppression_status: "not_suppressed".to_string(),
         };
         let skill = parse_skill_file(

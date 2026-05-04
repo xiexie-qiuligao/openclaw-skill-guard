@@ -112,3 +112,110 @@ fn v3_sections_are_serialized_in_canonical_report() {
     assert!(json.contains("companion_doc_audit_summary"));
     assert!(json.contains("source_identity_summary"));
 }
+
+#[test]
+fn benchmark_hidden_instruction_fixture_emits_stable_issue_code() {
+    let report = scan_path(&fixture("fixtures/benchmark/hidden-instruction")).unwrap();
+
+    assert!(report
+        .findings
+        .iter()
+        .any(|finding| finding.issue_code.as_deref() == Some("OCSG-HIDDEN-001")));
+    assert!(!report.hidden_instruction_summary.signals.is_empty());
+}
+
+#[test]
+fn benchmark_claims_vs_does_fixture_emits_review_layer() {
+    let report = scan_path(&fixture("fixtures/benchmark/claims-vs-does")).unwrap();
+
+    assert!(report
+        .findings
+        .iter()
+        .any(|finding| finding.issue_code.as_deref() == Some("OCSG-CLAIM-001")));
+    assert!(!report.claims_review_summary.mismatches.is_empty());
+    assert!(!report.claims_review_summary.review_questions.is_empty());
+}
+
+#[test]
+fn benchmark_integrity_and_estate_sections_are_populated() {
+    let report = scan_path(&fixture("fixtures/benchmark/integrity-estate")).unwrap();
+
+    assert_eq!(report.integrity_snapshot.skill_file_digests.len(), 1);
+    assert_eq!(
+        report.integrity_snapshot.skill_file_digests[0].sha256.len(),
+        64
+    );
+    assert!(!report.estate_inventory_summary.references.is_empty());
+}
+
+#[test]
+fn benchmark_false_positive_docs_do_not_trigger_new_overlays() {
+    let report = scan_path(&fixture("fixtures/benchmark/false-positive-docs")).unwrap();
+
+    assert!(report.hidden_instruction_summary.signals.is_empty());
+    assert!(report.claims_review_summary.mismatches.is_empty());
+    assert!(!report.integrity_snapshot.skill_file_digests.is_empty());
+}
+
+#[test]
+fn agent_ecosystem_mcp_fixture_emits_mcp_issue_codes_and_ai_bom() {
+    let report = openclaw_skill_guard_core::scan_path_with_options(
+        &fixture("fixtures/agent-ecosystem/mcp-dangerous"),
+        None,
+        None,
+        openclaw_skill_guard_core::ValidationExecutionMode::Planned,
+        true,
+    )
+    .unwrap();
+
+    assert!(report
+        .findings
+        .iter()
+        .any(|finding| finding.issue_code.as_deref() == Some("OCSG-MCP-001")));
+    assert!(report
+        .findings
+        .iter()
+        .any(|finding| finding.issue_code.as_deref() == Some("OCSG-MCP-002")));
+    assert!(!report.agent_package_index.packages.is_empty());
+    assert!(!report.ai_bom.mcp_servers.is_empty());
+}
+
+#[test]
+fn agent_ecosystem_cursor_rule_indexes_without_openclaw_skill() {
+    let report = openclaw_skill_guard_core::scan_path_with_options(
+        &fixture("fixtures/agent-ecosystem/cursor-rule"),
+        None,
+        None,
+        openclaw_skill_guard_core::ValidationExecutionMode::Planned,
+        true,
+    )
+    .unwrap();
+
+    assert!(report
+        .agent_package_index
+        .kind_counts
+        .keys()
+        .any(|kind| kind.contains("cursorrule")));
+    assert!(report.findings.iter().all(|finding| {
+        finding.issue_code.as_deref() != Some("OCSG-MCP-001")
+            && finding.issue_code.as_deref() != Some("OCSG-MCP-002")
+    }));
+}
+
+#[test]
+fn benign_mcp_fixture_does_not_emit_mcp_findings() {
+    let report = openclaw_skill_guard_core::scan_path_with_options(
+        &fixture("fixtures/agent-ecosystem/benign-mcp"),
+        None,
+        None,
+        openclaw_skill_guard_core::ValidationExecutionMode::Planned,
+        true,
+    )
+    .unwrap();
+
+    assert!(report
+        .findings
+        .iter()
+        .all(|finding| !finding.category.starts_with("mcp.")));
+    assert_eq!(report.mcp_tool_schema_summary.findings_count, 0);
+}

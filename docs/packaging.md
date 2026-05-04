@@ -31,8 +31,11 @@ openclaw-skill-guard-gui-windows.zip
 The GUI zip should contain:
 
 - `openclaw-skill-guard-gui.exe`
+- `openclaw-skill-guard.exe`
 - `README.txt`
+- `LICENSE`
+- `.openclaw-guard.yml`
 
-The CLI executable can be shipped separately when automation users need it.
+The GUI executable is the primary entry point. The CLI executable is included in the same zip for automation and advanced users.
 
 Do not include research folders, reference repositories, local build paths, or internal planning documents in the public release package.

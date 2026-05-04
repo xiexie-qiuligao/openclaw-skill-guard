@@ -233,6 +233,8 @@ fn make_companion_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: id.to_string(),
         severity,
         confidence,
@@ -246,6 +248,7 @@ fn make_companion_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
+        explanation_zh: None,
         why_openclaw_specific: "OpenClaw skills are distributed with companion docs that can shape operator prompts, install behavior, and indirect instruction flow even when SKILL.md itself looks cleaner.".to_string(),
         prerequisite_context: vec![
             "The finding came from a local companion document, not fetched remote content.".to_string(),
@@ -255,6 +258,7 @@ fn make_companion_finding(
             "Check whether the companion document is inert documentation or intended runtime guidance.".to_string(),
         ],
         remediation: remediation.to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

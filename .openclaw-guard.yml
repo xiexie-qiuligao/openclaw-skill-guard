@@ -1,0 +1,15 @@
+language: zh-CN
+fail_on: block
+minimum_score: 70
+disabled_rules: []
+severity_overrides: {}
+allowed_domains: []
+ignored_paths: []
+agent_package_kinds: []
+deny_mcp_commands: false
+deny_network_tools: false
+require_package_identity: false
+fail_on_issue_codes: []
+remote_input: allow
+max_remote_bytes: 52428800
+max_archive_files: 2000

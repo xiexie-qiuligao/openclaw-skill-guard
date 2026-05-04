@@ -260,6 +260,8 @@ fn make_install_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: category.to_string(),
         severity,
         confidence,
@@ -281,10 +283,12 @@ fn make_install_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
+        explanation_zh: None,
         why_openclaw_specific: why_openclaw_specific.to_string(),
         prerequisite_context: vec!["The install signal was extracted from structured metadata or high-confidence setup instructions.".to_string()],
         analyst_notes: vec!["Install-chain analysis distinguishes metadata-driven install behavior from manual copy-paste setup guidance.".to_string()],
         remediation: remediation.to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

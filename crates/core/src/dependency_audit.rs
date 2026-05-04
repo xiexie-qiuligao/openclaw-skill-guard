@@ -777,6 +777,8 @@ fn make_dependency_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: id.to_string(),
         severity,
         confidence: FindingConfidence::Medium,
@@ -798,10 +800,12 @@ fn make_dependency_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
+        explanation_zh: None,
         why_openclaw_specific: "Dependency retrieval and install-chain source selection can turn package metadata into real host-side setup risk inside OpenClaw skill workflows.".to_string(),
         prerequisite_context: vec!["The dependency signal was extracted from a supported manifest, lockfile, or install-chain artifact.".to_string()],
         analyst_notes,
         remediation: "Pin reviewed versions, prefer default registries, and avoid direct URL or unpinned VCS dependency sources where practical.".to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

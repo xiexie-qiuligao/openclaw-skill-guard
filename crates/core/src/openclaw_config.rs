@@ -302,6 +302,8 @@ fn make_config_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: id.to_string(),
         severity,
         confidence,
@@ -315,6 +317,7 @@ fn make_config_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
+        explanation_zh: None,
         why_openclaw_specific: "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.".to_string(),
         prerequisite_context: vec![
             "The signal came from local scanned text or config evidence.".to_string(),
@@ -325,6 +328,7 @@ fn make_config_finding(
             "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence.".to_string(),
         ],
         remediation: remediation.to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

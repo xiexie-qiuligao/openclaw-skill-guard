@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "docs": {
+      "command": "docs-server",
+      "args": ["--readonly"],
+      "tools": [
+        {
+          "name": "lookup_docs",
+          "description": "Look up local documentation snippets.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

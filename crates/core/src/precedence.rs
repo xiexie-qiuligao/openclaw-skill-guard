@@ -198,6 +198,8 @@ fn make_collision_finding(collision: &PrecedenceCollision) -> Finding {
     Finding {
         id: "context.precedence.name_collision".to_string(),
         title: "Potential skill naming collision in scanned scope".to_string(),
+        issue_code: None,
+        title_zh: None,
         category: "precedence".to_string(),
         severity: FindingSeverity::Medium,
         confidence: FindingConfidence::High,
@@ -211,6 +213,7 @@ fn make_collision_finding(collision: &PrecedenceCollision) -> Finding {
             direct: true,
         }],
         explanation: format!("Multiple skills in the scanned scope share the same resolved name or slug candidate `{}`.", collision.skill_name),
+        explanation_zh: None,
         why_openclaw_specific: "OpenClaw merges skills from multiple roots with source precedence, so same-name collisions can become trusted-name hijack or shadowing problems.".to_string(),
         prerequisite_context: vec!["Collision analysis is limited to the current scan scope unless all relevant skill roots are present.".to_string()],
         analyst_notes: vec![format!(
@@ -218,6 +221,7 @@ fn make_collision_finding(collision: &PrecedenceCollision) -> Finding {
             collision.confidence
         )],
         remediation: "Rename colliding skills or explicitly review how they will resolve under OpenClaw precedence rules.".to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

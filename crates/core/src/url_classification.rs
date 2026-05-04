@@ -331,6 +331,8 @@ fn build_reference_findings(reference: &ExternalReference) -> Vec<Finding> {
         findings.push(Finding {
             id: id.to_string(),
             title: title.to_string(),
+            issue_code: None,
+            title_zh: None,
             category: id.to_string(),
             severity,
             confidence: FindingConfidence::Medium,
@@ -348,10 +350,12 @@ fn build_reference_findings(reference: &ExternalReference) -> Vec<Finding> {
                 direct: true,
             }],
             explanation: explanation.to_string(),
+            explanation_zh: None,
             why_openclaw_specific: "URLs and service references in OpenClaw skills shape install flows, external fetch behavior, and source trust narratives.".to_string(),
             prerequisite_context: vec!["The external reference was extracted directly from scanned text content.".to_string()],
             analyst_notes: build_reference_notes(reference),
             remediation: "Review the referenced source, prefer stable trusted hosts, and avoid opaque or weak-trust fetch targets in install or execution flows.".to_string(),
+            recommendation_zh: None,
             suppression_status: "not_suppressed".to_string(),
         });
     };

@@ -164,8 +164,10 @@ pub struct OpenClawGuardApp {
     target_path: String,
     runtime_manifest_path: String,
     suppression_path: String,
+    policy_config_path: String,
     report_save_path: String,
     validation_mode: ValidationExecutionMode,
+    agent_ecosystem: bool,
     active_tab: UiTab,
     scan_running: bool,
     scan_receiver: Option<Receiver<ScanWorkerMessage>>,
@@ -193,8 +195,10 @@ impl Default for OpenClawGuardApp {
             target_path: String::new(),
             runtime_manifest_path: String::new(),
             suppression_path: String::new(),
+            policy_config_path: String::new(),
             report_save_path: String::new(),
             validation_mode: ValidationExecutionMode::Planned,
+            agent_ecosystem: false,
             active_tab: UiTab::Summary,
             scan_running: false,
             scan_receiver: None,
@@ -286,7 +290,7 @@ impl OpenClawGuardApp {
     fn install_cjk_font(&self, ctx: &egui::Context) {
         let font_root = std::env::var_os("WINDIR")
             .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(r"C:\Windows"))
+            .unwrap_or_else(|| PathBuf::from("Windows"))
             .join("Fonts");
 
         let candidates = [
@@ -384,7 +388,7 @@ impl OpenClawGuardApp {
                 ui.label(RichText::new("扫描目标").strong());
                 ui.add(
                     TextEdit::singleline(&mut self.target_path)
-                        .hint_text("例如：.\\fixtures\\v2\\report-demo 或某个 SKILL.md"),
+                        .hint_text("例如：.\\fixtures\\v2\\report-demo、某个 SKILL.md 或 https://github.com/..."),
                 );
                 ui.horizontal(|ui| {
                     if ui.button("选择 SKILL.md").clicked() {
@@ -400,7 +404,7 @@ impl OpenClawGuardApp {
                         }
                     }
                 });
-                ui.small("支持单个 SKILL.md、skill 目录、skills 根目录或更大工作区。");
+                ui.small("支持本地 SKILL.md、skill 目录、skills 根目录，也支持 HTTPS skill 链接。远程内容只会下载后静态扫描，不会执行。");
             });
 
             Self::section_card(ui, "扫描流程", "主路径收敛为：选目标 -> 开始扫描 -> 看总览。", |ui| {
@@ -452,6 +456,20 @@ impl OpenClawGuardApp {
                         }
                     }
 
+                    ui.label(RichText::new("策略配置 .openclaw-guard.yml（可选）").strong());
+                    ui.add(
+                        TextEdit::singleline(&mut self.policy_config_path)
+                            .hint_text("用于 CI 阻断、远程输入限制和规则策略"),
+                    );
+                    if ui.button("选择策略配置").clicked() {
+                        if let Some(path) = FileDialog::new()
+                            .add_filter("YAML", &["yaml", "yml"])
+                            .pick_file()
+                        {
+                            self.policy_config_path = path.display().to_string();
+                        }
+                    }
+
                     ui.label(RichText::new("运行时验证模式").strong());
                     ui.horizontal(|ui| {
                         ui.selectable_value(
@@ -466,6 +484,12 @@ impl OpenClawGuardApp {
                         );
                     });
                     ui.small("默认建议先用规划模式；只有在需要利用本地安全事实收窄结论时，再启用 Guarded。");
+
+                    ui.checkbox(
+                        &mut self.agent_ecosystem,
+                        "启用通用 Agent / MCP / prompt package 生态解析",
+                    );
+                    ui.small("只解析当前选择范围内的文本和配置；不会启动 MCP server、安装依赖或连接工具。");
 
                     ui.label(RichText::new("默认导出路径（可选）").strong());
                     ui.add(
@@ -655,6 +679,12 @@ impl OpenClawGuardApp {
                 &report.external_references.len().to_string(),
                 Color32::from_rgb(61, 89, 146),
             );
+            self.stat_card(
+                ui,
+                "组合风险",
+                &report.toxic_flow_summary.flows_count.to_string(),
+                Color32::from_rgb(171, 52, 52),
+            );
         });
 
         ui.add_space(8.0);
@@ -662,10 +692,10 @@ impl OpenClawGuardApp {
             Self::section_card_in(
                 &mut columns[0],
                 "关键风险",
-                "优先处理最直接影响 verdict 的问题。",
+                "优先处理最直接影响结论的问题。",
                 |ui| {
                     if report.top_risks.is_empty() {
-                        ui.label("这次扫描没有生成需要优先提醒的关键风险。");
+                        ui.label("本次扫描没有生成需要优先提醒的关键风险。");
                     } else {
                         for risk in report.top_risks.iter().take(6) {
                             ui.label(format!("• {}", display_text_zh(risk)));
@@ -690,26 +720,26 @@ impl OpenClawGuardApp {
         ui.columns(2, |columns| {
             Self::section_card_in(
                 &mut columns[0],
-                "v2 风险摘要",
-                "新增的 corpus / dependency / source 能力在这里集中查看。",
+                "能力摘要",
+                "集中查看 corpus、依赖、来源、OpenClaw 配置和组合风险。",
                 |ui| {
                     self.summary_line(
                         ui,
-                        "Threat corpus",
+                        "威胁模式库",
                         report
                             .context_analysis
                             .threat_corpus_summary
                             .as_deref()
-                            .unwrap_or("本次没有触发 threat corpus 摘要。"),
+                            .unwrap_or("本次没有触发威胁模式库摘要。"),
                     );
                     self.summary_line(
                         ui,
-                        "Sensitive corpus",
+                        "敏感数据模式库",
                         report
                             .context_analysis
                             .sensitive_data_summary
                             .as_deref()
-                            .unwrap_or("本次没有触发 sensitive corpus 摘要。"),
+                            .unwrap_or("本次没有触发敏感数据模式库摘要。"),
                     );
                     self.summary_line(ui, "依赖审计", &report.dependency_audit_summary.summary);
                     self.summary_line(
@@ -720,24 +750,52 @@ impl OpenClawGuardApp {
                     self.summary_line(ui, "来源信誉", &report.source_reputation_summary.summary);
                     self.summary_line(
                         ui,
-                        "Config / control-plane",
+                        "OpenClaw 配置 / 控制面",
                         &report.openclaw_config_audit_summary.summary,
                     );
+                    self.summary_line(ui, "能力 / 权限视图", &report.capability_manifest.summary);
                     self.summary_line(
                         ui,
-                        "Capability manifest",
-                        &report.capability_manifest.summary,
-                    );
-                    self.summary_line(
-                        ui,
-                        "Companion docs",
+                        "配套文档审计",
                         &report.companion_doc_audit_summary.summary,
                     );
                     self.summary_line(
                         ui,
-                        "Source identity",
+                        "来源身份一致性",
                         &report.source_identity_summary.summary,
                     );
+                    self.summary_line(
+                        ui,
+                        "隐藏指令",
+                        &report.hidden_instruction_summary.summary_zh,
+                    );
+                    self.summary_line(ui, "声明 vs 实际", &report.claims_review_summary.summary_zh);
+                    self.summary_line(ui, "完整性快照", &report.integrity_snapshot.summary_zh);
+                    self.summary_line(
+                        ui,
+                        "本地配置引用",
+                        &report.estate_inventory_summary.summary_zh,
+                    );
+                    self.summary_line(ui, "Agent 生态", &report.agent_package_index.summary_zh);
+                    self.summary_line(
+                        ui,
+                        "MCP / Tool Schema",
+                        &report.mcp_tool_schema_summary.summary_zh,
+                    );
+                    self.summary_line(ui, "AI BOM", &report.ai_bom.summary_zh);
+                    self.summary_line(ui, "组合风险", &report.toxic_flow_summary.summary_zh);
+                    if let Some(origin) = &report.input_origin {
+                        self.summary_line(
+                            ui,
+                            "输入来源",
+                            &format!(
+                                "{} / {}",
+                                pretty_debug(&origin.resolved_kind),
+                                origin.original_input
+                            ),
+                        );
+                    }
+                    self.summary_line(ui, "策略结果", &report.policy_evaluation.reason_zh);
                 },
             );
 
@@ -837,17 +895,17 @@ impl OpenClawGuardApp {
                 |ui| {
                     self.optional_summary(
                         ui,
-                        "Dependency audit",
+                        "依赖审计",
                         context.dependency_audit_summary.as_deref(),
                     );
                     self.optional_summary(
                         ui,
-                        "API classification",
+                        "API 分类",
                         context.api_classification_summary.as_deref(),
                     );
                     self.optional_summary(
                         ui,
-                        "Source reputation",
+                        "来源信誉",
                         context.source_reputation_summary.as_deref(),
                     );
                     self.optional_summary(
@@ -870,6 +928,37 @@ impl OpenClawGuardApp {
                         "来源身份",
                         context.source_identity_summary.as_deref(),
                     );
+                    self.optional_summary(
+                        ui,
+                        "隐藏指令",
+                        context.hidden_instruction_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "声明 vs 实际",
+                        context.claims_review_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "完整性快照",
+                        context.integrity_snapshot_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "本地配置引用",
+                        context.estate_inventory_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "Agent 生态",
+                        context.agent_package_summary.as_deref(),
+                    );
+                    self.optional_summary(
+                        ui,
+                        "MCP / Tool Schema",
+                        context.mcp_tool_schema_summary.as_deref(),
+                    );
+                    self.optional_summary(ui, "AI BOM", context.ai_bom_summary.as_deref());
                     self.string_list(
                         ui,
                         "配置风险绑定",
@@ -891,7 +980,7 @@ impl OpenClawGuardApp {
                         .iter()
                         .map(|signal| {
                             let evidence = if signal.evidence.is_empty() {
-                                "no direct evidence excerpt".to_string()
+                                "没有直接证据摘录".to_string()
                             } else {
                                 signal.evidence.join("; ")
                             };
@@ -899,6 +988,62 @@ impl OpenClawGuardApp {
                         })
                         .collect::<Vec<_>>();
                     self.string_list(ui, "来源身份不一致信号", &identity_signals);
+                    let hidden_signals = report
+                        .hidden_instruction_summary
+                        .signals
+                        .iter()
+                        .map(|signal| {
+                            format!(
+                                "{}: {}:{} -> {}",
+                                signal.signal_kind,
+                                signal.path,
+                                signal.line.unwrap_or(1),
+                                signal.rationale_zh
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list(ui, "隐藏指令信号", &hidden_signals);
+                    let claim_mismatches = report
+                        .claims_review_summary
+                        .mismatches
+                        .iter()
+                        .map(|item| {
+                            format!(
+                                "声明：{}；证据：{}；复核：{}",
+                                item.claim, item.observed_signal, item.review_question
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list(ui, "声明与实际错位", &claim_mismatches);
+                    let digest_lines = report
+                        .integrity_snapshot
+                        .skill_file_digests
+                        .iter()
+                        .map(|digest| {
+                            format!(
+                                "{} | SHA-256 {} | {} bytes",
+                                digest.path, digest.sha256, digest.bytes
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list(ui, "SKILL.md 完整性摘要", &digest_lines);
+                    let estate_refs = report
+                        .estate_inventory_summary
+                        .references
+                        .iter()
+                        .map(|reference| {
+                            format!(
+                                "{}: {} ({})",
+                                reference.reference_kind, reference.summary_zh, reference.path
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    self.string_list(ui, "本地配置引用", &estate_refs);
+                    self.string_list(ui, "AI BOM package", &report.ai_bom.packages);
+                    self.string_list(ui, "AI BOM 工具面", &report.ai_bom.tool_surfaces);
+                    self.string_list(ui, "AI BOM MCP server", &report.ai_bom.mcp_servers);
+                    self.string_list(ui, "AI BOM 命令", &report.ai_bom.commands);
+                    self.string_list(ui, "AI BOM 复核问题", &report.ai_bom.review_questions);
                     self.optional_summary(
                         ui,
                         "宿主 / 沙箱判断",
@@ -916,7 +1061,7 @@ impl OpenClawGuardApp {
         Self::section_card(
             ui,
             "依赖审计细读",
-            "重点阅读 dependency finding 的来源、风险线索和 explainability。",
+            "重点阅读依赖发现项的来源、风险线索和解释依据。",
             |ui| {
                 let dependency_findings = report
                     .findings
@@ -925,7 +1070,7 @@ impl OpenClawGuardApp {
                     .collect::<Vec<_>>();
 
                 if dependency_findings.is_empty() {
-                    ui.label("本次没有 dependency finding。");
+                    ui.label("本次没有依赖审计发现项。");
                     return;
                 }
 
@@ -1127,7 +1272,7 @@ impl OpenClawGuardApp {
                 |ui| {
                     self.key_value(ui, "运行时 manifest", &report.runtime_manifest_summary);
                     self.key_value(ui, "验证计划", &report.validation_plan.summary);
-                    self.key_value(ui, "Guarded validation", &report.guarded_validation.summary);
+                    self.key_value(ui, "受保护运行时验证", &report.guarded_validation.summary);
                     self.key_value(ui, "影响模型", &report.consequence_summary.summary);
                     self.key_value(ui, "宿主 / 沙箱", &report.host_vs_sandbox_split.summary);
                 },
@@ -1303,7 +1448,7 @@ impl OpenClawGuardApp {
                         )
                     })
                     .collect::<Vec<_>>();
-                self.string_list_from_validated(ui, "Provenance notes", &provenance_items);
+                self.string_list_from_validated(ui, "来源说明", &provenance_items);
 
                 let audit_items = report
                     .audit_summary
@@ -1362,9 +1507,10 @@ impl OpenClawGuardApp {
             .stroke(Stroke::new(1.0, accent))
             .show(ui, |ui| {
                 ui.horizontal_wrapped(|ui| {
+                    let title = finding.title_zh.as_deref().unwrap_or(&finding.title);
                     let response = ui.add(
                         egui::Label::new(
-                            RichText::new(display_text_zh(&finding.title))
+                            RichText::new(display_text_zh(title))
                                 .strong()
                                 .size(19.0)
                                 .color(Color32::from_rgb(36, 41, 47)),
@@ -1383,6 +1529,9 @@ impl OpenClawGuardApp {
                         &format!("置信度：{}", confidence_text(finding.confidence)),
                     );
                     self.small_badge(ui, &format!("分类：{}", finding.category));
+                    if let Some(code) = &finding.issue_code {
+                        self.small_badge(ui, &format!("问题编号：{code}"));
+                    }
                 });
 
                 if let Some(location) = &finding.location {
@@ -1393,7 +1542,11 @@ impl OpenClawGuardApp {
                     ));
                 }
 
-                self.render_expandable_text(ui, "风险解释", &finding.explanation, 280);
+                let explanation = finding
+                    .explanation_zh
+                    .as_deref()
+                    .unwrap_or(&finding.explanation);
+                self.render_expandable_text(ui, "风险解释", explanation, 280);
                 if !finding.why_openclaw_specific.is_empty() {
                     self.render_expandable_text(
                         ui,
@@ -1429,7 +1582,11 @@ impl OpenClawGuardApp {
                     );
                 }
                 if !finding.remediation.is_empty() {
-                    self.render_expandable_text(ui, "修复建议", &finding.remediation, 220);
+                    let remediation = finding
+                        .recommendation_zh
+                        .as_deref()
+                        .unwrap_or(&finding.remediation);
+                    self.render_expandable_text(ui, "修复建议", remediation, 220);
                 }
 
                 ui.horizontal_wrapped(|ui| {
@@ -1922,11 +2079,13 @@ impl OpenClawGuardApp {
         }
 
         let request = ScanRequest {
-            target_path: PathBuf::from(target_path),
+            target_path: target_path.to_string(),
             runtime_manifest_path: optional_path(&self.runtime_manifest_path),
             suppression_path: optional_path(&self.suppression_path),
             report_save_path: optional_path(&self.report_save_path),
+            policy_path: optional_path(&self.policy_config_path),
             validation_mode: self.validation_mode,
+            agent_ecosystem: self.agent_ecosystem,
         };
 
         let (sender, receiver) = mpsc::channel();

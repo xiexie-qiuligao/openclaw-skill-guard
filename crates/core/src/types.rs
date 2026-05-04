@@ -593,6 +593,10 @@ pub struct AttackPath {
 pub struct Finding {
     pub id: String,
     pub title: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issue_code: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title_zh: Option<String>,
     pub category: String,
     pub severity: FindingSeverity,
     pub confidence: FindingConfidence,
@@ -601,10 +605,14 @@ pub struct Finding {
     pub location: Option<SkillLocation>,
     pub evidence: Vec<EvidenceNode>,
     pub explanation: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub explanation_zh: Option<String>,
     pub why_openclaw_specific: String,
     pub prerequisite_context: Vec<String>,
     pub analyst_notes: Vec<String>,
     pub remediation: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recommendation_zh: Option<String>,
     pub suppression_status: String,
 }
 
@@ -1140,6 +1148,220 @@ pub struct SourceIdentitySummary {
     pub notes: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum InputOriginKind {
+    #[default]
+    LocalPath,
+    GithubRepo,
+    GithubTree,
+    GithubBlob,
+    RawSkill,
+    ZipArchive,
+    HttpsSkill,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct InputOrigin {
+    pub original_input: String,
+    pub resolved_kind: InputOriginKind,
+    pub source_host: Option<String>,
+    pub resolved_path: String,
+    pub reference: Option<String>,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ToxicFlow {
+    pub flow_id: String,
+    pub issue_code: String,
+    pub title: String,
+    pub title_zh: String,
+    pub severity: FindingSeverity,
+    pub confidence: FindingConfidence,
+    pub untrusted_sources: Vec<String>,
+    pub sensitive_surfaces: Vec<String>,
+    pub egress_or_execution: Vec<String>,
+    pub related_findings: Vec<String>,
+    pub explanation: String,
+    pub explanation_zh: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ToxicFlowSummary {
+    pub summary: String,
+    pub summary_zh: String,
+    pub flows_count: usize,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct HiddenInstructionSignal {
+    pub signal_id: String,
+    pub signal_kind: String,
+    pub path: String,
+    pub line: Option<usize>,
+    pub evidence_excerpt: String,
+    pub rationale: String,
+    pub rationale_zh: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct HiddenInstructionSummary {
+    pub summary: String,
+    pub summary_zh: String,
+    pub signals: Vec<HiddenInstructionSignal>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ClaimObservation {
+    pub claim: String,
+    pub claim_source: String,
+    pub observed_signal: String,
+    pub status: String,
+    pub review_question: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ClaimsReviewSummary {
+    pub summary: String,
+    pub summary_zh: String,
+    pub declared_claims: Vec<String>,
+    pub observed_signals: Vec<String>,
+    pub mismatches: Vec<ClaimObservation>,
+    pub review_questions: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct SkillFileDigest {
+    pub path: String,
+    pub sha256: String,
+    pub bytes: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct IntegritySnapshot {
+    pub summary: String,
+    pub summary_zh: String,
+    pub skill_file_digests: Vec<SkillFileDigest>,
+    pub text_file_count: usize,
+    pub total_text_bytes: usize,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct EstateReference {
+    pub reference_id: String,
+    pub reference_kind: String,
+    pub path: String,
+    pub summary: String,
+    pub summary_zh: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct EstateInventorySummary {
+    pub summary: String,
+    pub summary_zh: String,
+    pub references: Vec<EstateReference>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AgentPackageKind {
+    OpenClawSkill,
+    ClaudeSkill,
+    CursorRule,
+    WindsurfRule,
+    CodexSkill,
+    ClineRule,
+    McpConfig,
+    GenericPromptPackage,
+    UnknownAgentAsset,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct AgentPackageSurface {
+    pub instructions: Vec<String>,
+    pub tools: Vec<String>,
+    pub schemas: Vec<String>,
+    pub commands: Vec<String>,
+    pub env: Vec<String>,
+    pub external_refs: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AgentPackage {
+    pub package_id: String,
+    pub package_kind: AgentPackageKind,
+    pub name: Option<String>,
+    pub source_path: String,
+    pub identity_hint: Option<String>,
+    pub surface: AgentPackageSurface,
+    pub evidence_excerpt: String,
+    pub summary: String,
+    pub summary_zh: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct AgentPackageIndexSummary {
+    pub summary: String,
+    pub summary_zh: String,
+    pub packages: Vec<AgentPackage>,
+    pub kind_counts: BTreeMap<String, usize>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct McpToolSchemaSummary {
+    pub summary: String,
+    pub summary_zh: String,
+    pub mcp_configs: Vec<String>,
+    pub tool_schema_signals: Vec<String>,
+    pub dangerous_commands: Vec<String>,
+    pub findings_count: usize,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct AiBom {
+    pub summary: String,
+    pub summary_zh: String,
+    pub packages: Vec<String>,
+    pub tool_surfaces: Vec<String>,
+    pub mcp_servers: Vec<String>,
+    pub commands: Vec<String>,
+    pub env_and_config: Vec<String>,
+    pub external_services: Vec<String>,
+    pub dependencies: Vec<String>,
+    pub source_identities: Vec<String>,
+    pub integrity_digests: Vec<String>,
+    pub review_questions: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct PolicyEvaluation {
+    pub policy_name: String,
+    pub language: String,
+    pub ci_mode: bool,
+    pub blocked: bool,
+    pub reason: String,
+    pub reason_zh: String,
+    #[serde(default)]
+    pub ignored_rules: Vec<String>,
+    #[serde(default)]
+    pub ignored_findings: Vec<String>,
+    #[serde(default)]
+    pub severity_overrides_applied: Vec<String>,
+    #[serde(default)]
+    pub allowed_domain_matches: Vec<String>,
+    #[serde(default)]
+    pub ignored_path_matches: Vec<String>,
+    #[serde(default)]
+    pub notes: Vec<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContextAnalysis {
     pub phase: String,
@@ -1164,6 +1386,13 @@ pub struct ContextAnalysis {
     pub capability_manifest_summary: Option<String>,
     pub companion_doc_audit_summary: Option<String>,
     pub source_identity_summary: Option<String>,
+    pub hidden_instruction_summary: Option<String>,
+    pub claims_review_summary: Option<String>,
+    pub integrity_snapshot_summary: Option<String>,
+    pub estate_inventory_summary: Option<String>,
+    pub agent_package_summary: Option<String>,
+    pub mcp_tool_schema_summary: Option<String>,
+    pub ai_bom_summary: Option<String>,
     pub notes: Vec<String>,
 }
 
@@ -1177,6 +1406,8 @@ pub struct Recommendations {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ScanReport {
+    #[serde(default)]
+    pub input_origin: Option<InputOrigin>,
     pub target: ScanTarget,
     pub scan_mode: String,
     pub files_scanned: usize,
@@ -1219,10 +1450,32 @@ pub struct ScanReport {
     pub companion_doc_audit_summary: CompanionDocAuditSummary,
     #[serde(default)]
     pub source_identity_summary: SourceIdentitySummary,
+    #[serde(default)]
+    pub toxic_flow_summary: ToxicFlowSummary,
+    #[serde(default)]
+    pub toxic_flows: Vec<ToxicFlow>,
+    #[serde(default)]
+    pub hidden_instruction_summary: HiddenInstructionSummary,
+    #[serde(default)]
+    pub claims_review_summary: ClaimsReviewSummary,
+    #[serde(default)]
+    pub integrity_snapshot: IntegritySnapshot,
+    #[serde(default)]
+    pub estate_inventory_summary: EstateInventorySummary,
+    #[serde(default)]
+    pub agent_package_index: AgentPackageIndexSummary,
+    #[serde(default)]
+    pub mcp_tool_schema_summary: McpToolSchemaSummary,
+    #[serde(default)]
+    pub ai_bom: AiBom,
+    #[serde(default)]
+    pub policy_evaluation: PolicyEvaluation,
     pub provenance_notes: Vec<ProvenanceNote>,
     pub confidence_factors: Vec<ConfidenceFactor>,
     pub false_positive_mitigations: Vec<FalsePositiveMitigation>,
     pub scoring_summary: ScoringSummary,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub summary_zh: Option<String>,
     pub openclaw_specific_risk_summary: String,
     pub scope_resolution_summary: RootResolutionSummary,
     pub audit_summary: AuditSummary,

@@ -2,6 +2,7 @@ use crate::capability_manifest::CapabilityManifestAnalysis;
 use crate::companion_docs::CompanionDocAuditAnalysis;
 use crate::consequence::ConsequenceAnalysis;
 use crate::dependency_audit::DependencyAuditAnalysis;
+use crate::hidden_instruction::HiddenInstructionAnalysis;
 use crate::install::InstallAnalysis;
 use crate::invocation::InvocationAnalysis;
 use crate::openclaw_config::OpenClawConfigAuditAnalysis;
@@ -9,7 +10,10 @@ use crate::precedence::PrecedenceAnalysis;
 use crate::prompt_injection::PromptInjectionAnalysis;
 use crate::reachability::{SecretReachabilityAnalysis, ToolReachabilityAnalysis};
 use crate::source_identity::SourceIdentityAnalysis;
-use crate::types::{ContextAnalysis, ParsedSkill};
+use crate::types::{
+    AgentPackageIndexSummary, AiBom, ClaimsReviewSummary, ContextAnalysis, EstateInventorySummary,
+    IntegritySnapshot, McpToolSchemaSummary, ParsedSkill,
+};
 use crate::url_classification::UrlClassificationAnalysis;
 
 pub fn build_context_analysis(
@@ -28,6 +32,13 @@ pub fn build_context_analysis(
     capability_manifest: &CapabilityManifestAnalysis,
     companion_docs: &CompanionDocAuditAnalysis,
     source_identity: &SourceIdentityAnalysis,
+    hidden_instructions: &HiddenInstructionAnalysis,
+    claims_review: &ClaimsReviewSummary,
+    integrity_snapshot: &IntegritySnapshot,
+    estate_inventory: &EstateInventorySummary,
+    agent_package_index: &AgentPackageIndexSummary,
+    mcp_tool_schema: &McpToolSchemaSummary,
+    ai_bom: &AiBom,
     consequence: &ConsequenceAnalysis,
 ) -> ContextAnalysis {
     let parsing_summary = if skills.is_empty() {
@@ -84,12 +95,20 @@ pub fn build_context_analysis(
         capability_manifest_summary: Some(capability_manifest.summary.summary.clone()),
         companion_doc_audit_summary: Some(companion_docs.summary.summary.clone()),
         source_identity_summary: Some(source_identity.summary.summary.clone()),
+        hidden_instruction_summary: Some(hidden_instructions.summary.summary.clone()),
+        claims_review_summary: Some(claims_review.summary.clone()),
+        integrity_snapshot_summary: Some(integrity_snapshot.summary.clone()),
+        estate_inventory_summary: Some(estate_inventory.summary.clone()),
+        agent_package_summary: Some(agent_package_index.summary.clone()),
+        mcp_tool_schema_summary: Some(mcp_tool_schema.summary.clone()),
+        ai_bom_summary: Some(ai_bom.summary.clone()),
         notes: vec![
             "Phase 7 runtime validation refines static conclusions with manifest-backed permission facts, guarded local checks, and explicit unknowns.".to_string(),
             "Precedence analysis records known roots, missing roots, and scope limitations instead of assuming global completeness.".to_string(),
             "V2 dependency, URL/API, and reputation signals are explainable overlays derived from built-in corpora and local heuristics rather than online trust services.".to_string(),
             "Threat and sensitive-data corpus analyzers are additive explainable detectors; they do not replace baseline, prompt, or reachability analysis.".to_string(),
             "V3 OpenClaw config, capability manifest, companion-doc, and source-identity signals remain local and explainable; they do not execute installs or query online trust services.".to_string(),
+            "Hidden-instruction, claims-vs-observed, integrity snapshot, and estate reference summaries are passive overlays for installation-time review.".to_string(),
         ],
     }
 }

@@ -6,6 +6,7 @@
   "additionalProperties": false,
   "required": [
     "target",
+    "input_origin",
     "scan_mode",
     "files_scanned",
     "files_skipped",
@@ -43,6 +44,17 @@
     "capability_manifest",
     "companion_doc_audit_summary",
     "source_identity_summary",
+    "toxic_flow_summary",
+    "toxic_flows",
+    "hidden_instruction_summary",
+    "claims_review_summary",
+    "integrity_snapshot",
+    "estate_inventory_summary",
+    "agent_package_index",
+    "mcp_tool_schema_summary",
+    "ai_bom",
+    "policy_evaluation",
+    "summary_zh",
     "provenance_notes",
     "confidence_factors",
     "false_positive_mitigations",
@@ -61,6 +73,13 @@
     "target": {
       "type": "object",
       "description": "Canonical scan target descriptor."
+    },
+    "input_origin": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Original local path or remote skill link resolution details."
     },
     "scan_mode": {
       "type": "string",
@@ -105,7 +124,25 @@
     "findings": {
       "type": "array",
       "items": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "issue_code": {
+            "type": "string",
+            "description": "Stable OCSG issue code for GUI, SARIF, CI, and documentation references."
+          },
+          "title_zh": {
+            "type": "string",
+            "description": "Chinese human-readable finding title."
+          },
+          "explanation_zh": {
+            "type": "string",
+            "description": "Chinese human-readable finding explanation."
+          },
+          "recommendation_zh": {
+            "type": "string",
+            "description": "Chinese human-readable remediation guidance."
+          }
+        }
       }
     },
     "context_analysis": {
@@ -238,6 +275,48 @@
           ]
         },
         "source_identity_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hidden_instruction_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "claims_review_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "integrity_snapshot_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "estate_inventory_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "agent_package_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mcp_tool_schema_summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ai_bom_summary": {
           "type": [
             "string",
             "null"
@@ -493,6 +572,167 @@
         "signals": { "type": "array", "items": { "type": "object" } },
         "notes": { "type": "array", "items": { "type": "string" } }
       }
+    },
+    "toxic_flow_summary": {
+      "type": "object",
+      "description": "Summary for evidence combinations that join untrusted input, sensitive data, and egress or execution capability."
+    },
+    "toxic_flows": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "hidden_instruction_summary": {
+      "type": "object",
+      "description": "Static hidden-instruction, Trojan Source, deceptive-link, encoded-instruction, and schema-poisoning signals.",
+      "required": ["summary", "summary_zh", "signals", "notes"],
+      "properties": {
+        "summary": { "type": "string" },
+        "summary_zh": { "type": "string" },
+        "signals": { "type": "array", "items": { "type": "object" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "claims_review_summary": {
+      "type": "object",
+      "description": "Claims-vs-observed evidence review for install-time decisions.",
+      "required": [
+        "summary",
+        "summary_zh",
+        "declared_claims",
+        "observed_signals",
+        "mismatches",
+        "review_questions"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "summary_zh": { "type": "string" },
+        "declared_claims": { "type": "array", "items": { "type": "string" } },
+        "observed_signals": { "type": "array", "items": { "type": "string" } },
+        "mismatches": { "type": "array", "items": { "type": "object" } },
+        "review_questions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "integrity_snapshot": {
+      "type": "object",
+      "description": "Passive SHA-256 and text-file summary for report comparison and remote skill drift review.",
+      "required": [
+        "summary",
+        "summary_zh",
+        "skill_file_digests",
+        "text_file_count",
+        "total_text_bytes",
+        "notes"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "summary_zh": { "type": "string" },
+        "skill_file_digests": { "type": "array", "items": { "type": "object" } },
+        "text_file_count": { "type": "integer", "minimum": 0 },
+        "total_text_bytes": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "estate_inventory_summary": {
+      "type": "object",
+      "description": "Scope-limited local OpenClaw/Claude/Cursor/Windsurf/MCP configuration reference inventory.",
+      "required": ["summary", "summary_zh", "references", "notes"],
+      "properties": {
+        "summary": { "type": "string" },
+        "summary_zh": { "type": "string" },
+        "references": { "type": "array", "items": { "type": "object" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "agent_package_index": {
+      "type": "object",
+      "description": "Generic Agent Skill / Tool / MCP / prompt package index.",
+      "required": ["summary", "summary_zh", "packages", "kind_counts", "notes"],
+      "properties": {
+        "summary": { "type": "string" },
+        "summary_zh": { "type": "string" },
+        "packages": { "type": "array", "items": { "type": "object" } },
+        "kind_counts": { "type": "object" },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "mcp_tool_schema_summary": {
+      "type": "object",
+      "description": "Static MCP command/env/tool/schema review result.",
+      "required": [
+        "summary",
+        "summary_zh",
+        "mcp_configs",
+        "tool_schema_signals",
+        "dangerous_commands",
+        "findings_count",
+        "notes"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "summary_zh": { "type": "string" },
+        "mcp_configs": { "type": "array", "items": { "type": "string" } },
+        "tool_schema_signals": { "type": "array", "items": { "type": "string" } },
+        "dangerous_commands": { "type": "array", "items": { "type": "string" } },
+        "findings_count": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "ai_bom": {
+      "type": "object",
+      "description": "AI bill of materials for agent package review.",
+      "required": [
+        "summary",
+        "summary_zh",
+        "packages",
+        "tool_surfaces",
+        "mcp_servers",
+        "commands",
+        "env_and_config",
+        "external_services",
+        "dependencies",
+        "source_identities",
+        "integrity_digests",
+        "review_questions"
+      ],
+      "properties": {
+        "summary": { "type": "string" },
+        "summary_zh": { "type": "string" },
+        "packages": { "type": "array", "items": { "type": "string" } },
+        "tool_surfaces": { "type": "array", "items": { "type": "string" } },
+        "mcp_servers": { "type": "array", "items": { "type": "string" } },
+        "commands": { "type": "array", "items": { "type": "string" } },
+        "env_and_config": { "type": "array", "items": { "type": "string" } },
+        "external_services": { "type": "array", "items": { "type": "string" } },
+        "dependencies": { "type": "array", "items": { "type": "string" } },
+        "source_identities": { "type": "array", "items": { "type": "string" } },
+        "integrity_digests": { "type": "array", "items": { "type": "string" } },
+        "review_questions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "policy_evaluation": {
+      "type": "object",
+      "description": "Local policy/CI gate evaluation result.",
+      "properties": {
+        "policy_name": { "type": "string" },
+        "language": { "type": "string" },
+        "ci_mode": { "type": "boolean" },
+        "blocked": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "reason_zh": { "type": "string" },
+        "ignored_rules": { "type": "array", "items": { "type": "string" } },
+        "ignored_findings": { "type": "array", "items": { "type": "string" } },
+        "severity_overrides_applied": { "type": "array", "items": { "type": "string" } },
+        "allowed_domain_matches": { "type": "array", "items": { "type": "string" } },
+        "ignored_path_matches": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "summary_zh": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Human-readable Chinese summary derived from the canonical report."
     },
     "provenance_notes": {
       "type": "array",

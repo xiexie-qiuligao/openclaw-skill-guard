@@ -208,6 +208,8 @@ fn finding_from_signal(signal: &PromptInjectionSignal, segment: &InstructionSegm
     Finding {
         id: format!("prompt.{}", signal.kind_string()),
         title: signal.kind_title().to_string(),
+                    issue_code: None,
+                    title_zh: None,
         category: "prompt_injection".to_string(),
         severity: signal.severity,
         confidence: signal.confidence,
@@ -216,10 +218,12 @@ fn finding_from_signal(signal: &PromptInjectionSignal, segment: &InstructionSegm
         location: Some(segment.location.clone()),
         evidence: signal.evidence.clone(),
         explanation: signal.summary.clone(),
+                    explanation_zh: None,
         why_openclaw_specific: "OpenClaw skills can package behavioral instructions together with invocation, install, and tool configuration. That makes prompt-level coercion materially relevant to real tool authority, not just to text generation.".to_string(),
         prerequisite_context: vec!["Instruction extraction produced a coercive segment.".to_string()],
         analyst_notes: vec!["Phase 5 uses pattern- and context-based instruction analysis rather than an LLM classifier.".to_string()],
         remediation: "Remove coercive language that overrides approval, safety, or trusted-instruction boundaries.".to_string(),
+                    recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

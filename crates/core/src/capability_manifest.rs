@@ -237,6 +237,8 @@ fn make_manifest_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: id.to_string(),
         severity,
         confidence,
@@ -250,6 +252,7 @@ fn make_manifest_finding(
             direct: false,
         }],
         explanation: explanation.to_string(),
+        explanation_zh: None,
         why_openclaw_specific: "OpenClaw skill authority can come from metadata, invocation policy, required config/env, install actions, and companion text; the manifest makes that combined surface reviewable.".to_string(),
         prerequisite_context: vec![
             "The finding is synthesized from existing analyzers rather than a new permission system.".to_string(),
@@ -258,6 +261,7 @@ fn make_manifest_finding(
             "Review declared capabilities against actual reachability and install/source evidence.".to_string(),
         ],
         remediation: remediation.to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

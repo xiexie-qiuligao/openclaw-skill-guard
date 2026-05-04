@@ -263,6 +263,8 @@ mod tests {
         Finding {
             id: "context.invocation.tool_dispatch".to_string(),
             title: String::new(),
+            issue_code: None,
+            title_zh: None,
             category: String::new(),
             severity: FindingSeverity::High,
             confidence: FindingConfidence::High,
@@ -271,10 +273,12 @@ mod tests {
             location: None,
             evidence: Vec::new(),
             explanation: String::new(),
+            explanation_zh: None,
             why_openclaw_specific: String::new(),
             prerequisite_context: Vec::new(),
             analyst_notes: Vec::new(),
             remediation: String::new(),
+            recommendation_zh: None,
             suppression_status: "not_suppressed".to_string(),
         }
     }

@@ -84,6 +84,8 @@ fn make_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: "invocation_policy".to_string(),
         severity,
         confidence,
@@ -97,10 +99,12 @@ fn make_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
+        explanation_zh: None,
         why_openclaw_specific: why_openclaw_specific.to_string(),
         prerequisite_context: vec!["The finding relies on parsed SKILL.md frontmatter and normalized invocation metadata.".to_string()],
         analyst_notes: vec!["Invocation-policy findings are specific to OpenClaw command semantics, not generic markdown content.".to_string()],
         remediation: remediation.to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

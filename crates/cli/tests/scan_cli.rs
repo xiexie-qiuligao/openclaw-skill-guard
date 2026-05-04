@@ -146,9 +146,9 @@ fn cli_scan_outputs_markdown_report() {
     assert!(output.status.code() == Some(2) || output.status.code() == Some(3));
 
     let rendered = String::from_utf8(output.stdout).unwrap();
-    assert!(rendered.contains("# openclaw-skill-guard report"));
-    assert!(rendered.contains("## Findings"));
-    assert!(rendered.contains("## V2 Summaries"));
+    assert!(rendered.contains("# OpenClaw Skill Guard 安全报告"));
+    assert!(rendered.contains("## 发现项"));
+    assert!(rendered.contains("## v2 风险摘要"));
 }
 
 #[test]
@@ -169,6 +169,6 @@ fn cli_scan_outputs_html_report() {
 
     let rendered = String::from_utf8(output.stdout).unwrap();
     assert!(rendered.contains("<!DOCTYPE html>"));
-    assert!(rendered.contains("## V2 Summaries"));
-    assert!(rendered.contains("## Findings"));
+    assert!(rendered.contains("v2 风险摘要"));
+    assert!(rendered.contains("发现项"));
 }

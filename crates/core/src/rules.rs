@@ -150,6 +150,8 @@ pub fn evaluate_rules(path: &str, lines: &[NormalizedLine]) -> Vec<Finding> {
             findings.push(Finding {
                 id: rule.id.to_string(),
                 title: rule.title.to_string(),
+                issue_code: None,
+                title_zh: None,
                 category: rule.category.to_string(),
                 severity: rule.severity,
                 confidence: rule.confidence,
@@ -163,10 +165,12 @@ pub fn evaluate_rules(path: &str, lines: &[NormalizedLine]) -> Vec<Finding> {
                     direct: true,
                 }],
                 explanation: rule.explanation.to_string(),
+                explanation_zh: None,
                 why_openclaw_specific: "This is a baseline scanner finding. OpenClaw-specific runtime modeling is deferred to Phase 4, but direct execution and credential exposure primitives still matter because skills can be installed and invoked inside real OpenClaw environments.".to_string(),
                 prerequisite_context: vec!["The matched text appears in the scanned file content after normalization.".to_string()],
                 analyst_notes: vec!["This rule is inherited baseline coverage and is intentionally kept separate from Phase 5 compound/path logic.".to_string()],
                 remediation: rule.remediation.to_string(),
+                recommendation_zh: None,
                 suppression_status: "not_suppressed".to_string(),
             });
         }

@@ -1,4 +1,7 @@
-use openclaw_skill_guard_core::ScanReport;
+use openclaw_skill_guard_core::{
+    localization::{confidence_zh, debug_label_zh, severity_zh, verdict_zh, zh_text},
+    ScanReport,
+};
 use serde_json::{json, Value};
 
 pub fn render_json(report: &ScanReport) -> Result<String, serde_json::Error> {
@@ -10,15 +13,17 @@ pub fn render_sarif(report: &ScanReport) -> Result<String, serde_json::Error> {
     let mut results = Vec::<Value>::new();
 
     for finding in &report.findings {
-        rule_index.entry(finding.id.clone()).or_insert_with(|| {
+        let rule_id = finding.issue_code.as_deref().unwrap_or(&finding.id);
+        rule_index.entry(rule_id.to_string()).or_insert_with(|| {
             json!({
-                "id": finding.id,
+                "id": rule_id,
                 "name": finding.category,
                 "shortDescription": {
-                    "text": finding.title,
+                    "text": finding.title_zh.as_deref().unwrap_or(&finding.title),
                 },
                 "properties": {
                     "category": finding.category,
+                    "finding_id": finding.id,
                 }
             })
         });
@@ -42,15 +47,20 @@ pub fn render_sarif(report: &ScanReport) -> Result<String, serde_json::Error> {
             .unwrap_or_default();
 
         results.push(json!({
-            "ruleId": finding.id,
+            "ruleId": rule_id,
             "level": sarif_level(finding.severity),
             "message": {
-                "text": finding.explanation,
+                "text": finding.explanation_zh.as_deref().unwrap_or(&finding.explanation),
             },
             "locations": locations,
             "properties": {
                 "severity": format!("{:?}", finding.severity).to_ascii_lowercase(),
                 "confidence": format!("{:?}", finding.confidence).to_ascii_lowercase(),
+                "severity_zh": severity_zh(finding.severity),
+                "confidence_zh": confidence_zh(finding.confidence),
+                "issue_code": finding.issue_code,
+                "finding_id": finding.id,
+                "english_message": finding.explanation,
                 "hard_trigger": finding.hard_trigger,
                 "why_openclaw_specific": finding.why_openclaw_specific,
                 "suppression_status": finding.suppression_status,
@@ -78,52 +88,124 @@ pub fn render_sarif(report: &ScanReport) -> Result<String, serde_json::Error> {
 
 pub fn render_markdown(report: &ScanReport) -> String {
     let mut out = String::new();
-    out.push_str("# openclaw-skill-guard report\n\n");
-    out.push_str("## Summary\n\n");
+    out.push_str("# OpenClaw Skill Guard 安全报告\n\n");
+    out.push_str("## 总览\n\n");
     out.push_str(&format!(
-        "- Target: `{}`\n- Verdict: `{}`\n- Score: `{}`\n- Blocked: `{}`\n- Findings: `{}`\n- Attack paths: `{}`\n- External references: `{}`\n\n",
-        report.target.path,
-        format!("{:?}", report.verdict).to_ascii_lowercase(),
+        "- 扫描目标：`{}`\n- 最终结论：`{}`\n- 风险分数：`{}`\n- 是否阻断：`{}`\n- 发现项：`{}`\n- 攻击路径：`{}`\n- 外部引用：`{}`\n\n",
+        safe_report_path(&report.target.path),
+        verdict_zh(report.verdict),
         report.score,
-        if report.blocked { "yes" } else { "no" },
+        if report.blocked { "是" } else { "否" },
         report.findings.len(),
         report.attack_paths.len(),
         report.external_references.len(),
     ));
+    out.push_str("> 提醒：未发现高风险项并不等于绝对安全；请结合来源、权限、安装链和运行环境做最终复核。\n\n");
+    if let Some(origin) = &report.input_origin {
+        out.push_str(&format!(
+            "- 输入来源：`{}` / `{}`\n- 解析目标：`{}`\n\n",
+            debug_label_zh(&origin.resolved_kind),
+            origin.original_input,
+            safe_report_path(&origin.resolved_path)
+        ));
+    }
 
-    out.push_str("## V2 Summaries\n\n");
+    out.push_str("## v2 风险摘要\n\n");
     out.push_str(&format!(
-        "- Threat corpus: {}\n- Sensitive data: {}\n- Dependency audit: {}\n- API classification: {}\n- Source reputation: {}\n\n",
-        report
+        "- 威胁模式库：{}\n- 敏感数据：{}\n- 依赖审计：{}\n- API / URL 分类：{}\n- 来源信誉：{}\n\n",
+        zh_text(report
             .context_analysis
             .threat_corpus_summary
             .as_deref()
-            .unwrap_or("n/a"),
-        report
+            .unwrap_or("n/a")),
+        zh_text(report
             .context_analysis
             .sensitive_data_summary
             .as_deref()
-            .unwrap_or("n/a"),
-        report.dependency_audit_summary.summary,
-        report.api_classification_summary.summary,
-        report.source_reputation_summary.summary,
+            .unwrap_or("n/a")),
+        zh_text(&report.dependency_audit_summary.summary),
+        zh_text(&report.api_classification_summary.summary),
+        zh_text(&report.source_reputation_summary.summary),
     ));
 
-    out.push_str("## V3 OpenClaw Summaries\n\n");
+    out.push_str("## OpenClaw 专项摘要\n\n");
     out.push_str(&format!(
-        "- Config / control-plane: {}\n- Capability manifest: {}\n- Companion docs: {}\n- Source identity: {}\n\n",
-        report.openclaw_config_audit_summary.summary,
-        report.capability_manifest.summary,
-        report.companion_doc_audit_summary.summary,
-        report.source_identity_summary.summary,
+        "- 配置 / 控制面：{}\n- 能力 / 权限视图：{}\n- 配套文档：{}\n- 来源身份：{}\n- 隐藏指令：{}\n- 声明与实际：{}\n- 完整性快照：{}\n- 本地配置引用：{}\n- 组合风险：{}\n\n",
+        zh_text(&report.openclaw_config_audit_summary.summary),
+        zh_text(&report.capability_manifest.summary),
+        zh_text(&report.companion_doc_audit_summary.summary),
+        zh_text(&report.source_identity_summary.summary),
+        report.hidden_instruction_summary.summary_zh,
+        report.claims_review_summary.summary_zh,
+        report.integrity_snapshot.summary_zh,
+        report.estate_inventory_summary.summary_zh,
+        report.toxic_flow_summary.summary_zh,
+    ));
+    out.push_str("## Agent 生态与 AI BOM\n\n");
+    out.push_str(&format!(
+        "- Agent package：{}\n- MCP / Tool Schema：{}\n- AI BOM：{}\n\n",
+        report.agent_package_index.summary_zh,
+        report.mcp_tool_schema_summary.summary_zh,
+        report.ai_bom.summary_zh,
+    ));
+    push_string_list_markdown(&mut out, "AI BOM package 清单", &report.ai_bom.packages);
+    push_string_list_markdown(&mut out, "AI BOM 工具面", &report.ai_bom.tool_surfaces);
+    push_string_list_markdown(&mut out, "AI BOM MCP server", &report.ai_bom.mcp_servers);
+    push_string_list_markdown(&mut out, "AI BOM 命令面", &report.ai_bom.commands);
+    push_string_list_markdown(
+        &mut out,
+        "AI BOM 环境变量 / 配置",
+        &report.ai_bom.env_and_config,
+    );
+    push_string_list_markdown(
+        &mut out,
+        "AI BOM 外部服务",
+        &report.ai_bom.external_services,
+    );
+    push_string_list_markdown(&mut out, "AI BOM 复核问题", &report.ai_bom.review_questions);
+    out.push_str("## 策略与 CI\n\n");
+    out.push_str(&format!(
+        "- 策略结果：{}\n- CI 模式：`{}`\n- 是否阻断：`{}`\n\n",
+        report.policy_evaluation.reason_zh,
+        report.policy_evaluation.ci_mode,
+        if report.policy_evaluation.blocked {
+            "是"
+        } else {
+            "否"
+        },
     ));
     push_string_list_markdown(
         &mut out,
-        "Config / control-plane risky bindings",
+        "策略忽略的规则",
+        &report.policy_evaluation.ignored_rules,
+    );
+    push_string_list_markdown(
+        &mut out,
+        "策略忽略的发现项",
+        &report.policy_evaluation.ignored_findings,
+    );
+    push_string_list_markdown(
+        &mut out,
+        "策略 severity override",
+        &report.policy_evaluation.severity_overrides_applied,
+    );
+    push_string_list_markdown(
+        &mut out,
+        "允许域名匹配",
+        &report.policy_evaluation.allowed_domain_matches,
+    );
+    push_string_list_markdown(
+        &mut out,
+        "忽略路径匹配",
+        &report.policy_evaluation.ignored_path_matches,
+    );
+    push_string_list_markdown(
+        &mut out,
+        "配置 / 控制面风险绑定",
         &report.openclaw_config_audit_summary.risky_bindings,
     );
     if !report.capability_manifest.entries.is_empty() {
-        out.push_str("### Capability manifest entries\n\n");
+        out.push_str("### 能力 / 权限条目\n\n");
         for entry in &report.capability_manifest.entries {
             out.push_str(&format!(
                 "- `{}` | `{}` | `{}`: {}\n",
@@ -134,16 +216,16 @@ pub fn render_markdown(report: &ScanReport) -> String {
     }
     push_string_list_markdown(
         &mut out,
-        "Capability risky combinations",
+        "能力风险组合",
         &report.capability_manifest.risky_combinations,
     );
     push_string_list_markdown(
         &mut out,
-        "Companion-doc poisoning signals",
+        "配套文档投毒信号",
         &report.companion_doc_audit_summary.poisoning_signals,
     );
     if !report.source_identity_summary.signals.is_empty() {
-        out.push_str("### Source identity signals\n\n");
+        out.push_str("### 来源身份信号\n\n");
         for signal in &report.source_identity_summary.signals {
             out.push_str(&format!(
                 "- `{}` | `{}`: {}\n",
@@ -152,30 +234,86 @@ pub fn render_markdown(report: &ScanReport) -> String {
         }
         out.push('\n');
     }
+    if !report.hidden_instruction_summary.signals.is_empty() {
+        out.push_str("### 隐藏指令 / Trojan Source 信号\n\n");
+        for signal in &report.hidden_instruction_summary.signals {
+            out.push_str(&format!(
+                "- `{}` | `{}` | `{}`:{}：{}\n",
+                signal.signal_id,
+                signal.signal_kind,
+                safe_report_path(&signal.path),
+                signal.line.unwrap_or(1),
+                signal.rationale_zh
+            ));
+        }
+        out.push('\n');
+    }
+    if !report.claims_review_summary.mismatches.is_empty() {
+        out.push_str("### 声明 vs 实际证据\n\n");
+        for mismatch in &report.claims_review_summary.mismatches {
+            out.push_str(&format!(
+                "- 声明：{}；实际证据：{}；复核问题：{}\n",
+                mismatch.claim, mismatch.observed_signal, mismatch.review_question
+            ));
+        }
+        out.push('\n');
+    }
+    if !report.integrity_snapshot.skill_file_digests.is_empty() {
+        out.push_str("### 完整性快照\n\n");
+        for digest in &report.integrity_snapshot.skill_file_digests {
+            out.push_str(&format!(
+                "- `{}`：SHA-256 `{}`，{} bytes\n",
+                safe_report_path(&digest.path),
+                digest.sha256,
+                digest.bytes
+            ));
+        }
+        out.push('\n');
+    }
+    if !report.estate_inventory_summary.references.is_empty() {
+        out.push_str("### 本地配置引用\n\n");
+        for reference in &report.estate_inventory_summary.references {
+            out.push_str(&format!(
+                "- `{}` | `{}` | `{}`：{}\n",
+                reference.reference_id,
+                reference.reference_kind,
+                safe_report_path(&reference.path),
+                reference.summary_zh
+            ));
+        }
+        out.push('\n');
+    }
 
-    out.push_str("## Findings\n\n");
+    out.push_str("## 发现项\n\n");
     if report.findings.is_empty() {
-        out.push_str("No findings.\n\n");
+        out.push_str("未发现需要展示的风险项。\n\n");
     } else {
         for finding in &report.findings {
             out.push_str(&format!(
-                "### {} (`{}`)\n\n- Severity: `{}`\n- Confidence: `{}`\n- Category: `{}`\n",
-                finding.title,
+                "### {} (`{}`)\n\n- Issue Code: `{}`\n- 严重级别：`{}`\n- 置信度：`{}`\n- 分类：`{}`\n",
+                finding.title_zh.as_deref().unwrap_or(&finding.title),
                 finding.id,
-                format!("{:?}", finding.severity).to_ascii_lowercase(),
-                format!("{:?}", finding.confidence).to_ascii_lowercase(),
+                finding.issue_code.as_deref().unwrap_or("n/a"),
+                severity_zh(finding.severity),
+                confidence_zh(finding.confidence),
                 finding.category,
             ));
             if let Some(location) = &finding.location {
                 out.push_str(&format!(
-                    "- Location: `{}`:{}\n",
-                    location.path,
+                    "- 位置：`{}`:{}\n",
+                    safe_report_path(&location.path),
                     location.line.unwrap_or(1)
                 ));
             }
-            out.push_str(&format!("\n{}\n\n", finding.explanation));
+            out.push_str(&format!(
+                "\n{}\n\n",
+                finding
+                    .explanation_zh
+                    .as_deref()
+                    .unwrap_or(&finding.explanation)
+            ));
             if !finding.analyst_notes.is_empty() {
-                out.push_str("Analyst notes:\n");
+                out.push_str("分析说明：\n");
                 for note in &finding.analyst_notes {
                     out.push_str(&format!("- {}\n", note));
                 }
@@ -184,45 +322,45 @@ pub fn render_markdown(report: &ScanReport) -> String {
         }
     }
 
-    out.push_str("## Context\n\n");
+    out.push_str("## 上下文\n\n");
     push_optional_markdown(
         &mut out,
-        "Parsing",
+        "解析",
         Some(&report.context_analysis.parsing_summary),
     );
     push_optional_markdown(
         &mut out,
-        "Metadata",
+        "元数据",
         report.context_analysis.metadata_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "Install",
+        "安装链",
         report.context_analysis.install_chain_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "Prompt",
+        "提示词 / 间接指令",
         report.context_analysis.prompt_injection_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "Threat corpus",
+        "威胁模式库",
         report.context_analysis.threat_corpus_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "Sensitive data",
+        "敏感数据",
         report.context_analysis.sensitive_data_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "Dependency audit",
+        "依赖审计",
         report.context_analysis.dependency_audit_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "API classification",
+        "API / URL 分类",
         report
             .context_analysis
             .api_classification_summary
@@ -230,17 +368,17 @@ pub fn render_markdown(report: &ScanReport) -> String {
     );
     push_optional_markdown(
         &mut out,
-        "Source reputation",
+        "来源信誉",
         report.context_analysis.source_reputation_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "OpenClaw config / control-plane",
+        "OpenClaw 配置 / 控制面",
         report.context_analysis.openclaw_config_summary.as_deref(),
     );
     push_optional_markdown(
         &mut out,
-        "Capability manifest",
+        "能力 / 权限视图",
         report
             .context_analysis
             .capability_manifest_summary
@@ -248,7 +386,7 @@ pub fn render_markdown(report: &ScanReport) -> String {
     );
     push_optional_markdown(
         &mut out,
-        "Companion docs",
+        "配套文档",
         report
             .context_analysis
             .companion_doc_audit_summary
@@ -256,72 +394,80 @@ pub fn render_markdown(report: &ScanReport) -> String {
     );
     push_optional_markdown(
         &mut out,
-        "Source identity",
+        "来源身份",
         report.context_analysis.source_identity_summary.as_deref(),
     );
 
-    out.push_str("## Attack Paths\n\n");
+    out.push_str("## 攻击路径\n\n");
     if report.attack_paths.is_empty() {
-        out.push_str("No attack paths.\n\n");
+        out.push_str("未形成达到阈值的攻击路径。\n\n");
     } else {
         for path in &report.attack_paths {
             out.push_str(&format!(
-                "### {} (`{}`)\n\n- Severity: `{}`\n- Confidence: `{}`\n- Type: `{}`\n\n{}\n\n",
+                "### {} (`{}`)\n\n- 严重级别：`{}`\n- 置信度：`{}`\n- 类型：`{}`\n\n{}\n\n",
                 path.title,
                 path.path_id,
-                format!("{:?}", path.severity).to_ascii_lowercase(),
-                format!("{:?}", path.confidence).to_ascii_lowercase(),
+                severity_zh(path.severity),
+                confidence_zh(path.confidence),
                 path.path_type,
                 path.explanation
             ));
         }
     }
 
-    out.push_str("## Validation And Consequence\n\n");
+    out.push_str("## 运行时验证与影响评估\n\n");
     out.push_str(&format!(
-        "- Runtime manifest: {}\n- Guarded validation: {}\n- Consequence summary: {}\n- Host vs sandbox split: {}\n\n",
-        report.runtime_manifest_summary,
-        report.guarded_validation.summary,
-        report.consequence_summary.summary,
-        report.host_vs_sandbox_split.summary,
+        "- 运行时 manifest：{}\n- 受保护验证：{}\n- 影响评估：{}\n- 宿主机 / 沙箱：{}\n\n",
+        zh_text(&report.runtime_manifest_summary),
+        zh_text(&report.guarded_validation.summary),
+        zh_text(&report.consequence_summary.summary),
+        zh_text(&report.host_vs_sandbox_split.summary),
     ));
 
-    out.push_str("## External References\n\n");
+    out.push_str("## 外部引用\n\n");
     if report.external_references.is_empty() {
-        out.push_str("No external references.\n\n");
+        out.push_str("未发现外部引用。\n\n");
     } else {
         for reference in &report.external_references {
             out.push_str(&format!(
                 "- `{}` | category `{}` | reputation `{}` | host `{}`\n",
                 reference.url,
-                format!("{:?}", reference.category).to_ascii_lowercase(),
-                format!("{:?}", reference.reputation).to_ascii_lowercase(),
+                debug_label_zh(reference.category),
+                debug_label_zh(reference.reputation),
                 reference.host
             ));
         }
         out.push('\n');
     }
 
-    out.push_str("## Score And Provenance\n\n");
+    out.push_str("## 评分与来源说明\n\n");
     for item in &report.scoring_summary.score_rationale {
         out.push_str(&format!(
             "- `{}`: {} ({})\n",
-            item.source, item.explanation, item.delta
+            item.source,
+            zh_text(&item.explanation),
+            item.delta
         ));
     }
     if !report.confidence_factors.is_empty() {
-        out.push_str("\nConfidence factors:\n");
+        out.push_str("\n置信度因素：\n");
         for factor in &report.confidence_factors {
             out.push_str(&format!(
                 "- `{}`: {} ({})\n",
-                factor.subject_id, factor.rationale, factor.delta
+                factor.subject_id,
+                zh_text(&factor.rationale),
+                factor.delta
             ));
         }
     }
     if !report.provenance_notes.is_empty() {
-        out.push_str("\nProvenance notes:\n");
+        out.push_str("\n来源说明：\n");
         for note in &report.provenance_notes {
-            out.push_str(&format!("- `{}`: {}\n", note.subject_id, note.note));
+            out.push_str(&format!(
+                "- `{}`: {}\n",
+                note.subject_id,
+                zh_text(&note.note)
+            ));
         }
     }
 
@@ -331,7 +477,7 @@ pub fn render_markdown(report: &ScanReport) -> String {
 pub fn render_html(report: &ScanReport) -> String {
     let markdown = render_markdown(report);
     format!(
-        "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>openclaw-skill-guard report</title><style>body{{font-family:Segoe UI,Arial,sans-serif;max-width:1100px;margin:0 auto;padding:24px;line-height:1.5;background:#f7f7f7;color:#222}}section{{background:#fff;border:1px solid #ddd;border-radius:10px;padding:16px;margin:0 0 16px}}code{{background:#f0f0f0;padding:2px 4px;border-radius:4px}}pre{{white-space:pre-wrap;word-break:break-word}}</style></head><body><section><pre>{}</pre></section></body></html>",
+        "<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><title>OpenClaw Skill Guard 安全报告</title><style>body{{font-family:Segoe UI,Microsoft YaHei,Arial,sans-serif;max-width:1100px;margin:0 auto;padding:24px;line-height:1.6;background:#f4f7fb;color:#1f2933}}section{{background:#fff;border:1px solid #d8e2eb;border-radius:12px;padding:18px;margin:0 0 16px;box-shadow:0 4px 18px rgba(15,23,42,.05)}}code{{background:#eef4f8;padding:2px 4px;border-radius:4px}}pre{{white-space:pre-wrap;word-break:break-word}}</style></head><body><section><pre>{}</pre></section></body></html>",
         escape_html(&markdown)
     )
 }
@@ -349,7 +495,7 @@ fn sarif_level(severity: openclaw_skill_guard_core::FindingSeverity) -> &'static
 fn push_optional_markdown(out: &mut String, label: &str, value: Option<&str>) {
     if let Some(value) = value {
         if !value.is_empty() {
-            out.push_str(&format!("### {}\n\n{}\n\n", label, value));
+            out.push_str(&format!("### {}\n\n{}\n\n", label, zh_text(value)));
         }
     }
 }
@@ -360,9 +506,25 @@ fn push_string_list_markdown(out: &mut String, label: &str, values: &[String]) {
     }
     out.push_str(&format!("### {}\n\n", label));
     for value in values {
-        out.push_str(&format!("- {}\n", value));
+        out.push_str(&format!("- {}\n", zh_text(value)));
     }
     out.push('\n');
+}
+
+fn safe_report_path(path: &str) -> String {
+    let normalized = path.replace('\\', "/");
+    if normalized.starts_with("<remote-") {
+        return normalized;
+    }
+    let parts = normalized
+        .split('/')
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>();
+    match parts.as_slice() {
+        [] => "未命名目标".to_string(),
+        [one] => (*one).to_string(),
+        _ => parts[parts.len().saturating_sub(2)..].join("/"),
+    }
 }
 
 fn escape_html(input: &str) -> String {
@@ -390,6 +552,7 @@ mod tests {
     #[test]
     fn json_renderer_emits_expected_top_level_fields() {
         let report = ScanReport {
+            input_origin: None,
             target: ScanTarget {
                 path: "SKILL.md".to_string(),
                 canonical_path: "SKILL.md".to_string(),
@@ -427,8 +590,18 @@ mod tests {
                 capability_manifest_summary: None,
                 companion_doc_audit_summary: None,
                 source_identity_summary: None,
+                hidden_instruction_summary: None,
+                claims_review_summary: None,
+                integrity_snapshot_summary: None,
+                estate_inventory_summary: None,
+                agent_package_summary: None,
+                mcp_tool_schema_summary: None,
+                ai_bom_summary: None,
                 notes: Vec::new(),
             },
+            agent_package_index: Default::default(),
+            mcp_tool_schema_summary: Default::default(),
+            ai_bom: Default::default(),
             attack_paths: Vec::new(),
             path_explanations: Vec::new(),
             prompt_injection_summary: String::new(),
@@ -553,6 +726,13 @@ mod tests {
             capability_manifest: Default::default(),
             companion_doc_audit_summary: Default::default(),
             source_identity_summary: Default::default(),
+            toxic_flow_summary: Default::default(),
+            toxic_flows: Vec::new(),
+            hidden_instruction_summary: Default::default(),
+            claims_review_summary: Default::default(),
+            integrity_snapshot: Default::default(),
+            estate_inventory_summary: Default::default(),
+            policy_evaluation: Default::default(),
             provenance_notes: Vec::new(),
             confidence_factors: Vec::new(),
             false_positive_mitigations: Vec::new(),
@@ -564,6 +744,7 @@ mod tests {
                 final_score: 100,
                 score_rationale: Vec::new(),
             },
+            summary_zh: None,
             openclaw_specific_risk_summary: String::new(),
             scope_resolution_summary: RootResolutionSummary {
                 known_roots: Vec::new(),
@@ -621,6 +802,7 @@ mod tests {
     fn sarif_renderer_maps_findings_into_results() {
         let mut report = serde_json::from_str::<ScanReport>(
             &render_json(&ScanReport {
+                input_origin: None,
                 target: ScanTarget {
                     path: "SKILL.md".to_string(),
                     canonical_path: "SKILL.md".to_string(),
@@ -658,8 +840,18 @@ mod tests {
                     capability_manifest_summary: None,
                     companion_doc_audit_summary: None,
                     source_identity_summary: None,
+                    hidden_instruction_summary: None,
+                    claims_review_summary: None,
+                    integrity_snapshot_summary: None,
+                    estate_inventory_summary: None,
+                    agent_package_summary: None,
+                    mcp_tool_schema_summary: None,
+                    ai_bom_summary: None,
                     notes: Vec::new(),
                 },
+                agent_package_index: Default::default(),
+                mcp_tool_schema_summary: Default::default(),
+                ai_bom: Default::default(),
                 attack_paths: Vec::new(),
                 path_explanations: Vec::new(),
                 prompt_injection_summary: String::new(),
@@ -729,6 +921,13 @@ mod tests {
                 capability_manifest: Default::default(),
                 companion_doc_audit_summary: Default::default(),
                 source_identity_summary: Default::default(),
+                toxic_flow_summary: Default::default(),
+                toxic_flows: Vec::new(),
+                hidden_instruction_summary: Default::default(),
+                claims_review_summary: Default::default(),
+                integrity_snapshot: Default::default(),
+                estate_inventory_summary: Default::default(),
+                policy_evaluation: Default::default(),
                 provenance_notes: Vec::new(),
                 confidence_factors: Vec::new(),
                 false_positive_mitigations: Vec::new(),
@@ -740,6 +939,7 @@ mod tests {
                     final_score: 90,
                     score_rationale: Vec::new(),
                 },
+                summary_zh: None,
                 openclaw_specific_risk_summary: String::new(),
                 scope_resolution_summary: RootResolutionSummary {
                     known_roots: Vec::new(),
@@ -773,6 +973,8 @@ mod tests {
         report.findings.push(openclaw_skill_guard_core::Finding {
             id: "source.direct_ip".to_string(),
             title: "External reference uses a direct IP address".to_string(),
+            issue_code: None,
+            title_zh: None,
             category: "source.direct_ip".to_string(),
             severity: openclaw_skill_guard_core::FindingSeverity::High,
             confidence: openclaw_skill_guard_core::FindingConfidence::Medium,
@@ -785,10 +987,12 @@ mod tests {
             }),
             evidence: Vec::new(),
             explanation: "The reference targets a direct IP address.".to_string(),
+            explanation_zh: None,
             why_openclaw_specific: "fixture".to_string(),
             prerequisite_context: Vec::new(),
             analyst_notes: Vec::new(),
             remediation: "Use a stable named host.".to_string(),
+            recommendation_zh: None,
             suppression_status: "not_suppressed".to_string(),
         });
 
@@ -817,6 +1021,7 @@ mod tests {
     fn markdown_and_html_renderers_cover_v2_sections() {
         let report = serde_json::from_str::<ScanReport>(
             &render_json(&ScanReport {
+                input_origin: None,
                 target: ScanTarget {
                     path: "fixtures/v2/report-demo".to_string(),
                     canonical_path: "fixtures/v2/report-demo".to_string(),
@@ -854,8 +1059,18 @@ mod tests {
                     capability_manifest_summary: Some("capability summary".to_string()),
                     companion_doc_audit_summary: Some("companion summary".to_string()),
                     source_identity_summary: Some("identity summary".to_string()),
+                    hidden_instruction_summary: Some("hidden summary".to_string()),
+                    claims_review_summary: Some("claims summary".to_string()),
+                    integrity_snapshot_summary: Some("integrity summary".to_string()),
+                    estate_inventory_summary: Some("estate summary".to_string()),
+                    agent_package_summary: Some("agent package summary".to_string()),
+                    mcp_tool_schema_summary: Some("mcp summary".to_string()),
+                    ai_bom_summary: Some("ai bom summary".to_string()),
                     notes: Vec::new(),
                 },
+                agent_package_index: Default::default(),
+                mcp_tool_schema_summary: Default::default(),
+                ai_bom: Default::default(),
                 attack_paths: Vec::new(),
                 path_explanations: Vec::new(),
                 prompt_injection_summary: String::new(),
@@ -956,6 +1171,13 @@ mod tests {
                     summary: "identity summary".to_string(),
                     ..Default::default()
                 },
+                toxic_flow_summary: Default::default(),
+                toxic_flows: Vec::new(),
+                hidden_instruction_summary: Default::default(),
+                claims_review_summary: Default::default(),
+                integrity_snapshot: Default::default(),
+                estate_inventory_summary: Default::default(),
+                policy_evaluation: Default::default(),
                 provenance_notes: Vec::new(),
                 confidence_factors: Vec::new(),
                 false_positive_mitigations: Vec::new(),
@@ -967,6 +1189,7 @@ mod tests {
                     final_score: 77,
                     score_rationale: Vec::new(),
                 },
+                summary_zh: None,
                 openclaw_specific_risk_summary: String::new(),
                 scope_resolution_summary: RootResolutionSummary {
                     known_roots: Vec::new(),
@@ -1000,10 +1223,10 @@ mod tests {
         let markdown = render_markdown(&report);
         let html = render_html(&report);
 
-        assert!(markdown.contains("## V2 Summaries"));
-        assert!(markdown.contains("Threat corpus"));
-        assert!(markdown.contains("## External References"));
+        assert!(markdown.contains("## v2 风险摘要"));
+        assert!(markdown.contains("威胁模式库"));
+        assert!(markdown.contains("## 外部引用"));
         assert!(html.contains("<!DOCTYPE html>"));
-        assert!(html.contains("openclaw-skill-guard report"));
+        assert!(html.contains("OpenClaw Skill Guard 安全报告"));
     }
 }

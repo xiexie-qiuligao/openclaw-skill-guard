@@ -287,6 +287,8 @@ fn make_tool_finding(
     Finding {
         id: id.to_string(),
         title: title.to_string(),
+        issue_code: None,
+        title_zh: None,
         category: "tool_reachability".to_string(),
         severity,
         confidence: FindingConfidence::High,
@@ -300,10 +302,12 @@ fn make_tool_finding(
             direct: true,
         }],
         explanation: format!("The skill directly declares or strongly implies use of the `{tool}` tool."),
+        explanation_zh: None,
         why_openclaw_specific: "OpenClaw skills can expose or guide concrete tool usage through metadata and slash-command wiring rather than only through free-form text.".to_string(),
         prerequisite_context: vec!["Tool reachability was inferred from command-tool, requires.config, or high-confidence body guidance.".to_string()],
         analyst_notes: vec!["Phase 4/5 tool reachability remains a structured-plus-heuristic analysis, not full data flow.".to_string()],
         remediation: "Limit direct tool exposure and prefer least-privilege tool choices.".to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }
@@ -317,6 +321,8 @@ fn make_secret_finding(skill: &ParsedSkill, target: &str, excerpt: &str) -> Find
     Finding {
         id: "context.secret.local_sensitive_path".to_string(),
         title: "Skill body guides access to sensitive local secret material".to_string(),
+        issue_code: None,
+        title_zh: None,
         category: "secret_reachability".to_string(),
         severity: FindingSeverity::High,
         confidence: FindingConfidence::High,
@@ -330,10 +336,12 @@ fn make_secret_finding(skill: &ParsedSkill, target: &str, excerpt: &str) -> Find
             direct: true,
         }],
         explanation: format!("The skill body strongly suggests reading or copying sensitive material from `{target}`."),
+        explanation_zh: None,
         why_openclaw_specific: "OpenClaw skills can steer operator and agent behavior toward local credential and config stores that are meaningful inside real OpenClaw environments.".to_string(),
         prerequisite_context: vec!["Secret reachability combines normalized metadata signals with high-confidence sensitive-path guidance.".to_string()],
         analyst_notes: vec!["This finding is reserved for high-confidence sensitive path guidance to avoid treating all env usage as malicious.".to_string()],
         remediation: "Remove instructions that access local secret stores unless they are explicitly required and tightly scoped.".to_string(),
+        recommendation_zh: None,
         suppression_status: "not_suppressed".to_string(),
     }
 }

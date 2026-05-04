@@ -8,13 +8,14 @@ The canonical output is:
 
 - [report.schema.json](../schemas/report.schema.json)
 
-JSON is the source-of-truth contract. SARIF is now supported as a derived export and must remain mapped from the same `ScanReport`.
+JSON is the source-of-truth contract. SARIF, Markdown, and HTML are derived exports and must remain mapped from the same `ScanReport`. Human-facing narrative fields are Chinese-first where available; machine-readable keys stay stable.
 
 ## Stable sections
 
 These top-level sections are treated as stable for v1:
 
 - `target`
+- `input_origin`
 - `scan_mode`
 - `files_scanned`
 - `files_skipped`
@@ -35,6 +36,17 @@ These top-level sections are treated as stable for v1:
 - `capability_manifest`
 - `companion_doc_audit_summary`
 - `source_identity_summary`
+- `toxic_flow_summary`
+- `toxic_flows`
+- `hidden_instruction_summary`
+- `claims_review_summary`
+- `integrity_snapshot`
+- `estate_inventory_summary`
+- `agent_package_index`
+- `mcp_tool_schema_summary`
+- `ai_bom`
+- `policy_evaluation`
+- `summary_zh`
 - `scoring_summary`
 - `consequence_summary`
 - `validation_plan`
@@ -62,8 +74,26 @@ These sections are still part of the contract, but their contents depend on scan
 
 ## Intended semantics
 
+- `target`
+  - canonical scan target descriptor after local or remote input resolution
+- `input_origin`
+  - original local path or HTTPS skill link, parsed input kind, source host, resolved scan target, and resolver warnings
 - `findings`
-  - atomic issues with direct evidence and remediation
+  - atomic issues with direct evidence and remediation; may include stable `issue_code`, `title_zh`, `explanation_zh`, and `recommendation_zh`
+- `hidden_instruction_summary`
+  - static hidden-instruction, Trojan Source, deceptive-link, encoded-instruction, and tool/schema poisoning signals
+- `claims_review_summary`
+  - product-facing comparison of declared skill claims, observed evidence, mismatches, and review questions
+- `integrity_snapshot`
+  - passive SHA-256 and file-count summary for comparing reports and detecting remote skill drift
+- `estate_inventory_summary`
+  - scope-limited local OpenClaw/Claude/Cursor/Windsurf/MCP configuration references; does not start or connect to services
+- `agent_package_index`
+  - generic Agent Skill / Tool / MCP / prompt package index; enabled for non-OpenClaw ecosystem parsing
+- `mcp_tool_schema_summary`
+  - static MCP command/env/tool/schema review result; never starts MCP servers
+- `ai_bom`
+  - AI bill of materials covering packages, tool surfaces, MCP servers, commands, env/config, external services, dependencies, identity, digests, and review questions
 - `context_analysis`
   - structured OpenClaw-aware summary
 - `attack_paths`
@@ -88,6 +118,12 @@ These sections are still part of the contract, but their contents depend on scan
   - companion README/docs/examples audit for indirect instructions, approval bypass wording, maintenance execution lures, and narrative mismatch
 - `source_identity_summary`
   - offline source identity and mismatch signals across homepage, repository, install/download, package metadata, and local documentation claims
+- `toxic_flow_summary` and `toxic_flows`
+  - evidence aggregation for combinations of untrusted input/source, sensitive data surface, and egress/execution capability; this is a review-needed signal, not proof of exfiltration
+- `policy_evaluation`
+  - local `.openclaw-guard.yml` / CI gate result, including language, fail reason, ignored rules, and policy notes
+- `summary_zh`
+  - Chinese human-readable report summary for GUI, CLI, Markdown, and HTML surfaces
 - `provenance_notes` and `confidence_factors`
   - why the verifier trusts or discounts a conclusion
 - `suppression_matches` and `audit_summary`
@@ -99,14 +135,15 @@ These sections are still part of the contract, but their contents depend on scan
   - canonical report contract and source of truth
 - `sarif`
   - derived finding export for security tooling integrations
-  - first version maps findings, severity, confidence, rule ids, messages, and file locations
+  - maps findings, severity, confidence, issue-code-first rule ids, messages, and file locations
+  - `message.text` is Chinese-first by default while `properties.english_message` retains the original explanation when available
   - it does not currently serialize attack-path graphs, runtime validation internals, or suppression audit history in full detail
 - `markdown`
   - human-readable summary export derived from the same `ScanReport`
-  - emphasizes summary, findings, context, validation/consequence, external references, v3 OpenClaw summaries, and score/provenance
+  - Chinese-first human-readable export that emphasizes summary, findings, context, validation/consequence, external references, v3 OpenClaw summaries, toxic flows, and score/provenance
   - includes v3 OpenClaw config/control-plane, capability, companion-document, and source-identity detail blocks when present
 - `html`
-  - minimal browser-friendly rendering of the derived Markdown view
+  - Chinese-first browser-friendly rendering of the derived Markdown view
   - keeps the canonical contract in JSON rather than introducing a second schema
   - preserves the same canonical-report-derived v3 content rather than introducing a separate report protocol
 

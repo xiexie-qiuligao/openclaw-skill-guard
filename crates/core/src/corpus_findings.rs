@@ -76,6 +76,8 @@ pub fn analyze_threat_corpus(
                 findings.push(Finding {
                     id: format!("corpus.threat.{}", slug_suffix(&entry.id)),
                     title: threat_title(entry),
+                    issue_code: None,
+                    title_zh: None,
                     category: "threat_corpus".to_string(),
                     severity,
                     confidence,
@@ -92,6 +94,7 @@ pub fn analyze_threat_corpus(
                         "Typed threat corpus entry `{}` matched this text as `{}`. {}",
                         entry.id, entry.category, entry.description
                     ),
+                    explanation_zh: None,
                     why_openclaw_specific: "Threat corpus entries are adapted to OpenClaw instruction, tool-authority, and agent-context surfaces rather than generic code-search noise.".to_string(),
                     prerequisite_context: vec![
                         "The match came from a built-in typed corpus asset rather than a shell script.".to_string(),
@@ -99,6 +102,7 @@ pub fn analyze_threat_corpus(
                     ],
                     analyst_notes: threat_analyst_notes(entry, example_like),
                     remediation: "Remove coercive or agent-context manipulation language, or rewrite the text so the instruction is clearly descriptive rather than operative.".to_string(),
+                    recommendation_zh: None,
                     suppression_status: "not_suppressed".to_string(),
                 });
                 provenance_notes.push(build_corpus_provenance_note(
@@ -196,6 +200,8 @@ pub fn analyze_sensitive_corpus(
                 findings.push(Finding {
                     id: subject_id.clone(),
                     title: sensitive_title(entry, example_like),
+                    issue_code: None,
+                    title_zh: None,
                     category: "sensitive_corpus".to_string(),
                     severity,
                     confidence,
@@ -209,12 +215,14 @@ pub fn analyze_sensitive_corpus(
                         direct: true,
                     }],
                     explanation: sensitive_explanation(entry, example_like),
+                    explanation_zh: None,
                     why_openclaw_specific: "Inline credentials and secret-looking material inside skill repositories change the OpenClaw review boundary: they are directly packaged alongside install, invocation, and runtime guidance.".to_string(),
                     prerequisite_context: vec![
                         "Sensitive corpus findings complement secret reachability: this analyzer looks for inline material, while reachability models what the skill tries to access at runtime.".to_string(),
                     ],
                     analyst_notes: sensitive_analyst_notes(entry, example_like),
                     remediation: "Remove inline sensitive material, replace it with placeholders or documented environment requirements, and rotate any real credential if exposure is suspected.".to_string(),
+                    recommendation_zh: None,
                     suppression_status: "not_suppressed".to_string(),
                 });
                 provenance_notes.push(build_corpus_provenance_note(
@@ -504,6 +512,8 @@ mod tests {
         let existing = vec![crate::types::Finding {
             id: "prompt.model_bypass".to_string(),
             title: "dup".to_string(),
+            issue_code: None,
+            title_zh: None,
             category: "prompt_injection".to_string(),
             severity: FindingSeverity::High,
             confidence: FindingConfidence::High,
@@ -516,10 +526,12 @@ mod tests {
             }),
             evidence: Vec::new(),
             explanation: String::new(),
+            explanation_zh: None,
             why_openclaw_specific: String::new(),
             prerequisite_context: Vec::new(),
             analyst_notes: Vec::new(),
             remediation: String::new(),
+            recommendation_zh: None,
             suppression_status: "not_suppressed".to_string(),
         }];
 
@@ -552,6 +564,8 @@ mod tests {
         let existing = vec![crate::types::Finding {
             id: "baseline.private_key_material".to_string(),
             title: "dup".to_string(),
+            issue_code: None,
+            title_zh: None,
             category: "credential_exposure".to_string(),
             severity: FindingSeverity::Critical,
             confidence: FindingConfidence::High,
@@ -564,10 +578,12 @@ mod tests {
             }),
             evidence: Vec::new(),
             explanation: String::new(),
+            explanation_zh: None,
             why_openclaw_specific: String::new(),
             prerequisite_context: Vec::new(),
             analyst_notes: Vec::new(),
             remediation: String::new(),
+            recommendation_zh: None,
             suppression_status: "not_suppressed".to_string(),
         }];
 

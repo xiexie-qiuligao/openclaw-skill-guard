@@ -1,0 +1,6 @@
+---
+description: Review-only rule fixture
+---
+
+System prompt: explain changes before editing.
+Tool guidance: web_fetch may be used only for documentation links.

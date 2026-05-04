@@ -5,20 +5,27 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use openclaw_skill_guard_core::{
-    scan_path_with_options, ScanReport, ValidationExecutionMode, Verdict,
+    input_resolver::ScanTargetOptions, localization::debug_label_zh, scan_target_with_options,
+    ScanReport, ValidationExecutionMode, Verdict,
 };
 use openclaw_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
 
 pub use app::OpenClawGuardApp;
 pub use zh::{display_text_zh, safe_target_label_zh};
 
+pub fn pretty_debug<T: std::fmt::Debug>(value: T) -> String {
+    debug_label_zh(value)
+}
+
 #[derive(Debug, Clone)]
 pub struct ScanRequest {
-    pub target_path: PathBuf,
+    pub target_path: String,
     pub runtime_manifest_path: Option<PathBuf>,
     pub suppression_path: Option<PathBuf>,
     pub report_save_path: Option<PathBuf>,
+    pub policy_path: Option<PathBuf>,
     pub validation_mode: ValidationExecutionMode,
+    pub agent_ecosystem: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -141,11 +148,18 @@ pub fn run_gui_with_state(
 pub fn scan_with_request(request: &ScanRequest) -> Result<CompletedScan, String> {
     validate_request(request)?;
 
-    let report = scan_path_with_options(
+    let report = scan_target_with_options(
         &request.target_path,
-        request.suppression_path.as_deref(),
-        request.runtime_manifest_path.as_deref(),
-        request.validation_mode,
+        ScanTargetOptions {
+            suppression_path: request.suppression_path.clone(),
+            runtime_manifest_path: request.runtime_manifest_path.clone(),
+            validation_mode: request.validation_mode,
+            policy_path: request.policy_path.clone(),
+            ci_mode: false,
+            no_network: false,
+            remote_cache_dir: None,
+            agent_ecosystem: request.agent_ecosystem,
+        },
     )
     .map_err(|err| err.to_string())?;
 
@@ -180,72 +194,42 @@ pub fn render_report_for_export(
 }
 
 pub fn load_completed_scan_from_json(path: &Path) -> Result<CompletedScan, String> {
-    let raw_json = fs::read_to_string(path).map_err(|err| format!("读取报告失败：{err}"))?;
-    let normalized_json = raw_json.trim_start_matches('\u{feff}');
+    let raw = fs::read_to_string(path).map_err(|err| format!("读取报告失败：{err}"))?;
+    let raw_json = raw.trim_start_matches('\u{feff}').to_string();
     let report: ScanReport =
-        serde_json::from_str(normalized_json).map_err(|err| format!("解析报告失败：{err}"))?;
+        serde_json::from_str(&raw_json).map_err(|err| format!("解析 JSON 报告失败：{err}"))?;
     let summary_text = build_summary_text(&report);
+
     Ok(CompletedScan {
         report,
-        raw_json: normalized_json.to_string(),
+        raw_json,
         saved_report_path: Some(path.to_path_buf()),
         summary_text,
     })
 }
 
 pub fn save_report_to_file(path: &Path, content: &str) -> Result<(), String> {
-    fs::write(path, content).map_err(|err| format!("保存导出文件失败：{err}"))
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|err| format!("创建导出目录失败：{err}"))?;
+    }
+    fs::write(path, content).map_err(|err| format!("写入报告失败：{err}"))
 }
 
 pub fn build_summary_text(report: &ScanReport) -> String {
     format!(
-        "目标：{}\n结论：{}\n风险分数：{}\n是否阻断：{}\n发现项：{}\n攻击路径：{}\n威胁模式库：{}\n敏感数据模式库：{}\n依赖审计：{}\n外部引用：{}\nOpenClaw 配置 / 控制面：{}\n能力 / 权限视图：{}\n配套文档审计：{}\n来源身份一致性：{}",
+        "目标：{}\n结论：{}\n风险分数：{}\n是否阻断：{}\n发现项：{}\n攻击路径：{}\n外部引用：{}\nAgent package：{}\nMCP / Tool Schema：{}\nAI BOM：{}\n组合风险：{}",
         safe_target_label_zh(&report.target.path),
         verdict_label(report.verdict),
         report.score,
         if report.blocked { "是" } else { "否" },
         report.findings.len(),
         report.attack_paths.len(),
-        display_text_zh(
-            report
-                .context_analysis
-                .threat_corpus_summary
-                .as_deref()
-                .unwrap_or("无")
-        ),
-        display_text_zh(
-            report
-                .context_analysis
-                .sensitive_data_summary
-                .as_deref()
-                .unwrap_or("无")
-        ),
-        display_text_zh(&report.dependency_audit_summary.summary),
         report.external_references.len(),
-        display_text_zh(&report.openclaw_config_audit_summary.summary),
-        display_text_zh(&report.capability_manifest.summary),
-        display_text_zh(&report.companion_doc_audit_summary.summary),
-        display_text_zh(&report.source_identity_summary.summary),
+        report.agent_package_index.summary_zh,
+        report.mcp_tool_schema_summary.summary_zh,
+        report.ai_bom.summary_zh,
+        report.toxic_flow_summary.summary_zh,
     )
-}
-
-pub fn pretty_debug<T: std::fmt::Debug>(value: T) -> String {
-    let raw = format!("{value:?}");
-    let mut out = String::new();
-    let mut prev_lower = false;
-    for ch in raw.chars() {
-        if ch == '_' || ch == '-' {
-            out.push(' ');
-            prev_lower = false;
-            continue;
-        }
-        if ch.is_uppercase() && prev_lower {
-            out.push(' ');
-        }
-        out.push(ch);
-        prev_lower = ch.is_lowercase() || ch.is_ascii_digit();
-    }
-    out
 }
 
 pub fn verdict_label(verdict: Verdict) -> &'static str {
@@ -256,17 +240,14 @@ pub fn verdict_label(verdict: Verdict) -> &'static str {
     }
 }
 
-pub fn safe_target_label(path: &str) -> String {
-    safe_target_label_zh(path)
-}
-
-pub fn display_text(input: &str) -> String {
-    display_text_zh(input)
-}
-
 fn validate_request(request: &ScanRequest) -> Result<(), String> {
-    if !request.target_path.exists() {
-        return Err(format!("扫描目标不存在：{}", request.target_path.display()));
+    if request.target_path.trim().is_empty() {
+        return Err("请先输入本地路径或 skill 链接。".to_string());
+    }
+    let is_url =
+        request.target_path.starts_with("https://") || request.target_path.starts_with("http://");
+    if !is_url && !Path::new(&request.target_path).exists() {
+        return Err(format!("扫描目标不存在：{}", request.target_path));
     }
     if let Some(path) = &request.runtime_manifest_path {
         if !path.exists() {
@@ -278,12 +259,16 @@ fn validate_request(request: &ScanRequest) -> Result<(), String> {
             return Err(format!("suppression 文件不存在：{}", path.display()));
         }
     }
+    if let Some(path) = &request.policy_path {
+        if !path.exists() {
+            return Err(format!("策略配置文件不存在：{}", path.display()));
+        }
+    }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use std::path::PathBuf;
 
     use openclaw_skill_guard_core::ValidationExecutionMode;
@@ -300,16 +285,21 @@ mod tests {
             .join(path)
     }
 
-    #[test]
-    fn gui_scan_pipeline_handles_benign_sample() {
-        let completed = scan_with_request(&ScanRequest {
-            target_path: fixture("fixtures/v1/benign/SKILL.md"),
+    fn request(path: &str) -> ScanRequest {
+        ScanRequest {
+            target_path: fixture(path).display().to_string(),
             runtime_manifest_path: None,
             suppression_path: None,
             report_save_path: None,
+            policy_path: None,
             validation_mode: ValidationExecutionMode::Planned,
-        })
-        .unwrap();
+            agent_ecosystem: false,
+        }
+    }
+
+    #[test]
+    fn gui_scan_pipeline_handles_benign_sample() {
+        let completed = scan_with_request(&request("fixtures/v1/benign/SKILL.md")).unwrap();
 
         assert_eq!(
             completed.report.verdict,
@@ -320,14 +310,7 @@ mod tests {
 
     #[test]
     fn gui_scan_pipeline_handles_risky_sample() {
-        let completed = scan_with_request(&ScanRequest {
-            target_path: fixture("fixtures/v1/prompt-risk/SKILL.md"),
-            runtime_manifest_path: None,
-            suppression_path: None,
-            report_save_path: None,
-            validation_mode: ValidationExecutionMode::Planned,
-        })
-        .unwrap();
+        let completed = scan_with_request(&request("fixtures/v1/prompt-risk/SKILL.md")).unwrap();
 
         assert!(!completed.report.findings.is_empty());
         assert!(
@@ -340,35 +323,23 @@ mod tests {
     fn gui_scan_pipeline_can_save_canonical_json_report() {
         let output_path = fixture("target/gui-export-test.json");
         if output_path.exists() {
-            let _ = fs::remove_file(&output_path);
+            let _ = std::fs::remove_file(&output_path);
         }
 
-        let completed = scan_with_request(&ScanRequest {
-            target_path: fixture("fixtures/v1/benign/SKILL.md"),
-            runtime_manifest_path: None,
-            suppression_path: None,
-            report_save_path: Some(output_path.clone()),
-            validation_mode: ValidationExecutionMode::Planned,
-        })
-        .unwrap();
+        let mut scan_request = request("fixtures/v1/benign/SKILL.md");
+        scan_request.report_save_path = Some(output_path.clone());
+        let completed = scan_with_request(&scan_request).unwrap();
 
         assert_eq!(completed.saved_report_path.as_ref(), Some(&output_path));
-        let saved = fs::read_to_string(&output_path).unwrap();
+        let saved = std::fs::read_to_string(&output_path).unwrap();
         assert!(saved.contains("\"findings\""));
 
-        let _ = fs::remove_file(output_path);
+        let _ = std::fs::remove_file(output_path);
     }
 
     #[test]
     fn gui_export_renders_all_supported_formats() {
-        let completed = scan_with_request(&ScanRequest {
-            target_path: fixture("fixtures/v2/report-demo"),
-            runtime_manifest_path: None,
-            suppression_path: None,
-            report_save_path: None,
-            validation_mode: ValidationExecutionMode::Planned,
-        })
-        .unwrap();
+        let completed = scan_with_request(&request("fixtures/v2/report-demo")).unwrap();
 
         let json = render_report_for_export(&completed.report, ExportFormat::Json).unwrap();
         let sarif = render_report_for_export(&completed.report, ExportFormat::Sarif).unwrap();
@@ -377,33 +348,38 @@ mod tests {
 
         assert!(json.contains("\"findings\""));
         assert!(sarif.contains("\"version\": \"2.1.0\""));
-        assert!(markdown.contains("## Findings"));
+        assert!(markdown.contains("## 发现项"));
         assert!(html.contains("<!DOCTYPE html>"));
     }
 
     #[test]
     fn gui_can_load_json_report_with_utf8_bom() {
         let source = render_report_for_export(
-            &scan_with_request(&ScanRequest {
-                target_path: fixture("fixtures/v2/report-demo"),
-                runtime_manifest_path: None,
-                suppression_path: None,
-                report_save_path: None,
-                validation_mode: ValidationExecutionMode::Planned,
-            })
-            .unwrap()
-            .report,
+            &scan_with_request(&request("fixtures/v2/report-demo"))
+                .unwrap()
+                .report,
             ExportFormat::Json,
         )
         .unwrap();
         let temp_path = fixture("target/gui-bom-report.json");
-        fs::write(&temp_path, format!("\u{feff}{source}")).unwrap();
+        std::fs::write(&temp_path, format!("\u{feff}{source}")).unwrap();
 
         let completed = load_completed_scan_from_json(&temp_path).unwrap();
 
         assert!(!completed.report.findings.is_empty());
         assert!(completed.raw_json.starts_with('{'));
 
-        let _ = fs::remove_file(temp_path);
+        let _ = std::fs::remove_file(temp_path);
+    }
+
+    #[test]
+    fn gui_scan_pipeline_can_enable_agent_ecosystem() {
+        let mut scan_request = request("fixtures/agent-ecosystem/mcp-dangerous");
+        scan_request.agent_ecosystem = true;
+
+        let completed = scan_with_request(&scan_request).unwrap();
+
+        assert!(!completed.report.agent_package_index.packages.is_empty());
+        assert!(completed.report.mcp_tool_schema_summary.findings_count > 0);
     }
 }

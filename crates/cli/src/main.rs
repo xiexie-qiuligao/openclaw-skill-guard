@@ -7,7 +7,7 @@ use openclaw_skill_guard_core::{scan_target_with_options, ValidationExecutionMod
 use openclaw_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
 
 #[derive(Debug, Parser)]
-#[command(name = "openclaw-skill-guard")]
+#[command(name = "agent-skill-guard")]
 #[command(
     about = "中文优先的 Agent Skill 安全验证 CLI",
     long_about = "扫描本地 OpenClaw skill、skill 目录、skills 根目录或 HTTPS skill 链接，并输出 canonical JSON、SARIF、Markdown 或 HTML 报告。验证器复用 evidence-driven 主链，不执行远程代码、不安装依赖、不启动 MCP server。",

@@ -2,10 +2,10 @@
 
 This project ships two Windows executables:
 
-- `openclaw-skill-guard-gui.exe`
+- `agent-skill-guard-gui.exe`
   - primary desktop product
   - recommended for normal users
-- `openclaw-skill-guard.exe`
+- `agent-skill-guard.exe`
   - CLI entry point
   - intended for automation and advanced users
 
@@ -18,20 +18,20 @@ cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
 Build outputs:
 
 ```text
-target\release\openclaw-skill-guard-gui.exe
-target\release\openclaw-skill-guard.exe
+target\release\agent-skill-guard-gui.exe
+target\release\agent-skill-guard.exe
 ```
 
 Recommended release asset:
 
 ```text
-openclaw-skill-guard-gui-windows.zip
+agent-skill-guard-gui-windows.zip
 ```
 
 The GUI zip should contain:
 
-- `openclaw-skill-guard-gui.exe`
-- `openclaw-skill-guard.exe`
+- `agent-skill-guard-gui.exe`
+- `agent-skill-guard.exe`
 - `README.txt`
 - `LICENSE`
 - `.openclaw-guard.yml`

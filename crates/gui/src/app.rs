@@ -329,7 +329,7 @@ impl OpenClawGuardApp {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
                         ui.heading(
-                            RichText::new("OpenClaw Skill Guard")
+                            RichText::new("Agent Skill Guard")
                                 .size(24.0)
                                 .strong()
                                 .color(Color32::from_rgb(19, 63, 70)),

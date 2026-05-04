@@ -13,8 +13,8 @@ Final checks before publishing:
 ```powershell
 cargo test
 cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
-.\target\release\openclaw-skill-guard-gui.exe --smoke-test
-.\target\release\openclaw-skill-guard.exe --help
+.\target\release\agent-skill-guard-gui.exe --smoke-test
+.\target\release\agent-skill-guard.exe --help
 ```
 
 Public repository hygiene:
@@ -28,5 +28,5 @@ Public repository hygiene:
 Recommended GitHub Release asset:
 
 ```text
-openclaw-skill-guard-gui-windows.zip
+agent-skill-guard-gui-windows.zip
 ```

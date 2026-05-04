@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "openclaw-skill-guard-gui"
+name = "agent-skill-guard-gui"
 path = "src/main.rs"
 
 [dependencies]

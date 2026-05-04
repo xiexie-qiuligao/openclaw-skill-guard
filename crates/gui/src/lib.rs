@@ -125,14 +125,14 @@ pub fn run_gui_with_state(
 ) -> Result<(), String> {
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
-            .with_title("OpenClaw Skill Guard")
+            .with_title("Agent Skill Guard")
             .with_inner_size([1440.0, 940.0])
             .with_min_inner_size([1160.0, 760.0]),
         ..Default::default()
     };
 
     eframe::run_native(
-        "OpenClaw Skill Guard",
+        "Agent Skill Guard",
         options,
         Box::new(move |_cc| {
             let app = match initial_scan.clone() {

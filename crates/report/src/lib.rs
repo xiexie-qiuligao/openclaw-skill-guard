@@ -75,8 +75,8 @@ pub fn render_sarif(report: &ScanReport) -> Result<String, serde_json::Error> {
             {
                 "tool": {
                     "driver": {
-                        "name": "openclaw-skill-guard",
-                        "informationUri": "https://example.invalid/standalone-openclaw-skill-guard",
+                        "name": "agent-skill-guard",
+                        "informationUri": "https://example.invalid/agent-skill-guard",
                         "rules": rule_index.into_values().collect::<Vec<_>>(),
                     }
                 },
@@ -88,7 +88,7 @@ pub fn render_sarif(report: &ScanReport) -> Result<String, serde_json::Error> {
 
 pub fn render_markdown(report: &ScanReport) -> String {
     let mut out = String::new();
-    out.push_str("# OpenClaw Skill Guard 安全报告\n\n");
+    out.push_str("# Agent Skill Guard 安全报告\n\n");
     out.push_str("## 总览\n\n");
     out.push_str(&format!(
         "- 扫描目标：`{}`\n- 最终结论：`{}`\n- 风险分数：`{}`\n- 是否阻断：`{}`\n- 发现项：`{}`\n- 攻击路径：`{}`\n- 外部引用：`{}`\n\n",
@@ -477,7 +477,7 @@ pub fn render_markdown(report: &ScanReport) -> String {
 pub fn render_html(report: &ScanReport) -> String {
     let markdown = render_markdown(report);
     format!(
-        "<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><title>OpenClaw Skill Guard 安全报告</title><style>body{{font-family:Segoe UI,Microsoft YaHei,Arial,sans-serif;max-width:1100px;margin:0 auto;padding:24px;line-height:1.6;background:#f4f7fb;color:#1f2933}}section{{background:#fff;border:1px solid #d8e2eb;border-radius:12px;padding:18px;margin:0 0 16px;box-shadow:0 4px 18px rgba(15,23,42,.05)}}code{{background:#eef4f8;padding:2px 4px;border-radius:4px}}pre{{white-space:pre-wrap;word-break:break-word}}</style></head><body><section><pre>{}</pre></section></body></html>",
+        "<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><title>Agent Skill Guard 安全报告</title><style>body{{font-family:Segoe UI,Microsoft YaHei,Arial,sans-serif;max-width:1100px;margin:0 auto;padding:24px;line-height:1.6;background:#f4f7fb;color:#1f2933}}section{{background:#fff;border:1px solid #d8e2eb;border-radius:12px;padding:18px;margin:0 0 16px;box-shadow:0 4px 18px rgba(15,23,42,.05)}}code{{background:#eef4f8;padding:2px 4px;border-radius:4px}}pre{{white-space:pre-wrap;word-break:break-word}}</style></head><body><section><pre>{}</pre></section></body></html>",
         escape_html(&markdown)
     )
 }
@@ -1002,7 +1002,7 @@ mod tests {
         assert_eq!(json["version"], "2.1.0");
         assert_eq!(
             json["runs"][0]["tool"]["driver"]["name"],
-            "openclaw-skill-guard"
+            "agent-skill-guard"
         );
         assert_eq!(json["runs"][0]["results"][0]["ruleId"], "source.direct_ip");
         assert_eq!(json["runs"][0]["results"][0]["level"], "error");
@@ -1227,6 +1227,6 @@ mod tests {
         assert!(markdown.contains("威胁模式库"));
         assert!(markdown.contains("## 外部引用"));
         assert!(html.contains("<!DOCTYPE html>"));
-        assert!(html.contains("OpenClaw Skill Guard 安全报告"));
+        assert!(html.contains("Agent Skill Guard 安全报告"));
     }
 }

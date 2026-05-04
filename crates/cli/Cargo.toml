@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "openclaw-skill-guard"
+name = "agent-skill-guard"
 path = "src/main.rs"
 
 [dependencies]
@@ -15,4 +15,3 @@ openclaw-skill-guard-report = { path = "../report" }
 [dev-dependencies]
 serde_json = "1"
 tempfile = "3"
-

@@ -2,7 +2,7 @@
 
 ## v3.0.0 - 2026-04-26
 
-Public release of `openclaw-skill-guard`.
+Public release of `Agent Skill Guard`.
 
 ### Highlights
 

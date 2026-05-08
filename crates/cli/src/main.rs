@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use openclaw_skill_guard_core::input_resolver::ScanTargetOptions;
-use openclaw_skill_guard_core::Verdict;
-use openclaw_skill_guard_core::{scan_target_with_options, ValidationExecutionMode};
-use openclaw_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
+use agent_skill_guard_core::input_resolver::ScanTargetOptions;
+use agent_skill_guard_core::Verdict;
+use agent_skill_guard_core::{scan_target_with_options, ValidationExecutionMode};
+use agent_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
 
 #[derive(Debug, Parser)]
 #[command(name = "agent-skill-guard")]

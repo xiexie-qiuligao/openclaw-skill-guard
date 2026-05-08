@@ -2,14 +2,14 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use openclaw_skill_guard_core::corpus::load_builtin_corpora;
-use openclaw_skill_guard_core::dependency_audit::analyze_dependency_audit;
-use openclaw_skill_guard_core::install::InstallAnalysis;
-use openclaw_skill_guard_core::scan_path;
-use openclaw_skill_guard_core::types::{
+use agent_skill_guard_core::corpus::load_builtin_corpora;
+use agent_skill_guard_core::dependency_audit::analyze_dependency_audit;
+use agent_skill_guard_core::install::InstallAnalysis;
+use agent_skill_guard_core::scan_path;
+use agent_skill_guard_core::types::{
     ExternalReferenceCategory, ExternalRiskSignal, TextArtifact,
 };
-use openclaw_skill_guard_core::url_classification::analyze_external_references;
+use agent_skill_guard_core::url_classification::analyze_external_references;
 use walkdir::WalkDir;
 
 fn fixture_root() -> PathBuf {

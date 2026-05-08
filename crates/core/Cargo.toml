@@ -1,5 +1,5 @@
 [package]
-name = "openclaw-skill-guard-core"
+name = "agent-skill-guard-core"
 version = "0.1.0"
 edition = "2021"
 

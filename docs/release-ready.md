@@ -12,7 +12,7 @@ Final checks before publishing:
 
 ```powershell
 cargo test
-cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
+cargo build --release -p agent-skill-guard-cli -p agent-skill-guard-gui
 .\target\release\agent-skill-guard-gui.exe --smoke-test
 .\target\release\agent-skill-guard.exe --help
 ```

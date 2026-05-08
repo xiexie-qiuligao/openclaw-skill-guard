@@ -4,13 +4,13 @@ mod zh;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use openclaw_skill_guard_core::{
+use agent_skill_guard_core::{
     input_resolver::ScanTargetOptions, localization::debug_label_zh, scan_target_with_options,
     ScanReport, ValidationExecutionMode, Verdict,
 };
-use openclaw_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
+use agent_skill_guard_report::{render_html, render_json, render_markdown, render_sarif};
 
-pub use app::OpenClawGuardApp;
+pub use app::AgentSkillGuardApp;
 pub use zh::{display_text_zh, safe_target_label_zh};
 
 pub fn pretty_debug<T: std::fmt::Debug>(value: T) -> String {
@@ -107,10 +107,10 @@ impl ExportFormat {
 
     pub fn default_file_name(self) -> &'static str {
         match self {
-            ExportFormat::Json => "openclaw-skill-guard-report.json",
-            ExportFormat::Sarif => "openclaw-skill-guard-report.sarif",
-            ExportFormat::Markdown => "openclaw-skill-guard-report.md",
-            ExportFormat::Html => "openclaw-skill-guard-report.html",
+        ExportFormat::Json => "agent-skill-guard-report.json",
+        ExportFormat::Sarif => "agent-skill-guard-report.sarif",
+        ExportFormat::Markdown => "agent-skill-guard-report.md",
+        ExportFormat::Html => "agent-skill-guard-report.html",
         }
     }
 }
@@ -136,8 +136,8 @@ pub fn run_gui_with_state(
         options,
         Box::new(move |_cc| {
             let app = match initial_scan.clone() {
-                Some(completed) => OpenClawGuardApp::with_completed_scan(completed, initial_tab),
-                None => OpenClawGuardApp::default(),
+        Some(completed) => AgentSkillGuardApp::with_completed_scan(completed, initial_tab),
+        None => AgentSkillGuardApp::default(),
             };
             Ok(Box::new(app))
         }),
@@ -271,7 +271,7 @@ fn validate_request(request: &ScanRequest) -> Result<(), String> {
 mod tests {
     use std::path::PathBuf;
 
-    use openclaw_skill_guard_core::ValidationExecutionMode;
+    use agent_skill_guard_core::ValidationExecutionMode;
 
     use super::{
         load_completed_scan_from_json, render_report_for_export, scan_with_request, ExportFormat,
@@ -303,7 +303,7 @@ mod tests {
 
         assert_eq!(
             completed.report.verdict,
-            openclaw_skill_guard_core::Verdict::Allow
+        agent_skill_guard_core::Verdict::Allow
         );
         assert!(completed.raw_json.contains("\"findings\""));
     }
@@ -314,8 +314,8 @@ mod tests {
 
         assert!(!completed.report.findings.is_empty());
         assert!(
-            completed.report.verdict == openclaw_skill_guard_core::Verdict::Warn
-                || completed.report.verdict == openclaw_skill_guard_core::Verdict::Block
+        completed.report.verdict == agent_skill_guard_core::Verdict::Warn
+            || completed.report.verdict == agent_skill_guard_core::Verdict::Block
         );
     }
 

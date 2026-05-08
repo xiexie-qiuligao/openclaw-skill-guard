@@ -8,7 +8,7 @@ use std::time::Instant;
 use eframe::egui::{
     self, Align, Color32, ComboBox, Frame, Layout, RichText, ScrollArea, Stroke, TextEdit, Ui,
 };
-use openclaw_skill_guard_core::{
+use agent_skill_guard_core::{
     AttackPath, ExternalReference, ExternalReferenceReputation, Finding, FindingConfidence,
     FindingSeverity, PathValidationDisposition, ScanReport, ValidationExecutionMode, Verdict,
 };
@@ -160,7 +160,7 @@ impl ReferenceFilter {
     }
 }
 
-pub struct OpenClawGuardApp {
+pub struct AgentSkillGuardApp {
     target_path: String,
     runtime_manifest_path: String,
     suppression_path: String,
@@ -189,7 +189,7 @@ pub struct OpenClawGuardApp {
     reference_filter: ReferenceFilter,
 }
 
-impl Default for OpenClawGuardApp {
+impl Default for AgentSkillGuardApp {
     fn default() -> Self {
         Self {
             target_path: String::new(),
@@ -222,7 +222,7 @@ impl Default for OpenClawGuardApp {
     }
 }
 
-impl OpenClawGuardApp {
+impl AgentSkillGuardApp {
     pub fn with_completed_scan(completed_scan: CompletedScan, active_tab: UiTab) -> Self {
         let mut app = Self::default();
         app.completed_scan = Some(completed_scan);
@@ -232,7 +232,7 @@ impl OpenClawGuardApp {
     }
 }
 
-impl eframe::App for OpenClawGuardApp {
+impl eframe::App for AgentSkillGuardApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.ensure_theme(ctx);
         self.poll_scan_results();
@@ -254,7 +254,7 @@ impl eframe::App for OpenClawGuardApp {
     }
 }
 
-impl OpenClawGuardApp {
+impl AgentSkillGuardApp {
     fn ensure_theme(&mut self, ctx: &egui::Context) {
         if self.theme_initialized {
             return;
@@ -498,7 +498,7 @@ impl OpenClawGuardApp {
                     );
                     if ui.button("选择默认导出位置").clicked() {
                         if let Some(path) = FileDialog::new()
-                            .set_file_name("openclaw-skill-guard-report.json")
+            .set_file_name("agent-skill-guard-report.json")
                             .save_file()
                         {
                             self.report_save_path = path.display().to_string();

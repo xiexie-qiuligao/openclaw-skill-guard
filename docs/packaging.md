@@ -12,7 +12,7 @@ This project ships two Windows executables:
 Build both executables:
 
 ```powershell
-cargo build --release -p openclaw-skill-guard-cli -p openclaw-skill-guard-gui
+cargo build --release -p agent-skill-guard-cli -p agent-skill-guard-gui
 ```
 
 Build outputs:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/standalone-openclaw-skill-guard/report.schema.json",
-  "title": "Standalone OpenClaw Skill Guard Report",
+  "$id": "https://example.invalid/agent-skill-guard/report.schema.json",
+  "title": "Agent Skill Guard Report",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -1,4 +1,4 @@
-use openclaw_skill_guard_core::{
+use agent_skill_guard_core::{
     localization::{confidence_zh, debug_label_zh, severity_zh, verdict_zh, zh_text},
     ScanReport,
 };
@@ -482,13 +482,13 @@ pub fn render_html(report: &ScanReport) -> String {
     )
 }
 
-fn sarif_level(severity: openclaw_skill_guard_core::FindingSeverity) -> &'static str {
+fn sarif_level(severity: agent_skill_guard_core::FindingSeverity) -> &'static str {
     match severity {
-        openclaw_skill_guard_core::FindingSeverity::Critical
-        | openclaw_skill_guard_core::FindingSeverity::High => "error",
-        openclaw_skill_guard_core::FindingSeverity::Medium => "warning",
-        openclaw_skill_guard_core::FindingSeverity::Low
-        | openclaw_skill_guard_core::FindingSeverity::Info => "note",
+        agent_skill_guard_core::FindingSeverity::Critical
+        | agent_skill_guard_core::FindingSeverity::High => "error",
+        agent_skill_guard_core::FindingSeverity::Medium => "warning",
+        agent_skill_guard_core::FindingSeverity::Low
+        | agent_skill_guard_core::FindingSeverity::Info => "note",
     }
 }
 
@@ -536,7 +536,7 @@ fn escape_html(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use openclaw_skill_guard_core::{
+    use agent_skill_guard_core::{
         ApiClassificationSummary, AuditSummary, ConsequenceAssessment, ConstraintEffect,
         ContextAnalysis, DependencyAuditSummary, EnvironmentAmplifier, EnvironmentBlocker,
         ExecutionSurface, ExternalReference, HostSandboxSplit, Recommendations,
@@ -625,7 +625,7 @@ mod tests {
                 summary: String::new(),
             },
             runtime_manifest_summary: "No runtime manifest supplied.".to_string(),
-            guarded_validation: openclaw_skill_guard_core::GuardedValidationResult {
+            guarded_validation: agent_skill_guard_core::GuardedValidationResult {
                 summary: "No guarded validation facts.".to_string(),
                 capability_checks: Vec::new(),
                 constraint_checks: Vec::new(),
@@ -639,7 +639,7 @@ mod tests {
             }],
             runtime_assumption_status: vec![RuntimeAssumptionStatus {
                 assumption: "execution_environment".to_string(),
-                state: openclaw_skill_guard_core::RuntimeAssumptionState::Unknown,
+                state: agent_skill_guard_core::RuntimeAssumptionState::Unknown,
                 source_kind: RuntimeSourceKind::Unknown,
                 rationale: "No manifest".to_string(),
             }],
@@ -709,9 +709,9 @@ mod tests {
                 reference_id: "ref-001".to_string(),
                 url: "https://github.com/example/project".to_string(),
                 host: "github.com".to_string(),
-                category: openclaw_skill_guard_core::ExternalReferenceCategory::SourceRepository,
-                service_kind: openclaw_skill_guard_core::ExternalServiceKind::SourceCodeHost,
-                reputation: openclaw_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
+                category: agent_skill_guard_core::ExternalReferenceCategory::SourceRepository,
+                service_kind: agent_skill_guard_core::ExternalServiceKind::SourceCodeHost,
+                reputation: agent_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
                 risk_signals: Vec::new(),
                 locations: Vec::new(),
                 evidence_excerpt: "https://github.com/example/project".to_string(),
@@ -759,7 +759,7 @@ mod tests {
                 expired_suppressions: Vec::new(),
                 validation_aware_notes: Vec::new(),
             },
-            suppression_matches: vec![openclaw_skill_guard_core::SuppressionMatch {
+            suppression_matches: vec![agent_skill_guard_core::SuppressionMatch {
                 scope: "finding".to_string(),
                 target_id: "example".to_string(),
                 reason: "fixture".to_string(),
@@ -875,7 +875,7 @@ mod tests {
                     summary: String::new(),
                 },
                 runtime_manifest_summary: "No runtime manifest supplied.".to_string(),
-                guarded_validation: openclaw_skill_guard_core::GuardedValidationResult {
+                guarded_validation: agent_skill_guard_core::GuardedValidationResult {
                     summary: String::new(),
                     capability_checks: Vec::new(),
                     constraint_checks: Vec::new(),
@@ -970,17 +970,17 @@ mod tests {
         )
         .unwrap();
 
-        report.findings.push(openclaw_skill_guard_core::Finding {
+        report.findings.push(agent_skill_guard_core::Finding {
             id: "source.direct_ip".to_string(),
             title: "External reference uses a direct IP address".to_string(),
             issue_code: None,
             title_zh: None,
             category: "source.direct_ip".to_string(),
-            severity: openclaw_skill_guard_core::FindingSeverity::High,
-            confidence: openclaw_skill_guard_core::FindingConfidence::Medium,
+            severity: agent_skill_guard_core::FindingSeverity::High,
+            confidence: agent_skill_guard_core::FindingConfidence::Medium,
             hard_trigger: false,
             evidence_kind: "text_pattern".to_string(),
-            location: Some(openclaw_skill_guard_core::SkillLocation {
+            location: Some(agent_skill_guard_core::SkillLocation {
                 path: "SKILL.md".to_string(),
                 line: Some(12),
                 column: Some(4),
@@ -1094,7 +1094,7 @@ mod tests {
                     summary: "split summary".to_string(),
                 },
                 runtime_manifest_summary: "manifest summary".to_string(),
-                guarded_validation: openclaw_skill_guard_core::GuardedValidationResult {
+                guarded_validation: agent_skill_guard_core::GuardedValidationResult {
                     summary: "guarded validation".to_string(),
                     capability_checks: Vec::new(),
                     constraint_checks: Vec::new(),
@@ -1140,10 +1140,10 @@ mod tests {
                     url: "https://github.com/example/project".to_string(),
                     host: "github.com".to_string(),
                     category:
-                        openclaw_skill_guard_core::ExternalReferenceCategory::SourceRepository,
-                    service_kind: openclaw_skill_guard_core::ExternalServiceKind::SourceCodeHost,
+                        agent_skill_guard_core::ExternalReferenceCategory::SourceRepository,
+                    service_kind: agent_skill_guard_core::ExternalServiceKind::SourceCodeHost,
                     reputation:
-                        openclaw_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
+                        agent_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
                     risk_signals: Vec::new(),
                     locations: Vec::new(),
                     evidence_excerpt: "https://github.com/example/project".to_string(),
@@ -1154,20 +1154,20 @@ mod tests {
                         asset_sources: vec!["api-taxonomy-v2.yaml".to_string()],
                     },
                 }],
-                openclaw_config_audit_summary:
-                    openclaw_skill_guard_core::OpenClawConfigAuditSummary {
+                    openclaw_config_audit_summary:
+                    agent_skill_guard_core::OpenClawConfigAuditSummary {
                         summary: "config summary".to_string(),
                         ..Default::default()
                     },
-                capability_manifest: openclaw_skill_guard_core::CapabilityManifestSummary {
+                capability_manifest: agent_skill_guard_core::CapabilityManifestSummary {
                     summary: "capability summary".to_string(),
                     ..Default::default()
                 },
-                companion_doc_audit_summary: openclaw_skill_guard_core::CompanionDocAuditSummary {
+                companion_doc_audit_summary: agent_skill_guard_core::CompanionDocAuditSummary {
                     summary: "companion summary".to_string(),
                     ..Default::default()
                 },
-                source_identity_summary: openclaw_skill_guard_core::SourceIdentitySummary {
+                source_identity_summary: agent_skill_guard_core::SourceIdentitySummary {
                     summary: "identity summary".to_string(),
                     ..Default::default()
                 },

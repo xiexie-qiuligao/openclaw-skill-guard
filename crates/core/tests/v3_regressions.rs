@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use openclaw_skill_guard_core::corpus::load_builtin_corpora;
-use openclaw_skill_guard_core::{scan_path, Verdict};
+use agent_skill_guard_core::corpus::load_builtin_corpora;
+use agent_skill_guard_core::{scan_path, Verdict};
 
 fn fixture(path: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -159,11 +159,11 @@ fn benchmark_false_positive_docs_do_not_trigger_new_overlays() {
 
 #[test]
 fn agent_ecosystem_mcp_fixture_emits_mcp_issue_codes_and_ai_bom() {
-    let report = openclaw_skill_guard_core::scan_path_with_options(
+    let report = agent_skill_guard_core::scan_path_with_options(
         &fixture("fixtures/agent-ecosystem/mcp-dangerous"),
         None,
         None,
-        openclaw_skill_guard_core::ValidationExecutionMode::Planned,
+        agent_skill_guard_core::ValidationExecutionMode::Planned,
         true,
     )
     .unwrap();
@@ -182,11 +182,11 @@ fn agent_ecosystem_mcp_fixture_emits_mcp_issue_codes_and_ai_bom() {
 
 #[test]
 fn agent_ecosystem_cursor_rule_indexes_without_openclaw_skill() {
-    let report = openclaw_skill_guard_core::scan_path_with_options(
+    let report = agent_skill_guard_core::scan_path_with_options(
         &fixture("fixtures/agent-ecosystem/cursor-rule"),
         None,
         None,
-        openclaw_skill_guard_core::ValidationExecutionMode::Planned,
+        agent_skill_guard_core::ValidationExecutionMode::Planned,
         true,
     )
     .unwrap();
@@ -204,11 +204,11 @@ fn agent_ecosystem_cursor_rule_indexes_without_openclaw_skill() {
 
 #[test]
 fn benign_mcp_fixture_does_not_emit_mcp_findings() {
-    let report = openclaw_skill_guard_core::scan_path_with_options(
+    let report = agent_skill_guard_core::scan_path_with_options(
         &fixture("fixtures/agent-ecosystem/benign-mcp"),
         None,
         None,
-        openclaw_skill_guard_core::ValidationExecutionMode::Planned,
+        agent_skill_guard_core::ValidationExecutionMode::Planned,
         true,
     )
     .unwrap();

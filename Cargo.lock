@@ -25,6 +25,54 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "agent-skill-guard-cli"
+version = "0.1.0"
+dependencies = [
+ "agent-skill-guard-core",
+ "agent-skill-guard-report",
+ "clap",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "agent-skill-guard-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "tempfile",
+ "thiserror 1.0.69",
+ "toml",
+ "ureq",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
+name = "agent-skill-guard-gui"
+version = "0.1.0"
+dependencies = [
+ "agent-skill-guard-core",
+ "agent-skill-guard-report",
+ "eframe",
+ "rfd",
+ "serde_json",
+]
+
+[[package]]
+name = "agent-skill-guard-report"
+version = "0.1.0"
+dependencies = [
+ "agent-skill-guard-core",
+ "serde_json",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2022,54 +2070,6 @@ name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
-
-[[package]]
-name = "openclaw-skill-guard-cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "openclaw-skill-guard-core",
- "openclaw-skill-guard-report",
- "serde_json",
- "tempfile",
-]
-
-[[package]]
-name = "openclaw-skill-guard-core"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "tempfile",
- "thiserror 1.0.69",
- "toml",
- "ureq",
- "walkdir",
- "zip",
-]
-
-[[package]]
-name = "openclaw-skill-guard-gui"
-version = "0.1.0"
-dependencies = [
- "eframe",
- "openclaw-skill-guard-core",
- "openclaw-skill-guard-report",
- "rfd",
- "serde_json",
-]
-
-[[package]]
-name = "openclaw-skill-guard-report"
-version = "0.1.0"
-dependencies = [
- "openclaw-skill-guard-core",
- "serde_json",
-]
 
 [[package]]
 name = "orbclient"

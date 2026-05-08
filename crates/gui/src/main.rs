@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use openclaw_skill_guard_gui::{
-    load_completed_scan_from_json, run_gui, run_gui_with_state, OpenClawGuardApp, UiTab,
+use agent_skill_guard_gui::{
+    load_completed_scan_from_json, run_gui, run_gui_with_state, AgentSkillGuardApp, UiTab,
 };
 
 fn parse_demo_tab(value: &str) -> Result<UiTab, String> {
@@ -53,8 +53,8 @@ fn main() {
     }
 
     if smoke_test {
-        let _ = OpenClawGuardApp::default();
-        println!("openclaw-skill-guard-gui smoke test ok");
+    let _ = AgentSkillGuardApp::default();
+    println!("agent-skill-guard-gui smoke test ok");
         return;
     }
 

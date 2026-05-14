@@ -40,8 +40,11 @@ Agent Skill Guard 用于在安装、发布或审查 Agent skill、OpenClaw Skill
 - “声明 vs 实际证据”对照：自称只读、实际权限、安装来源、配置绑定是否一致
 - SKILL.md SHA-256 完整性快照和当前扫描范围内的本地 Agent / MCP 配置引用
 - 通用 Agent package 生态解析、MCP / Tool Schema 静态审计、AI BOM
+- 参考公开优秀扫描器机制的 benchmark、issue taxonomy 和误报保护
 - corpus-backed threat / sensitive analyzers
 - suppression / audit
+
+外部机制吸收边界见 [docs/reference-integrations.md](docs/reference-integrations.md)：项目会学习 Cisco / Snyk / MCPShield 等公开机制，但默认不引入云端判定、在线信誉或危险动态执行。
 
 ## 报告格式
 

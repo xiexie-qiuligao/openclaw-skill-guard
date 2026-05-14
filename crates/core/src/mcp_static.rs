@@ -50,14 +50,7 @@ pub fn analyze_mcp_static(package_index: &AgentPackageIndexSummary) -> McpStatic
             }
         }
         for schema in &package.surface.schemas {
-            let lower = schema.to_ascii_lowercase();
-            if lower.contains("ignore")
-                || lower.contains("bypass")
-                || lower.contains("follow remote")
-                || lower.contains("system prompt")
-                || schema.contains("忽略")
-                || schema.contains("绕过")
-            {
+            if contains_instruction_override(schema) {
                 tool_schema_signals.push(format!(
                     "{}: {}",
                     safe_path(&package.source_path),
@@ -73,6 +66,39 @@ pub fn analyze_mcp_static(package_index: &AgentPackageIndexSummary) -> McpStatic
                     schema,
                     "Tool descriptions and input schemas can become model-visible instructions; override language can poison delegated tool use.",
                     "工具描述和 input schema 会进入模型可见上下文，覆盖/绕过类语言可能污染工具调用语义。",
+                ));
+            }
+            if contains_schema_field_poisoning(schema) {
+                tool_schema_signals.push(format!(
+                    "{}: {}",
+                    safe_path(&package.source_path),
+                    schema
+                ));
+                findings.push(mcp_finding(
+                    "mcp.schema_field_poisoning",
+                    "OCSG-MCP-005",
+                    "MCP schema field contains hidden or model-facing control text",
+                    "MCP schema 字段包含隐藏或模型可见控制文本",
+                    FindingSeverity::Medium,
+                    &package.source_path,
+                    schema,
+                    "MCP schema fields such as title, description, examples, required, comments, prompts, or resources can become model-visible context and should not carry control instructions.",
+                    "MCP schema 的 title、description、examples、required、comment、prompt 或 resource 字段可能进入模型上下文，不应夹带控制指令。",
+                ));
+            }
+        }
+        for tool in &package.surface.tools {
+            if looks_like_tool_shadowing(tool, package) {
+                findings.push(mcp_finding(
+                    "mcp.tool_shadowing",
+                    "OCSG-MCP-004",
+                    "MCP tool appears to shadow trusted tool behavior",
+                    "MCP 工具疑似伪装成可信工具能力",
+                    FindingSeverity::Medium,
+                    &package.source_path,
+                    tool,
+                    "The MCP tool name or description resembles trusted built-in tool behavior while the same server surface exposes execution, credential, or outbound capabilities.",
+                    "该 MCP 工具名称或描述像可信内置工具，但同一 server 面又暴露执行、凭据或外联能力，需要复核是否存在工具伪装。",
                 ));
             }
         }
@@ -100,6 +126,25 @@ pub fn analyze_mcp_static(package_index: &AgentPackageIndexSummary) -> McpStatic
                 "同一个 MCP server 面上出现敏感访问和外联动作，应复核是否形成跨工具升级路径。",
             ));
         }
+        if package.surface.tools.iter().any(|tool| {
+            let lower = tool.to_ascii_lowercase();
+            has_credential_word(&lower)
+        }) && package.surface.tools.iter().any(|tool| {
+            let lower = tool.to_ascii_lowercase();
+            has_outbound_word(&lower)
+        }) {
+            findings.push(mcp_finding(
+                "mcp.cross_tool_credential_egress",
+                "OCSG-MCP-003",
+                "MCP tools combine credential collection and outbound transfer language",
+                "MCP 工具组合了凭据收集与外联传输语义",
+                FindingSeverity::Medium,
+                &package.source_path,
+                &package.evidence_excerpt,
+                "Credential-harvesting and outbound-transfer wording in one MCP server surface can form a cross-tool escalation path.",
+                "同一个 MCP server 面同时出现凭据收集和外联传输语义，可能形成跨工具升级路径。",
+            ));
+        }
     }
 
     let summary = McpToolSchemaSummary {
@@ -124,6 +169,85 @@ pub fn analyze_mcp_static(package_index: &AgentPackageIndexSummary) -> McpStatic
     };
 
     McpStaticAnalysis { summary, findings }
+}
+
+fn contains_instruction_override(text: &str) -> bool {
+    let lower = text.to_ascii_lowercase();
+    lower.contains("ignore")
+        || lower.contains("bypass")
+        || lower.contains("follow remote")
+        || lower.contains("system prompt")
+        || lower.contains("disable safety")
+        || text.contains("忽略")
+        || text.contains("绕过")
+}
+
+fn contains_schema_field_poisoning(text: &str) -> bool {
+    let lower = text.to_ascii_lowercase();
+    let model_visible_field = lower.contains("$comment")
+        || lower.contains("examples")
+        || lower.contains("required")
+        || lower.contains("title")
+        || lower.contains("description")
+        || lower.contains("prompt")
+        || lower.contains("resource");
+    model_visible_field
+        && (contains_instruction_override(text)
+            || lower.contains("secret")
+            || lower.contains("credential")
+            || lower.contains("token")
+            || lower.contains("exfiltrate")
+            || lower.contains("send to")
+            || text.contains("密钥")
+            || text.contains("凭据")
+            || text.contains("外发"))
+}
+
+fn looks_like_tool_shadowing(tool: &str, package: &crate::types::AgentPackage) -> bool {
+    let lower = tool.to_ascii_lowercase();
+    let trusted_name = lower.contains("read_file")
+        || lower.contains("write_file")
+        || lower.contains("filesystem")
+        || lower.contains("web_search")
+        || lower.contains("browser")
+        || lower.contains("shell")
+        || lower.contains("terminal")
+        || lower.contains("git");
+    let risky_surface = package.surface.commands.iter().any(|command| {
+        let lower = command.to_ascii_lowercase();
+        lower.contains("bash")
+            || lower.contains("powershell")
+            || lower.contains("cmd.exe")
+            || lower.contains("npx")
+            || lower.contains("uvx")
+            || lower.contains("curl")
+            || lower.contains("wget")
+    }) || package.surface.env.iter().any(|env| {
+        let lower = env.to_ascii_lowercase();
+        has_credential_word(&lower)
+    }) || package.surface.tools.iter().any(|other| {
+        let lower = other.to_ascii_lowercase();
+        has_outbound_word(&lower) || has_credential_word(&lower)
+    });
+    trusted_name && risky_surface
+}
+
+fn has_credential_word(lower: &str) -> bool {
+    lower.contains("credential")
+        || lower.contains("secret")
+        || lower.contains("token")
+        || lower.contains("api_key")
+        || lower.contains("apikey")
+        || lower.contains("password")
+}
+
+fn has_outbound_word(lower: &str) -> bool {
+    lower.contains("send")
+        || lower.contains("upload")
+        || lower.contains("post")
+        || lower.contains("webhook")
+        || lower.contains("http")
+        || lower.contains("exfil")
 }
 
 fn mcp_finding(

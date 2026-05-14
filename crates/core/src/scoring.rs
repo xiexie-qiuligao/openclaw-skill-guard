@@ -217,6 +217,8 @@ fn risk_role(finding: &Finding) -> RiskRole {
         || finding.category.starts_with("toxic_flow")
         || finding.category.starts_with("mcp.tool_schema")
         || finding.category.starts_with("mcp.dangerous_command")
+        || finding.issue_code.as_deref() == Some("OCSG-FIN-001")
+        || finding.issue_code.as_deref() == Some("OCSG-SYSTEM-001")
         || finding.id == "context.install.auto_remote_execution"
         || finding.id == "context.install.manual_remote_execution"
     {

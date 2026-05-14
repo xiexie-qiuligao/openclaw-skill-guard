@@ -219,3 +219,63 @@ fn benign_mcp_fixture_does_not_emit_mcp_findings() {
         .all(|finding| !finding.category.starts_with("mcp.")));
     assert_eq!(report.mcp_tool_schema_summary.findings_count, 0);
 }
+
+#[test]
+fn benchmark_normal_install_stays_review_only() {
+    let report = scan_path(&fixture("fixtures/benchmark/normal-install")).unwrap();
+
+    assert_ne!(report.verdict, Verdict::Block);
+    assert!(report.scoring_summary.final_score >= 90);
+    assert!(report.attack_paths.is_empty());
+}
+
+#[test]
+fn benchmark_mcp_advanced_emits_shadowing_and_schema_poisoning_codes() {
+    let report = agent_skill_guard_core::scan_path_with_options(
+        &fixture("fixtures/benchmark/mcp-advanced"),
+        None,
+        None,
+        agent_skill_guard_core::ValidationExecutionMode::Planned,
+        true,
+    )
+    .unwrap();
+    let issue_codes = report
+        .findings
+        .iter()
+        .filter_map(|finding| finding.issue_code.as_deref())
+        .collect::<Vec<_>>();
+
+    assert!(issue_codes.contains(&"OCSG-MCP-002"));
+    assert!(issue_codes.contains(&"OCSG-MCP-004"));
+    assert!(issue_codes.contains(&"OCSG-MCP-005"));
+}
+
+#[test]
+fn benchmark_high_impact_semantics_emit_stable_codes_and_block() {
+    let report = scan_path(&fixture("fixtures/benchmark/high-impact-semantics")).unwrap();
+    let issue_codes = report
+        .findings
+        .iter()
+        .filter_map(|finding| finding.issue_code.as_deref())
+        .collect::<Vec<_>>();
+
+    assert!(issue_codes.contains(&"OCSG-FIN-001"));
+    assert!(issue_codes.contains(&"OCSG-SYSTEM-001"));
+    assert!(issue_codes.contains(&"OCSG-CONTENT-001"));
+    assert_eq!(report.verdict, Verdict::Block);
+}
+
+#[test]
+fn benchmark_negated_high_impact_docs_do_not_block() {
+    let report = scan_path(&fixture("fixtures/benchmark/false-positive-normal-docs")).unwrap();
+
+    assert_ne!(report.verdict, Verdict::Block);
+    assert!(report
+        .findings
+        .iter()
+        .all(
+            |finding| finding.issue_code.as_deref() != Some("OCSG-FIN-001")
+                && finding.issue_code.as_deref() != Some("OCSG-SYSTEM-001")
+                && finding.issue_code.as_deref() != Some("OCSG-CONTENT-001")
+        ));
+}

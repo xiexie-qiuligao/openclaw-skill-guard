@@ -9,10 +9,22 @@ pub fn issue_code_for_category(category: &str, id: &str) -> Option<&'static str>
         Some("OCSG-MCP-002")
     } else if category.starts_with("mcp.cross_tool") {
         Some("OCSG-MCP-003")
+    } else if category.starts_with("mcp.tool_shadowing") {
+        Some("OCSG-MCP-004")
+    } else if category.starts_with("mcp.schema_field_poisoning") {
+        Some("OCSG-MCP-005")
     } else if category.starts_with("ai_bom") {
         Some("OCSG-AIBOM-001")
     } else if category.starts_with("hidden_instruction") {
-        Some("OCSG-HIDDEN-001")
+        if category.contains("direct_financial_action") {
+            Some("OCSG-FIN-001")
+        } else if category.contains("system_modification") {
+            Some("OCSG-SYSTEM-001")
+        } else if category.contains("third_party_content_exposure") {
+            Some("OCSG-CONTENT-001")
+        } else {
+            Some("OCSG-HIDDEN-001")
+        }
     } else if category.starts_with("claims_review") {
         Some("OCSG-CLAIM-001")
     } else if category.contains("prompt") || id.starts_with("prompt.") {

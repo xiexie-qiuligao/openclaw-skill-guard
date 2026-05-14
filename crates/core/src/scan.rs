@@ -432,9 +432,7 @@ pub fn scan_path_with_options(
         && !suppression_application
             .active_findings
             .iter()
-            .any(|finding| {
-                finding.hard_trigger && finding.confidence == crate::types::FindingConfidence::High
-            })
+            .any(strong_blocking_finding)
     {
         score_result.verdict = Verdict::Warn;
         score_result.blocked = false;
@@ -574,6 +572,21 @@ pub fn scan_path_with_options(
     };
     enrich_report_zh(&mut report);
     Ok(report)
+}
+
+fn strong_blocking_finding(finding: &crate::types::Finding) -> bool {
+    if finding.hard_trigger && finding.confidence == crate::types::FindingConfidence::High {
+        return true;
+    }
+    matches!(
+        finding.issue_code.as_deref(),
+        Some("OCSG-FLOW-001")
+            | Some("OCSG-FIN-001")
+            | Some("OCSG-SYSTEM-001")
+            | Some("OCSG-MCP-001")
+            | Some("OCSG-MCP-002")
+            | Some("OCSG-MCP-005")
+    )
 }
 
 fn build_corpus_provenance_notes(corpus_assets: &[CorpusAssetUsage]) -> Vec<ProvenanceNote> {

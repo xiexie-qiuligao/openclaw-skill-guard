@@ -1,0 +1,31 @@
+samples:
+  - id: normal-install
+    package_kind: openclaw_skill
+    expected_max_verdict: warn
+    expected_issue_codes: []
+    false_positive_guard: "Normal npm install and ordinary GitHub documentation link must not block."
+    toxic_flow_expected: false
+  - id: mcp-advanced
+    package_kind: mcp_config
+    expected_max_verdict: block
+    expected_issue_codes:
+      - OCSG-MCP-002
+      - OCSG-MCP-004
+      - OCSG-MCP-005
+    false_positive_guard: "MCP server is never started; static config text only."
+    toxic_flow_expected: false
+  - id: high-impact-semantics
+    package_kind: generic_prompt_package
+    expected_max_verdict: block
+    expected_issue_codes:
+      - OCSG-FIN-001
+      - OCSG-SYSTEM-001
+      - OCSG-CONTENT-001
+    false_positive_guard: "High-impact actions are written as direct instructions, not negative examples."
+    toxic_flow_expected: false
+  - id: false-positive-normal-docs
+    package_kind: openclaw_skill
+    expected_max_verdict: warn
+    expected_issue_codes: []
+    false_positive_guard: "Negated examples and normal pip install must not become block evidence."
+    toxic_flow_expected: false

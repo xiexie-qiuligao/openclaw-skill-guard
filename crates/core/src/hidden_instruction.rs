@@ -34,8 +34,22 @@ pub fn analyze_hidden_instructions(text_artifacts: &[TextArtifact]) -> HiddenIns
                     artifact,
                     line_no,
                     line,
+                    "OCSG-HIDDEN-001",
                     "Invisible zero-width characters can hide instructions from reviewers while remaining available to parsers or models.",
                     "检测到零宽字符，可能把指令藏在人工审查不容易看到的位置。",
+                );
+            }
+            if contains_variation_selector_or_suspicious_spacing(line) {
+                push_signal_and_finding(
+                    &mut signals,
+                    &mut findings,
+                    "whitespace_smuggling",
+                    artifact,
+                    line_no,
+                    line,
+                    "OCSG-HIDDEN-001",
+                    "Variation selectors or unusual spacing can hide or visually fragment model-facing instructions.",
+                    "检测到变体选择符或异常空白，可能隐藏或拆散模型可见指令。",
                 );
             }
             if contains_bidi_override(line) {
@@ -46,6 +60,7 @@ pub fn analyze_hidden_instructions(text_artifacts: &[TextArtifact]) -> HiddenIns
                     artifact,
                     line_no,
                     line,
+                    "OCSG-HIDDEN-001",
                     "Bidirectional override characters can visually reorder instruction text or code-like snippets.",
                     "检测到双向文本覆盖字符，可能让显示内容和真实文本顺序不一致。",
                 );
@@ -58,6 +73,7 @@ pub fn analyze_hidden_instructions(text_artifacts: &[TextArtifact]) -> HiddenIns
                     artifact,
                     line_no,
                     line,
+                    "OCSG-HIDDEN-001",
                     "HTML comments can hide model-facing instructions inside documentation that appears benign.",
                     "HTML 注释中包含疑似模型指令，可能把隐藏指令夹带在文档里。",
                 );
@@ -70,6 +86,7 @@ pub fn analyze_hidden_instructions(text_artifacts: &[TextArtifact]) -> HiddenIns
                     artifact,
                     line_no,
                     line,
+                    "OCSG-HIDDEN-001",
                     "Long encoded-looking instruction material should be reviewed before trusting a skill.",
                     "检测到疑似编码后的指令片段，安装前应人工复核其真实含义。",
                 );
@@ -82,6 +99,7 @@ pub fn analyze_hidden_instructions(text_artifacts: &[TextArtifact]) -> HiddenIns
                     artifact,
                     line_no,
                     line,
+                    "OCSG-MCP-005",
                     "Tool or schema description text appears to contain instruction override language.",
                     "工具或 schema 描述里出现覆盖/绕过类指令，可能污染代理工具语义。",
                 );
@@ -97,10 +115,50 @@ pub fn analyze_hidden_instructions(text_artifacts: &[TextArtifact]) -> HiddenIns
                         artifact,
                         line_no,
                         line,
+                        "OCSG-HIDDEN-001",
                         "Markdown link text and destination point to different trust surfaces.",
                         "Markdown 链接显示文本和真实目标不一致，可能误导用户信任来源。",
                     );
                 }
+            }
+            if looks_like_direct_financial_action(line) {
+                push_signal_and_finding(
+                    &mut signals,
+                    &mut findings,
+                    "direct_financial_action",
+                    artifact,
+                    line_no,
+                    line,
+                    "OCSG-FIN-001",
+                    "The instruction appears to authorize direct payment, trading, invoicing, or money movement.",
+                    "检测到直接付款、交易、开票或资金流转类指令，安装前必须确认是否需要人工审批。",
+                );
+            }
+            if looks_like_system_modification(line) {
+                push_signal_and_finding(
+                    &mut signals,
+                    &mut findings,
+                    "system_modification",
+                    artifact,
+                    line_no,
+                    line,
+                    "OCSG-SYSTEM-001",
+                    "The instruction appears to modify system services, startup behavior, persistence, or scheduled execution.",
+                    "检测到系统服务、开机启动、持久化或计划任务修改语义，属于高影响操作，需要重点复核。",
+                );
+            }
+            if looks_like_third_party_content_exposure(line) {
+                push_signal_and_finding(
+                    &mut signals,
+                    &mut findings,
+                    "third_party_content_exposure",
+                    artifact,
+                    line_no,
+                    line,
+                    "OCSG-CONTENT-001",
+                    "The instruction appears to send local documents, workspace content, or conversation material to a third-party endpoint.",
+                    "检测到把本地文档、工作区内容或对话材料发送给第三方端点的语义，需要确认数据边界。",
+                );
             }
         }
     }
@@ -143,6 +201,7 @@ fn push_signal_and_finding(
     artifact: &TextArtifact,
     line: usize,
     raw_evidence: &str,
+    issue_code: &str,
     rationale: &str,
     rationale_zh: &str,
 ) {
@@ -162,10 +221,10 @@ fn push_signal_and_finding(
     findings.push(Finding {
         id: format!("hidden_instruction.{signal_kind}.{index:03}"),
         title: "Hidden instruction or Trojan Source signal requires review".to_string(),
-        issue_code: Some("OCSG-HIDDEN-001".to_string()),
-        title_zh: Some("隐藏指令或 Trojan Source 信号需要复核".to_string()),
+        issue_code: Some(issue_code.to_string()),
+        title_zh: Some(hidden_title_zh(signal_kind).to_string()),
         category: format!("hidden_instruction.{signal_kind}"),
-        severity: FindingSeverity::Medium,
+        severity: hidden_severity(signal_kind),
         confidence: FindingConfidence::Medium,
         hard_trigger: false,
         evidence_kind: "hidden_instruction_signal".to_string(),
@@ -207,6 +266,24 @@ fn push_signal_and_finding(
     });
 }
 
+fn hidden_title_zh(signal_kind: &str) -> &'static str {
+    match signal_kind {
+        "direct_financial_action" => "直接金融操作指令需要复核",
+        "system_modification" => "系统修改或持久化指令需要复核",
+        "third_party_content_exposure" => "第三方内容暴露指令需要复核",
+        "tool_schema_poisoning" => "工具或 schema 投毒信号需要复核",
+        _ => "隐藏指令或 Trojan Source 信号需要复核",
+    }
+}
+
+fn hidden_severity(signal_kind: &str) -> FindingSeverity {
+    match signal_kind {
+        "direct_financial_action" | "system_modification" => FindingSeverity::High,
+        "third_party_content_exposure" | "tool_schema_poisoning" => FindingSeverity::Medium,
+        _ => FindingSeverity::Medium,
+    }
+}
+
 fn contains_zero_width(line: &str) -> bool {
     line.chars().any(|ch| {
         matches!(
@@ -214,6 +291,18 @@ fn contains_zero_width(line: &str) -> bool {
             '\u{200B}' | '\u{200C}' | '\u{200D}' | '\u{2060}' | '\u{FEFF}'
         )
     })
+}
+
+fn contains_variation_selector_or_suspicious_spacing(line: &str) -> bool {
+    let has_variation_selector = line
+        .chars()
+        .any(|ch| ('\u{FE00}'..='\u{FE0F}').contains(&ch));
+    let has_spaced_instruction_word = line.contains("i g n o r e")
+        || line.contains("b y p a s s")
+        || line.contains("s y s t e m")
+        || line.contains("忽 略")
+        || line.contains("绕 过");
+    has_variation_selector || has_spaced_instruction_word
 }
 
 fn contains_bidi_override(line: &str) -> bool {
@@ -265,6 +354,86 @@ fn looks_like_encoded_instruction(line: &str) -> bool {
                     .chars()
                     .all(|ch| ch.is_ascii_alphanumeric() || ch == '+' || ch == '/' || ch == '=')
         })
+}
+
+fn looks_like_direct_financial_action(line: &str) -> bool {
+    let lower = line.to_ascii_lowercase();
+    (lower.contains("transfer funds")
+        || lower.contains("wire transfer")
+        || lower.contains("place trade")
+        || lower.contains("buy stock")
+        || lower.contains("sell stock")
+        || lower.contains("charge card")
+        || lower.contains("send payment")
+        || lower.contains("create invoice")
+        || line.contains("转账")
+        || line.contains("付款")
+        || line.contains("支付")
+        || line.contains("下单交易"))
+        && !is_example_or_negated(line)
+}
+
+fn looks_like_system_modification(line: &str) -> bool {
+    let lower = line.to_ascii_lowercase();
+    let explicit_system_surface = lower.contains("launchctl")
+        || lower.contains("systemd")
+        || lower.contains("install service")
+        || lower.contains("scheduled task")
+        || lower.contains("startup folder")
+        || lower.contains("registry run")
+        || line.contains("开机启动")
+        || line.contains("计划任务")
+        || line.contains("持久化");
+    let cron_persistence_surface = (lower.contains("cron") || lower.contains("persistence"))
+        && (lower.contains("install")
+            || lower.contains("create")
+            || lower.contains("add")
+            || lower.contains("enable")
+            || lower.contains("register")
+            || lower.contains("write")
+            || lower.contains("persist"))
+        && !(lower.contains("document")
+            || lower.contains("row")
+            || lower.contains("query")
+            || lower.contains("trigger")
+            || lower.contains("stats")
+            || lower.contains("online")
+            || lower.contains("offline"));
+    (explicit_system_surface || cron_persistence_surface) && !is_example_or_negated(line)
+}
+
+fn looks_like_third_party_content_exposure(line: &str) -> bool {
+    let lower = line.to_ascii_lowercase();
+    let content = lower.contains("workspace")
+        || lower.contains("local file")
+        || lower.contains("document")
+        || lower.contains("conversation")
+        || lower.contains("clipboard")
+        || line.contains("本地文件")
+        || line.contains("工作区")
+        || line.contains("文档")
+        || line.contains("对话");
+    let outbound = lower.contains("send")
+        || lower.contains("upload")
+        || lower.contains("post")
+        || lower.contains("webhook")
+        || lower.contains("third-party")
+        || lower.contains("external")
+        || line.contains("发送")
+        || line.contains("上传")
+        || line.contains("第三方");
+    content && outbound && !is_example_or_negated(line)
+}
+
+fn is_example_or_negated(line: &str) -> bool {
+    let lower = line.to_ascii_lowercase();
+    lower.contains("example")
+        || lower.contains("do not")
+        || lower.contains("never")
+        || lower.contains("should not")
+        || line.contains("示例")
+        || line.contains("不要")
+        || line.contains("不得")
 }
 
 fn link_label_host(label: &str) -> Option<String> {

@@ -10,7 +10,8 @@ use agent_skill_guard_core::{
     FindingSeverity, PathValidationDisposition, ScanReport, ValidationExecutionMode, Verdict,
 };
 use eframe::egui::{
-    self, Align, Color32, ComboBox, Frame, Layout, RichText, ScrollArea, Stroke, TextEdit, Ui,
+    self, Align, Color32, ComboBox, Frame, Layout, Pos2, Rect, RichText, ScrollArea, Stroke,
+    TextEdit, Ui, Vec2,
 };
 use rfd::FileDialog;
 
@@ -23,6 +24,17 @@ use crate::{
 enum ScanWorkerMessage {
     Finished(Result<CompletedScan, String>),
 }
+
+const BG_TOP: Color32 = Color32::from_rgb(10, 18, 35);
+const BG_BOTTOM: Color32 = Color32::from_rgb(21, 31, 55);
+const GLASS_FILL: Color32 = Color32::from_rgba_premultiplied(255, 255, 255, 22);
+const GLASS_FILL_STRONG: Color32 = Color32::from_rgba_premultiplied(255, 255, 255, 34);
+const GLASS_STROKE: Color32 = Color32::from_rgba_premultiplied(255, 255, 255, 42);
+const TEXT_MAIN: Color32 = Color32::from_rgb(244, 248, 255);
+const TEXT_MUTED: Color32 = Color32::from_rgb(175, 190, 211);
+const ACCENT: Color32 = Color32::from_rgb(98, 214, 189);
+const ACCENT_GOLD: Color32 = Color32::from_rgb(255, 202, 111);
+const DANGER_ACCENT: Color32 = Color32::from_rgb(255, 122, 122);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SeverityFilter {
@@ -239,18 +251,23 @@ impl eframe::App for AgentSkillGuardApp {
         if self.scan_running {
             ctx.request_repaint();
         }
+        self.paint_app_background(ctx);
 
         egui::TopBottomPanel::top("top_bar")
+            .frame(egui::Frame::none().fill(Color32::TRANSPARENT))
             .resizable(false)
             .show(ctx, |ui| self.render_top_bar(ui));
 
         egui::SidePanel::left("scan_panel")
+            .frame(egui::Frame::none().fill(Color32::TRANSPARENT))
             .default_width(390.0)
             .min_width(340.0)
             .resizable(true)
             .show(ctx, |ui| self.render_scan_panel(ui));
 
-        egui::CentralPanel::default().show(ctx, |ui| self.render_main_panel(ui));
+        egui::CentralPanel::default()
+            .frame(egui::Frame::none().fill(Color32::TRANSPARENT))
+            .show(ctx, |ui| self.render_main_panel(ui));
     }
 }
 
@@ -262,29 +279,62 @@ impl AgentSkillGuardApp {
 
         self.install_cjk_font(ctx);
 
-        let mut visuals = egui::Visuals::light();
-        visuals.panel_fill = Color32::from_rgb(242, 246, 249);
-        visuals.window_fill = Color32::from_rgb(250, 252, 254);
-        visuals.extreme_bg_color = Color32::from_rgb(226, 233, 239);
-        visuals.faint_bg_color = Color32::from_rgb(236, 242, 247);
-        visuals.code_bg_color = Color32::from_rgb(239, 245, 250);
-        visuals.selection.bg_fill = Color32::from_rgb(18, 111, 122);
+        let mut visuals = egui::Visuals::dark();
+        visuals.panel_fill = Color32::TRANSPARENT;
+        visuals.window_fill = Color32::from_rgba_premultiplied(16, 24, 42, 238);
+        visuals.extreme_bg_color = Color32::from_rgb(8, 14, 28);
+        visuals.faint_bg_color = Color32::from_rgba_premultiplied(255, 255, 255, 18);
+        visuals.code_bg_color = Color32::from_rgba_premultiplied(0, 0, 0, 72);
+        visuals.selection.bg_fill = Color32::from_rgb(38, 146, 139);
         visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
-        visuals.hyperlink_color = Color32::from_rgb(18, 111, 122);
-        visuals.widgets.active.bg_fill = Color32::from_rgb(18, 111, 122);
-        visuals.widgets.hovered.bg_fill = Color32::from_rgb(222, 237, 244);
-        visuals.widgets.inactive.bg_fill = Color32::from_rgb(255, 255, 255);
-        visuals.override_text_color = Some(Color32::from_rgb(33, 37, 41));
+        visuals.hyperlink_color = ACCENT;
+        visuals.widgets.active.bg_fill = Color32::from_rgba_premultiplied(98, 214, 189, 76);
+        visuals.widgets.hovered.bg_fill = Color32::from_rgba_premultiplied(255, 255, 255, 36);
+        visuals.widgets.inactive.bg_fill = Color32::from_rgba_premultiplied(255, 255, 255, 18);
+        visuals.widgets.inactive.fg_stroke = Stroke::new(1.0, TEXT_MAIN);
+        visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, TEXT_MUTED);
+        visuals.override_text_color = Some(TEXT_MAIN);
         ctx.set_visuals(visuals);
 
         let mut style = (*ctx.style()).clone();
-        style.spacing.item_spacing = egui::vec2(12.0, 12.0);
-        style.spacing.button_padding = egui::vec2(12.0, 9.0);
+        style.spacing.item_spacing = egui::vec2(14.0, 14.0);
+        style.spacing.button_padding = egui::vec2(14.0, 10.0);
         style.spacing.indent = 18.0;
-        style.spacing.menu_margin = egui::Margin::same(12.0);
+        style.spacing.menu_margin = egui::Margin::same(14.0);
         ctx.set_style(style);
 
         self.theme_initialized = true;
+    }
+
+    fn paint_app_background(&self, ctx: &egui::Context) {
+        let rect = ctx.screen_rect();
+        let painter = ctx.layer_painter(egui::LayerId::background());
+        painter.rect_filled(rect, 0.0, BG_BOTTOM);
+
+        let top_rect = Rect::from_min_max(rect.min, Pos2::new(rect.max.x, rect.center().y));
+        painter.rect_filled(top_rect, 0.0, BG_TOP);
+        painter.circle_filled(
+            Pos2::new(rect.left() + rect.width() * 0.16, rect.top() + 96.0),
+            220.0,
+            Color32::from_rgba_premultiplied(94, 234, 212, 28),
+        );
+        painter.circle_filled(
+            Pos2::new(rect.right() - 260.0, rect.top() + 150.0),
+            260.0,
+            Color32::from_rgba_premultiplied(124, 92, 255, 34),
+        );
+        painter.circle_filled(
+            Pos2::new(rect.right() - 520.0, rect.bottom() - 130.0),
+            200.0,
+            Color32::from_rgba_premultiplied(255, 189, 89, 22),
+        );
+        painter.line_segment(
+            [
+                Pos2::new(rect.left() + 40.0, rect.bottom() - 90.0),
+                Pos2::new(rect.right() - 80.0, rect.top() + 70.0),
+            ],
+            Stroke::new(1.0, Color32::from_rgba_premultiplied(255, 255, 255, 16)),
+        );
     }
 
     fn install_cjk_font(&self, ctx: &egui::Context) {
@@ -322,30 +372,28 @@ impl AgentSkillGuardApp {
     }
 
     fn render_top_bar(&mut self, ui: &mut Ui) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 255, 255))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(216, 226, 235)))
+        Self::glass_frame()
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
                         ui.heading(
                             RichText::new("Agent Skill Guard")
-                                .size(24.0)
+                                .size(25.0)
                                 .strong()
-                                .color(Color32::from_rgb(19, 63, 70)),
+                                .color(TEXT_MAIN),
                         );
                         ui.label(
                             RichText::new(
-                                "中文优先的桌面安全验证器，用于高频审查 OpenClaw Skills 的真实风险。",
+                                "中文优先的桌面安全验证器，用于安装前审查 Agent Skill / MCP / Tool 风险。",
                             )
-                            .color(Color32::from_rgb(86, 97, 108)),
+                            .color(TEXT_MUTED),
                         );
                     });
 
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         for format in ExportFormat::ALL.into_iter().rev() {
-                            let button =
-                                egui::Button::new(format!("导出 {}", format.label())).small();
+                            let export_label = format!("导出 {}", format.label());
+                            let button = Self::ghost_button(&export_label).small();
                             if ui
                                 .add_enabled(self.completed_scan.is_some(), button)
                                 .clicked()
@@ -362,12 +410,7 @@ impl AgentSkillGuardApp {
                         if ui
                             .add_enabled(
                                 !self.scan_running,
-                                egui::Button::new(
-                                    RichText::new(button_text)
-                                        .strong()
-                                        .color(Color32::WHITE),
-                                )
-                                .fill(Color32::from_rgb(15, 109, 99)),
+                                Self::primary_button(button_text),
                             )
                             .clicked()
                         {
@@ -385,20 +428,21 @@ impl AgentSkillGuardApp {
     fn render_scan_panel(&mut self, ui: &mut Ui) {
         ScrollArea::vertical().show(ui, |ui| {
             Self::section_card(ui, "开始一次扫描", "先选择目标，再决定是否展开高级项。", |ui| {
-                ui.label(RichText::new("扫描目标").strong());
-                ui.add(
-                    TextEdit::singleline(&mut self.target_path)
-                        .hint_text("例如：.\\fixtures\\v2\\report-demo、某个 SKILL.md 或 https://github.com/..."),
+                Self::floating_text_input(
+                    ui,
+                    "扫描目标",
+                    &mut self.target_path,
+                    "本地 SKILL.md、skill 目录，或 HTTPS skill 链接",
                 );
                 ui.horizontal(|ui| {
-                    if ui.button("选择 SKILL.md").clicked() {
+                    if ui.add(Self::secondary_button("选择 SKILL.md")).clicked() {
                         if let Some(path) =
                             FileDialog::new().add_filter("Markdown", &["md"]).pick_file()
                         {
                             self.target_path = path.display().to_string();
                         }
                     }
-                    if ui.button("选择目录").clicked() {
+                    if ui.add(Self::secondary_button("选择目录")).clicked() {
                         if let Some(path) = FileDialog::new().pick_folder() {
                             self.target_path = path.display().to_string();
                         }
@@ -417,11 +461,11 @@ impl AgentSkillGuardApp {
 
                 ui.separator();
                 if ui
-                    .button(if self.show_advanced_options {
+                    .add(Self::ghost_button(if self.show_advanced_options {
                         "收起高级选项"
                     } else {
                         "展开高级选项"
-                    })
+                    }))
                     .clicked()
                 {
                     self.show_advanced_options = !self.show_advanced_options;
@@ -429,12 +473,13 @@ impl AgentSkillGuardApp {
 
                 if self.show_advanced_options {
                     ui.add_space(4.0);
-                    ui.label(RichText::new("运行时 manifest（可选）").strong());
-                    ui.add(
-                        TextEdit::singleline(&mut self.runtime_manifest_path)
-                            .hint_text("JSON 或 YAML，用于 guarded validation"),
+                    Self::floating_text_input(
+                        ui,
+                        "运行时 manifest（可选）",
+                        &mut self.runtime_manifest_path,
+                        "JSON 或 YAML，用于 guarded validation",
                     );
-                    if ui.button("选择运行时 manifest").clicked() {
+                    if ui.add(Self::secondary_button("选择运行时 manifest")).clicked() {
                         if let Some(path) = FileDialog::new()
                             .add_filter("Manifest", &["json", "yaml", "yml"])
                             .pick_file()
@@ -443,12 +488,13 @@ impl AgentSkillGuardApp {
                         }
                     }
 
-                    ui.label(RichText::new("Suppression 文件（可选）").strong());
-                    ui.add(
-                        TextEdit::singleline(&mut self.suppression_path)
-                            .hint_text("JSON suppression file"),
+                    Self::floating_text_input(
+                        ui,
+                        "例外规则文件（可选）",
+                        &mut self.suppression_path,
+                        "JSON suppression file",
                     );
-                    if ui.button("选择 suppression 文件").clicked() {
+                    if ui.add(Self::secondary_button("选择例外规则文件")).clicked() {
                         if let Some(path) =
                             FileDialog::new().add_filter("JSON", &["json"]).pick_file()
                         {
@@ -456,12 +502,13 @@ impl AgentSkillGuardApp {
                         }
                     }
 
-                    ui.label(RichText::new("策略配置 .openclaw-guard.yml（可选）").strong());
-                    ui.add(
-                        TextEdit::singleline(&mut self.policy_config_path)
-                            .hint_text("用于 CI 阻断、远程输入限制和规则策略"),
+                    Self::floating_text_input(
+                        ui,
+                        "策略配置 .openclaw-guard.yml（可选）",
+                        &mut self.policy_config_path,
+                        "用于 CI 阻断、远程输入限制和规则策略",
                     );
-                    if ui.button("选择策略配置").clicked() {
+                    if ui.add(Self::secondary_button("选择策略配置")).clicked() {
                         if let Some(path) = FileDialog::new()
                             .add_filter("YAML", &["yaml", "yml"])
                             .pick_file()
@@ -491,12 +538,13 @@ impl AgentSkillGuardApp {
                     );
                     ui.small("只解析当前选择范围内的文本和配置；不会启动 MCP server、安装依赖或连接工具。");
 
-                    ui.label(RichText::new("默认导出路径（可选）").strong());
-                    ui.add(
-                        TextEdit::singleline(&mut self.report_save_path)
-                            .hint_text("留空则导出时手动选择位置"),
+                    Self::floating_text_input(
+                        ui,
+                        "默认导出路径（可选）",
+                        &mut self.report_save_path,
+                        "留空则导出时手动选择位置",
                     );
-                    if ui.button("选择默认导出位置").clicked() {
+                    if ui.add(Self::secondary_button("选择默认导出位置")).clicked() {
                         if let Some(path) = FileDialog::new()
             .set_file_name("agent-skill-guard-report.json")
                             .save_file()
@@ -511,10 +559,10 @@ impl AgentSkillGuardApp {
                 let button = egui::Button::new(
                     RichText::new(if self.scan_running { "扫描中…" } else { "开始扫描" })
                         .strong()
-                        .color(Color32::WHITE)
+                        .color(Color32::from_rgb(5, 18, 25))
                         .size(18.0),
                 )
-                .fill(Color32::from_rgb(15, 109, 99))
+                .fill(ACCENT)
                 .min_size(egui::vec2(ui.available_width(), 44.0));
 
                 if ui.add_enabled(!self.scan_running, button).clicked() {
@@ -522,6 +570,7 @@ impl AgentSkillGuardApp {
                 }
 
                 if self.scan_running {
+                    self.skeleton_block(ui);
                     ui.horizontal(|ui| {
                         ui.add(egui::Spinner::new());
                         ui.label(self.scan_progress_text());
@@ -556,9 +605,10 @@ impl AgentSkillGuardApp {
                 ui,
                 "扫描进行中",
                 &self.scan_progress_text(),
-                Color32::from_rgb(237, 247, 246),
-                Color32::from_rgb(15, 109, 99),
+                Color32::from_rgba_premultiplied(98, 214, 189, 30),
+                ACCENT,
             );
+            self.skeleton_block(ui);
             ui.add_space(10.0);
         }
 
@@ -598,32 +648,28 @@ impl AgentSkillGuardApp {
     }
 
     fn render_tab_bar(&mut self, ui: &mut Ui) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 255, 255))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(216, 226, 235)))
-            .show(ui, |ui| {
-                ui.horizontal_wrapped(|ui| {
-                    for tab in UiTab::ALL {
-                        let active = self.active_tab == tab;
-                        let button = egui::Button::new(RichText::new(tab.label()).strong().color(
-                            if active {
-                                Color32::WHITE
-                            } else {
-                                Color32::from_rgb(54, 61, 70)
-                            },
-                        ))
-                        .fill(if active {
-                            Color32::from_rgb(18, 111, 122)
+        Self::glass_frame().show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                for tab in UiTab::ALL {
+                    let active = self.active_tab == tab;
+                    let button =
+                        egui::Button::new(RichText::new(tab.label()).strong().color(if active {
+                            Color32::WHITE
                         } else {
-                            Color32::from_rgb(239, 245, 249)
+                            TEXT_MUTED
+                        }))
+                        .fill(if active {
+                            Color32::from_rgba_premultiplied(98, 214, 189, 140)
+                        } else {
+                            Color32::from_rgba_premultiplied(255, 255, 255, 18)
                         });
 
-                        if ui.add(button).clicked() {
-                            self.active_tab = tab;
-                        }
+                    if ui.add(button).clicked() {
+                        self.active_tab = tab;
                     }
-                });
+                }
             });
+        });
     }
 
     fn render_summary_tab(&self, ui: &mut Ui, completed: &CompletedScan) {
@@ -1502,13 +1548,13 @@ impl AgentSkillGuardApp {
         let selected = self.selected_finding_id.as_deref() == Some(finding.id.as_str());
         let related_paths = related_path_ids_for_finding(report, finding);
 
-        let response = Frame::group(ui.style())
+        let response = Self::glass_frame()
             .fill(if selected {
-                Color32::from_rgb(244, 250, 248)
+                Color32::from_rgba_premultiplied(98, 214, 189, 42)
             } else {
-                Color32::from_rgb(255, 255, 255)
+                GLASS_FILL
             })
-            .stroke(Stroke::new(1.0, accent))
+            .stroke(Stroke::new(1.0, glass_accent(accent)))
             .show(ui, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     let title = finding.title_zh.as_deref().unwrap_or(&finding.title);
@@ -1517,7 +1563,7 @@ impl AgentSkillGuardApp {
                             RichText::new(display_text_zh(title))
                                 .strong()
                                 .size(19.0)
-                                .color(Color32::from_rgb(36, 41, 47)),
+                                .color(TEXT_MAIN),
                         )
                         .sense(egui::Sense::click()),
                     );
@@ -1616,13 +1662,16 @@ impl AgentSkillGuardApp {
         let related_findings = related_findings_for_path(report, path);
         let validation_status = path_validation_status_label(report, &path.path_id);
 
-        let response = Frame::group(ui.style())
+        let response = Self::glass_frame()
             .fill(if selected {
-                Color32::from_rgb(252, 246, 241)
+                Color32::from_rgba_premultiplied(255, 202, 111, 38)
             } else {
-                Color32::from_rgb(255, 255, 255)
+                GLASS_FILL
             })
-            .stroke(Stroke::new(1.0, severity_color(path.severity)))
+            .stroke(Stroke::new(
+                1.0,
+                glass_accent(severity_color(path.severity)),
+            ))
             .show(ui, |ui| {
                 ui.horizontal_wrapped(|ui| {
                     let response = ui.add(
@@ -1703,126 +1752,120 @@ impl AgentSkillGuardApp {
 
     fn filter_toolbar_findings(&mut self, ui: &mut Ui, report: &ScanReport) {
         let categories = unique_categories(report);
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 252, 248))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
-            .show(ui, |ui| {
-                ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("筛选").strong());
-                    ComboBox::from_id_salt("finding_severity_filter")
-                        .selected_text(self.finding_severity_filter.label())
-                        .show_ui(ui, |ui| {
-                            for filter in [
-                                SeverityFilter::All,
-                                SeverityFilter::Info,
-                                SeverityFilter::Low,
-                                SeverityFilter::Medium,
-                                SeverityFilter::High,
-                                SeverityFilter::Critical,
-                            ] {
-                                ui.selectable_value(
-                                    &mut self.finding_severity_filter,
-                                    filter,
-                                    filter.label(),
-                                );
-                            }
-                        });
+        Self::glass_frame_compact().show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.label(RichText::new("筛选").strong());
+                ComboBox::from_id_salt("finding_severity_filter")
+                    .selected_text(self.finding_severity_filter.label())
+                    .show_ui(ui, |ui| {
+                        for filter in [
+                            SeverityFilter::All,
+                            SeverityFilter::Info,
+                            SeverityFilter::Low,
+                            SeverityFilter::Medium,
+                            SeverityFilter::High,
+                            SeverityFilter::Critical,
+                        ] {
+                            ui.selectable_value(
+                                &mut self.finding_severity_filter,
+                                filter,
+                                filter.label(),
+                            );
+                        }
+                    });
 
-                    ComboBox::from_id_salt("finding_confidence_filter")
-                        .selected_text(self.finding_confidence_filter.label())
-                        .show_ui(ui, |ui| {
-                            for filter in [
-                                ConfidenceFilter::All,
-                                ConfidenceFilter::High,
-                                ConfidenceFilter::Medium,
-                                ConfidenceFilter::Low,
-                                ConfidenceFilter::InferredCompound,
-                            ] {
-                                ui.selectable_value(
-                                    &mut self.finding_confidence_filter,
-                                    filter,
-                                    filter.label(),
-                                );
-                            }
-                        });
+                ComboBox::from_id_salt("finding_confidence_filter")
+                    .selected_text(self.finding_confidence_filter.label())
+                    .show_ui(ui, |ui| {
+                        for filter in [
+                            ConfidenceFilter::All,
+                            ConfidenceFilter::High,
+                            ConfidenceFilter::Medium,
+                            ConfidenceFilter::Low,
+                            ConfidenceFilter::InferredCompound,
+                        ] {
+                            ui.selectable_value(
+                                &mut self.finding_confidence_filter,
+                                filter,
+                                filter.label(),
+                            );
+                        }
+                    });
 
-                    ComboBox::from_id_salt("finding_category_filter")
-                        .selected_text(&self.finding_category_filter)
-                        .show_ui(ui, |ui| {
+                ComboBox::from_id_salt("finding_category_filter")
+                    .selected_text(&self.finding_category_filter)
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(
+                            &mut self.finding_category_filter,
+                            "全部分类".to_string(),
+                            "全部分类",
+                        );
+                        for category in categories {
                             ui.selectable_value(
                                 &mut self.finding_category_filter,
-                                "全部分类".to_string(),
-                                "全部分类",
+                                category.clone(),
+                                category,
                             );
-                            for category in categories {
-                                ui.selectable_value(
-                                    &mut self.finding_category_filter,
-                                    category.clone(),
-                                    category,
-                                );
-                            }
-                        });
-                });
+                        }
+                    });
             });
+        });
         ui.add_space(8.0);
     }
 
     fn filter_toolbar_paths(&mut self, ui: &mut Ui, report: &ScanReport) {
         let path_types = unique_path_types(report);
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 252, 248))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
-            .show(ui, |ui| {
-                ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("筛选").strong());
-                    ComboBox::from_id_salt("path_severity_filter")
-                        .selected_text(self.path_severity_filter.label())
-                        .show_ui(ui, |ui| {
-                            for filter in [
-                                SeverityFilter::All,
-                                SeverityFilter::Info,
-                                SeverityFilter::Low,
-                                SeverityFilter::Medium,
-                                SeverityFilter::High,
-                                SeverityFilter::Critical,
-                            ] {
-                                ui.selectable_value(
-                                    &mut self.path_severity_filter,
-                                    filter,
-                                    filter.label(),
-                                );
-                            }
-                        });
-                    ComboBox::from_id_salt("path_type_filter")
-                        .selected_text(&self.path_type_filter)
-                        .show_ui(ui, |ui| {
+        Self::glass_frame_compact().show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.label(RichText::new("筛选").strong());
+                ComboBox::from_id_salt("path_severity_filter")
+                    .selected_text(self.path_severity_filter.label())
+                    .show_ui(ui, |ui| {
+                        for filter in [
+                            SeverityFilter::All,
+                            SeverityFilter::Info,
+                            SeverityFilter::Low,
+                            SeverityFilter::Medium,
+                            SeverityFilter::High,
+                            SeverityFilter::Critical,
+                        ] {
                             ui.selectable_value(
-                                &mut self.path_type_filter,
-                                "全部类型".to_string(),
-                                "全部类型",
+                                &mut self.path_severity_filter,
+                                filter,
+                                filter.label(),
                             );
-                            for item in path_types {
-                                ui.selectable_value(&mut self.path_type_filter, item.clone(), item);
-                            }
-                        });
-                    ComboBox::from_id_salt("path_status_filter")
-                        .selected_text(self.path_status_filter.label())
-                        .show_ui(ui, |ui| {
-                            for filter in [
-                                PathStatusFilter::All,
-                                PathStatusFilter::Validated,
-                                PathStatusFilter::Blocked,
-                                PathStatusFilter::Assumed,
-                            ] {
-                                ui.selectable_value(
-                                    &mut self.path_status_filter,
-                                    filter,
-                                    filter.label(),
-                                );
-                            }
-                        });
-                });
+                        }
+                    });
+                ComboBox::from_id_salt("path_type_filter")
+                    .selected_text(&self.path_type_filter)
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(
+                            &mut self.path_type_filter,
+                            "全部类型".to_string(),
+                            "全部类型",
+                        );
+                        for item in path_types {
+                            ui.selectable_value(&mut self.path_type_filter, item.clone(), item);
+                        }
+                    });
+                ComboBox::from_id_salt("path_status_filter")
+                    .selected_text(self.path_status_filter.label())
+                    .show_ui(ui, |ui| {
+                        for filter in [
+                            PathStatusFilter::All,
+                            PathStatusFilter::Validated,
+                            PathStatusFilter::Blocked,
+                            PathStatusFilter::Assumed,
+                        ] {
+                            ui.selectable_value(
+                                &mut self.path_status_filter,
+                                filter,
+                                filter.label(),
+                            );
+                        }
+                    });
             });
+        });
         ui.add_space(8.0);
     }
 
@@ -1871,26 +1914,105 @@ impl AgentSkillGuardApp {
         Self::section_card_in(ui, title, subtitle, add_contents);
     }
 
+    fn glass_frame() -> Frame {
+        Frame::none()
+            .fill(GLASS_FILL)
+            .stroke(Stroke::new(1.0, GLASS_STROKE))
+            .rounding(egui::Rounding::same(16.0))
+            .inner_margin(egui::Margin::same(18.0))
+    }
+
+    fn glass_frame_compact() -> Frame {
+        Frame::none()
+            .fill(GLASS_FILL)
+            .stroke(Stroke::new(1.0, GLASS_STROKE))
+            .rounding(egui::Rounding::same(12.0))
+            .inner_margin(egui::Margin::symmetric(12.0, 9.0))
+    }
+
+    fn glass_frame_chip() -> Frame {
+        Frame::none()
+            .fill(Color32::from_rgba_premultiplied(255, 255, 255, 24))
+            .stroke(Stroke::new(
+                1.0,
+                Color32::from_rgba_premultiplied(255, 255, 255, 38),
+            ))
+            .rounding(egui::Rounding::same(10.0))
+            .inner_margin(egui::Margin::symmetric(10.0, 6.0))
+    }
+
+    fn primary_button(label: &str) -> egui::Button<'_> {
+        egui::Button::new(
+            RichText::new(label)
+                .strong()
+                .color(Color32::from_rgb(5, 18, 25)),
+        )
+        .fill(ACCENT)
+        .stroke(Stroke::new(
+            1.0,
+            Color32::from_rgba_premultiplied(255, 255, 255, 90),
+        ))
+    }
+
+    fn secondary_button(label: &str) -> egui::Button<'_> {
+        egui::Button::new(RichText::new(label).strong().color(TEXT_MAIN))
+            .fill(Color32::from_rgba_premultiplied(255, 255, 255, 18))
+            .stroke(Stroke::new(
+                1.0,
+                Color32::from_rgba_premultiplied(255, 255, 255, 82),
+            ))
+    }
+
+    fn ghost_button(label: &str) -> egui::Button<'_> {
+        egui::Button::new(RichText::new(label).strong().color(TEXT_MUTED))
+            .fill(Color32::TRANSPARENT)
+            .stroke(Stroke::new(1.0, Color32::TRANSPARENT))
+    }
+
+    fn floating_text_input(ui: &mut Ui, label: &str, value: &mut String, hint: &str) {
+        Self::glass_frame_compact()
+            .fill(Color32::from_rgba_premultiplied(255, 255, 255, 18))
+            .show(ui, |ui| {
+                ui.label(RichText::new(label).strong().size(12.0).color(ACCENT_GOLD));
+                ui.add(
+                    TextEdit::singleline(value)
+                        .hint_text(hint)
+                        .frame(false)
+                        .desired_width(f32::INFINITY),
+                );
+            });
+    }
+
+    fn skeleton_block(&self, ui: &mut Ui) {
+        let time = ui.input(|input| input.time) as f32;
+        let phase = time.fract();
+        let shimmer = (80.0 + phase * 70.0) as u8;
+        let widths = [0.92, 0.68, 0.82];
+        for width in widths {
+            let available = ui.available_width() * width;
+            let (rect, _) =
+                ui.allocate_exact_size(Vec2::new(available, 14.0), egui::Sense::hover());
+            ui.painter().rect_filled(
+                rect,
+                7.0,
+                Color32::from_rgba_premultiplied(255, 255, 255, shimmer),
+            );
+            ui.add_space(5.0);
+        }
+    }
+
     fn section_card_in(
         ui: &mut Ui,
         title: &str,
         subtitle: &str,
         add_contents: impl FnOnce(&mut Ui),
     ) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 252, 248))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
-            .show(ui, |ui| {
-                ui.label(
-                    RichText::new(title)
-                        .strong()
-                        .size(17.0)
-                        .color(Color32::from_rgb(31, 42, 52)),
-                );
-                ui.label(RichText::new(subtitle).color(Color32::from_rgb(104, 113, 122)));
-                ui.separator();
-                add_contents(ui);
-            });
+        Self::glass_frame().show(ui, |ui| {
+            ui.label(RichText::new(title).strong().size(17.0).color(TEXT_MAIN));
+            ui.label(RichText::new(subtitle).color(TEXT_MUTED));
+            ui.separator();
+            add_contents(ui);
+        });
     }
 
     fn hero_banner(
@@ -1901,17 +2023,13 @@ impl AgentSkillGuardApp {
         fill: Color32,
         accent: Color32,
     ) {
-        Frame::group(ui.style())
+        Self::glass_frame()
             .fill(fill)
             .stroke(Stroke::new(1.2, accent))
             .show(ui, |ui| {
                 ui.add_space(2.0);
                 ui.label(RichText::new(title).size(26.0).strong().color(accent));
-                ui.label(
-                    RichText::new(subtitle)
-                        .size(15.0)
-                        .color(Color32::from_rgb(50, 61, 72)),
-                );
+                ui.label(RichText::new(subtitle).size(15.0).color(TEXT_MAIN));
                 ui.add_space(2.0);
             });
     }
@@ -1919,66 +2037,55 @@ impl AgentSkillGuardApp {
     fn empty_state(&self, ui: &mut Ui, title: &str, subtitle: &str) {
         ui.with_layout(Layout::top_down_justified(Align::Center), |ui| {
             ui.add_space(90.0);
-            Frame::group(ui.style())
-                .fill(Color32::from_rgb(255, 252, 248))
-                .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
-                .show(ui, |ui| {
-                    ui.set_min_height(220.0);
-                    ui.vertical_centered(|ui| {
-                        ui.add_space(20.0);
-                        ui.heading(title);
-                        ui.label(subtitle);
-                        ui.add_space(10.0);
-                        ui.label("建议流程：选择目标 -> 开始扫描 -> 先看总览 -> 再看详细页。");
-                    });
+            Self::glass_frame().show(ui, |ui| {
+                ui.set_min_height(220.0);
+                ui.vertical_centered(|ui| {
+                    ui.add_space(20.0);
+                    ui.heading(title);
+                    ui.label(subtitle);
+                    ui.add_space(10.0);
+                    ui.label("建议流程：选择目标 -> 开始扫描 -> 先看总览 -> 再看详细页。");
                 });
+            });
         });
     }
 
     fn empty_panel(&self, ui: &mut Ui, text: &str) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 252, 248))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
-            .show(ui, |ui| {
-                ui.label(text);
-            });
+        Self::glass_frame().show(ui, |ui| {
+            ui.label(text);
+        });
     }
 
     fn stat_card(&self, ui: &mut Ui, label: &str, value: &str, accent: Color32) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(255, 255, 255))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(216, 226, 235)))
+        Self::glass_frame_compact()
+            .fill(GLASS_FILL_STRONG)
             .show(ui, |ui| {
                 ui.set_min_width(150.0);
-                ui.label(RichText::new(label).color(Color32::from_rgb(91, 104, 117)));
+                ui.label(RichText::new(label).color(TEXT_MUTED));
                 ui.label(RichText::new(value).size(28.0).strong().color(accent));
             });
     }
 
     fn status_badge(&self, ui: &mut Ui, label: &str) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(237, 247, 246))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(19, 106, 94)))
+        Self::glass_frame_compact()
+            .fill(Color32::from_rgba_premultiplied(98, 214, 189, 30))
+            .stroke(Stroke::new(
+                1.0,
+                Color32::from_rgba_premultiplied(98, 214, 189, 120),
+            ))
             .show(ui, |ui| {
-                ui.label(
-                    RichText::new(label)
-                        .strong()
-                        .color(Color32::from_rgb(19, 106, 94)),
-                );
+                ui.label(RichText::new(label).strong().color(ACCENT));
             });
     }
 
     fn small_badge(&self, ui: &mut Ui, label: &str) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(243, 239, 234))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
-            .show(ui, |ui| {
-                ui.label(RichText::new(label).size(12.0));
-            });
+        Self::glass_frame_chip().show(ui, |ui| {
+            ui.label(RichText::new(label).size(12.0).color(TEXT_MAIN));
+        });
     }
 
     fn info_banner(&self, ui: &mut Ui, text: &str, fill: Color32, accent: Color32) {
-        Frame::group(ui.style())
+        Self::glass_frame_compact()
             .fill(fill)
             .stroke(Stroke::new(1.0, accent))
             .show(ui, |ui| {
@@ -1987,19 +2094,12 @@ impl AgentSkillGuardApp {
     }
 
     fn step_chip(&self, ui: &mut Ui, number: &str, text: &str) {
-        Frame::group(ui.style())
-            .fill(Color32::from_rgb(243, 239, 234))
-            .stroke(Stroke::new(1.0, Color32::from_rgb(226, 220, 212)))
-            .show(ui, |ui| {
-                ui.horizontal(|ui| {
-                    ui.label(
-                        RichText::new(number)
-                            .strong()
-                            .color(Color32::from_rgb(19, 106, 94)),
-                    );
-                    ui.label(text);
-                });
+        Self::glass_frame_chip().show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(number).strong().color(ACCENT_GOLD));
+                ui.label(RichText::new(text).color(TEXT_MAIN));
             });
+        });
     }
 
     fn summary_line(&self, ui: &mut Ui, label: &str, value: &str) {
@@ -2234,27 +2334,31 @@ fn confidence_text(confidence: FindingConfidence) -> &'static str {
 
 fn severity_color(severity: FindingSeverity) -> Color32 {
     match severity {
-        FindingSeverity::Info => Color32::from_rgb(84, 118, 165),
-        FindingSeverity::Low => Color32::from_rgb(117, 126, 137),
-        FindingSeverity::Medium => Color32::from_rgb(190, 122, 21),
-        FindingSeverity::High => Color32::from_rgb(189, 85, 34),
-        FindingSeverity::Critical => Color32::from_rgb(169, 47, 47),
+        FindingSeverity::Info => Color32::from_rgb(126, 183, 255),
+        FindingSeverity::Low => Color32::from_rgb(160, 174, 192),
+        FindingSeverity::Medium => ACCENT_GOLD,
+        FindingSeverity::High => Color32::from_rgb(255, 156, 101),
+        FindingSeverity::Critical => DANGER_ACCENT,
     }
+}
+
+fn glass_accent(color: Color32) -> Color32 {
+    Color32::from_rgba_premultiplied(color.r(), color.g(), color.b(), 150)
 }
 
 fn verdict_bg(verdict: Verdict) -> Color32 {
     match verdict {
-        Verdict::Allow => Color32::from_rgb(236, 246, 242),
-        Verdict::Warn => Color32::from_rgb(252, 244, 228),
-        Verdict::Block => Color32::from_rgb(252, 236, 236),
+        Verdict::Allow => Color32::from_rgba_premultiplied(98, 214, 189, 34),
+        Verdict::Warn => Color32::from_rgba_premultiplied(255, 202, 111, 34),
+        Verdict::Block => Color32::from_rgba_premultiplied(255, 122, 122, 38),
     }
 }
 
 fn verdict_fg(verdict: Verdict) -> Color32 {
     match verdict {
-        Verdict::Allow => Color32::from_rgb(31, 111, 88),
-        Verdict::Warn => Color32::from_rgb(166, 99, 8),
-        Verdict::Block => Color32::from_rgb(171, 52, 52),
+        Verdict::Allow => ACCENT,
+        Verdict::Warn => ACCENT_GOLD,
+        Verdict::Block => DANGER_ACCENT,
     }
 }
 

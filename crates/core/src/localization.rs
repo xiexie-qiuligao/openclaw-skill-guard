@@ -52,6 +52,69 @@ pub fn zh_text(input: &str) -> String {
     }
 
     let lower = trimmed.to_ascii_lowercase();
+    if lower.contains("extracted") && lower.contains("install signals") {
+        return "已从元数据和说明文本中提取安装线索；普通安装不会单独视为漏洞，仍建议复核来源和版本。".to_string();
+    }
+    if lower.contains("install chain uses package-manager dependency retrieval")
+        || lower.contains("install chain relies on package-manager dependency retrieval")
+    {
+        return "安装链使用包管理器拉取依赖。这是常见行为，单独不等于漏洞；需要确认包名、版本和来源是否可复现。".to_string();
+    }
+    if lower.contains("manual package-manager install instruction") {
+        return "文档包含包管理器安装说明。正常安装可以保留，但建议写清版本、来源和用途。"
+            .to_string();
+    }
+    if lower.contains("download") && lower.contains("integrity") {
+        return "下载型安装缺少完整性校验，需要确认来源、版本和校验方式。".to_string();
+    }
+    if lower.contains("downloads and executes") || lower.contains("downloaded content directly") {
+        return "安装说明包含远程下载后执行，这是强风险链路，需要优先处理。".to_string();
+    }
+    if lower.contains("extracted") && lower.contains("external reference") {
+        return "已从扫描文本中提取外部链接，并按来源、文档、下载、API 等类型做了分类。"
+            .to_string();
+    }
+    if lower.contains("generated reputation hints") {
+        return "已基于离线规则为外部来源生成可信度提示；这不是在线信誉判定。".to_string();
+    }
+    if lower.contains("declared skill claim does not align") {
+        return "skill 自称能力与实际证据不一致，需要安装前复核。".to_string();
+    }
+    if lower.contains("declared claim") && lower.contains("conflicts with observed signal") {
+        return "声明与实际证据不一致。这不一定代表恶意，但需要确认权限、安装来源和文档叙事是否一致。".to_string();
+    }
+    if lower.contains("official or trusted identity") && lower.contains("review-needed") {
+        return "文档使用官方或可信表述，但来源证据仍需要复核。".to_string();
+    }
+    if lower.contains("homepage host") && lower.contains("install") {
+        return "主页来源和安装/下载来源不一致，需要确认是否为预期发布链。".to_string();
+    }
+    if lower.contains("package repository host") && lower.contains("homepage") {
+        return "包仓库和主页来源不一致，需要确认是否为同一项目或可信镜像。".to_string();
+    }
+    if lower.contains("execution surface is sandbox") {
+        return "影响评估显示当前更接近沙箱侧影响；文件、凭据、网络和持久化能力仍会按证据保留为显式假设。".to_string();
+    }
+    if lower.contains("execution surface is uncertain") {
+        return "影响评估暂时无法确认宿主机或沙箱边界；建议结合运行时 manifest 进一步收窄。"
+            .to_string();
+    }
+    if lower.contains("review and minimize") {
+        return "复核并收敛对应行为；如果只是正常说明，请保留证据并确认不会形成组合风险。"
+            .to_string();
+    }
+    if lower.contains("align readme/frontmatter") {
+        return "让 README/frontmatter 声明与实际权限、安装来源和配置要求保持一致。".to_string();
+    }
+    if lower.contains("use runtime manifests") {
+        return "需要进一步确认时，使用运行时 manifest 和受保护验证来收窄静态判断。".to_string();
+    }
+    if lower.contains("finding provenance records") {
+        return "证据来源记录了信号出现的位置和所属风险类别。".to_string();
+    }
+    if lower.contains('【') {
+        return trimmed.to_string();
+    }
     if lower.contains("plaintext apikey") {
         return "OpenClaw skill 配置可能包含明文 apiKey 绑定。".to_string();
     }

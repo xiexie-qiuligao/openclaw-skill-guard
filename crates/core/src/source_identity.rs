@@ -120,6 +120,7 @@ pub fn analyze_source_identity(
             }
         }
 
+        let mut emitted_official_claim_for_document = false;
         for (line_number, line) in document.content.lines().enumerate() {
             let trimmed = line.trim();
             if claims_official_identity(trimmed)
@@ -127,7 +128,9 @@ pub fn analyze_source_identity(
                     reference.reputation == ExternalReferenceReputation::ReviewNeeded
                         || reference.reputation == ExternalReferenceReputation::Suspicious
                 })
+                && !emitted_official_claim_for_document
             {
+                emitted_official_claim_for_document = true;
                 let summary = "Document claims official or trusted identity while the scan found review-needed or suspicious source references.".to_string();
                 signals.push(SourceIdentitySignal {
                     signal_id: "source_identity.official_claim_weak_source".to_string(),
@@ -138,7 +141,7 @@ pub fn analyze_source_identity(
                 findings.push(make_identity_finding(
                     "source_identity.official_claim_weak_source",
                     "Trusted-looking identity narrative conflicts with weak source evidence",
-                    FindingSeverity::Medium,
+                    FindingSeverity::Low,
                     FindingConfidence::Medium,
                     &document.path,
                     line_number + 1,
@@ -297,7 +300,14 @@ fn make_identity_finding(
         id: id.to_string(),
         title: title.to_string(),
         issue_code: None,
-        title_zh: None,
+        title_zh: Some(match id {
+            "source_identity.homepage_install_mismatch" => "主页与安装来源不一致",
+            "source_identity.package_repository_mismatch" => "包仓库与声明身份不一致",
+            "source_identity.official_claim_weak_source" => "官方/可信叙事缺少来源支撑",
+            "source_identity.claimed_script_missing" => "文档引用的本地脚本未随包提供",
+            _ => "来源身份需要复核",
+        }
+        .to_string()),
         category: id.to_string(),
         severity,
         confidence,
@@ -311,7 +321,22 @@ fn make_identity_finding(
             direct: false,
         }],
         explanation: explanation.to_string(),
-        explanation_zh: None,
+        explanation_zh: Some(match id {
+            "source_identity.homepage_install_mismatch" => {
+                "skill 声明的主页和安装/下载来源不是同一身份体系。这可能是正常 CDN 或发布链，但安装前需要确认。"
+            }
+            "source_identity.package_repository_mismatch" => {
+                "包清单中的 repository 与 skill 声明身份不一致，需要确认是否为预期项目或镜像。"
+            }
+            "source_identity.official_claim_weak_source" => {
+                "文档使用官方或可信表述，但扫描到的来源证据仍需要复核；这不是在线信誉结论，只是离线一致性提示。"
+            }
+            "source_identity.claimed_script_missing" => {
+                "文档提到了本地辅助脚本，但扫描范围内没有找到对应文件，用户可能无法复核实际执行内容。"
+            }
+            _ => "来源身份、仓库、主页、安装来源或文档叙事之间存在需要人工确认的差异。",
+        }
+        .to_string()),
         why_openclaw_specific: "OpenClaw skills rely on local metadata, companion docs, install sources, and workspace install identity. Mismatch across those surfaces can mislead review even when no payload is executed.".to_string(),
         prerequisite_context: vec![
             "The finding is based only on local source, package, URL, and metadata evidence.".to_string(),
@@ -321,7 +346,13 @@ fn make_identity_finding(
             "Check whether the mismatch is an expected CDN/package-host split or an unexplained identity drift.".to_string(),
         ],
         remediation: remediation.to_string(),
-        recommendation_zh: None,
+        recommendation_zh: Some(match id {
+            "source_identity.claimed_script_missing" => {
+                "补齐被引用的本地脚本，或删除依赖缺失脚本的安装说明。"
+            }
+            _ => "让主页、仓库、安装来源和官方表述保持一致；确实不同源时，在文档里解释原因。",
+        }
+        .to_string()),
         suppression_status: "not_suppressed".to_string(),
     }
 }

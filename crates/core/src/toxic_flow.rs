@@ -158,10 +158,16 @@ fn collect_egress_or_execution(
         .filter(|finding| is_egress_or_execution_finding(finding))
         .map(|finding| format!("{}: {}", finding.id, finding.title))
         .collect::<Vec<_>>();
-    if !external_references.is_empty() {
+    let review_references = external_references
+        .iter()
+        .filter(|reference| {
+            let reputation = format!("{:?}", reference.reputation).to_ascii_lowercase();
+            reputation.contains("suspicious") || reputation.contains("review")
+        })
+        .count();
+    if review_references > 0 {
         out.push(format!(
-            "{} external reference(s)",
-            external_references.len()
+            "{review_references} review-needed external reference(s)"
         ));
     }
     out.sort();
@@ -172,15 +178,18 @@ fn collect_egress_or_execution(
 fn is_untrusted_source_finding(finding: &Finding) -> bool {
     finding.category.starts_with("source.")
         || finding.category.starts_with("companion")
-        || finding.category.starts_with("source_identity")
         || finding.category.contains("threat_corpus")
 }
 
 fn is_sensitive_finding(finding: &Finding) -> bool {
     finding.category.contains("secret")
         || finding.category.contains("sensitive")
-        || finding.category.starts_with("openclaw_config")
-        || finding.title.to_ascii_lowercase().contains("apikey")
+        || (finding.category.starts_with("openclaw_config")
+            && finding.severity >= FindingSeverity::Medium
+            && finding.confidence != FindingConfidence::Low)
+        || (finding.title.to_ascii_lowercase().contains("apikey")
+            && finding.severity >= FindingSeverity::Medium
+            && finding.confidence != FindingConfidence::Low)
 }
 
 fn is_egress_or_execution_finding(finding: &Finding) -> bool {

@@ -50,7 +50,10 @@ pub fn render_sarif(report: &ScanReport) -> Result<String, serde_json::Error> {
             "ruleId": rule_id,
             "level": sarif_level(finding.severity),
             "message": {
-                "text": finding.explanation_zh.as_deref().unwrap_or(&finding.explanation),
+                "text": finding
+                    .explanation_zh
+                    .clone()
+                    .unwrap_or_else(|| zh_text(&finding.explanation)),
             },
             "locations": locations,
             "properties": {
@@ -208,8 +211,10 @@ pub fn render_markdown(report: &ScanReport) -> String {
         out.push_str("### 能力 / 权限条目\n\n");
         for entry in &report.capability_manifest.entries {
             out.push_str(&format!(
-                "- `{}` | `{}` | `{}`: {}\n",
-                entry.capability, entry.status, entry.source, entry.rationale
+                "- {}：{}（来源：{}）\n",
+                display_capability_label(&entry.capability),
+                zh_text(&entry.rationale),
+                display_source_label(&entry.source)
             ));
         }
         out.push('\n');
@@ -290,13 +295,11 @@ pub fn render_markdown(report: &ScanReport) -> String {
     } else {
         for finding in &report.findings {
             out.push_str(&format!(
-                "### {} (`{}`)\n\n- Issue Code: `{}`\n- 严重级别：`{}`\n- 置信度：`{}`\n- 分类：`{}`\n",
+                "### {}\n\n- 问题编号：`{}`\n- 严重级别：`{}`\n- 可信度：`{}`\n",
                 finding.title_zh.as_deref().unwrap_or(&finding.title),
-                finding.id,
                 finding.issue_code.as_deref().unwrap_or("n/a"),
                 severity_zh(finding.severity),
                 confidence_zh(finding.confidence),
-                finding.category,
             ));
             if let Some(location) = &finding.location {
                 out.push_str(&format!(
@@ -309,13 +312,13 @@ pub fn render_markdown(report: &ScanReport) -> String {
                 "\n{}\n\n",
                 finding
                     .explanation_zh
-                    .as_deref()
-                    .unwrap_or(&finding.explanation)
+                    .clone()
+                    .unwrap_or_else(|| zh_text(&finding.explanation))
             ));
             if !finding.analyst_notes.is_empty() {
-                out.push_str("分析说明：\n");
+                out.push_str("证据详情：\n");
                 for note in &finding.analyst_notes {
-                    out.push_str(&format!("- {}\n", note));
+                    out.push_str(&format!("- {}\n", zh_text(note)));
                 }
                 out.push('\n');
             }
@@ -443,20 +446,20 @@ pub fn render_markdown(report: &ScanReport) -> String {
     out.push_str("## 评分与来源说明\n\n");
     for item in &report.scoring_summary.score_rationale {
         out.push_str(&format!(
-            "- `{}`: {} ({})\n",
-            item.source,
+            "- {}（影响：{}）：{}\n",
+            display_source_label(&item.source),
+            item.delta,
             zh_text(&item.explanation),
-            item.delta
         ));
     }
     if !report.confidence_factors.is_empty() {
         out.push_str("\n置信度因素：\n");
         for factor in &report.confidence_factors {
             out.push_str(&format!(
-                "- `{}`: {} ({})\n",
-                factor.subject_id,
+                "- {}（影响：{}）：{}\n",
+                display_source_label(&factor.subject_id),
+                factor.delta,
                 zh_text(&factor.rationale),
-                factor.delta
             ));
         }
     }
@@ -464,14 +467,66 @@ pub fn render_markdown(report: &ScanReport) -> String {
         out.push_str("\n来源说明：\n");
         for note in &report.provenance_notes {
             out.push_str(&format!(
-                "- `{}`: {}\n",
-                note.subject_id,
+                "- {}：{}\n",
+                display_source_label(&note.subject_id),
                 zh_text(&note.note)
             ));
         }
     }
 
     out
+}
+
+fn display_source_label(raw: &str) -> String {
+    let lower = raw.to_ascii_lowercase();
+    if lower.contains("confidence") || raw == "可信度调整" {
+        return "可信度调整".to_string();
+    }
+    if lower.contains("external") || lower.contains("reference") || lower.contains("url") {
+        return "外部引用证据".to_string();
+    }
+    if lower.contains("source_identity") || lower.contains("claims_review") {
+        return "身份与声明一致性证据".to_string();
+    }
+    if lower.contains("dependency") || lower.contains("install") {
+        return "安装与依赖证据".to_string();
+    }
+    if lower.contains("openclaw_config") || lower.contains("config") {
+        return "配置证据".to_string();
+    }
+    if lower.contains("toxic_flow") || lower.contains("flow") {
+        return "组合风险证据".to_string();
+    }
+    if lower.contains("mcp") {
+        return "MCP / 工具证据".to_string();
+    }
+    if lower.contains("prompt") || lower.contains("instruction") {
+        return "指令文本证据".to_string();
+    }
+    if raw.chars().count() > 48 {
+        return "详细证据".to_string();
+    }
+    zh_text(raw)
+}
+
+fn display_capability_label(raw: &str) -> String {
+    let lower = raw.to_ascii_lowercase();
+    if lower.contains("network") || lower.contains("external") || lower.contains("url") {
+        return "外部网络 / 链接访问".to_string();
+    }
+    if lower.contains("secret") || lower.contains("credential") || lower.contains("apikey") {
+        return "密钥 / 凭据访问".to_string();
+    }
+    if lower.contains("exec") || lower.contains("shell") || lower.contains("process") {
+        return "命令执行能力".to_string();
+    }
+    if lower.contains("file") || lower.contains("write") || lower.contains("read") {
+        return "文件读写能力".to_string();
+    }
+    if lower.contains("browser") || lower.contains("web") {
+        return "浏览器 / 网页访问".to_string();
+    }
+    zh_text(raw)
 }
 
 pub fn render_html(report: &ScanReport) -> String {
@@ -1139,11 +1194,9 @@ mod tests {
                     reference_id: "ref-001".to_string(),
                     url: "https://github.com/example/project".to_string(),
                     host: "github.com".to_string(),
-                    category:
-                        agent_skill_guard_core::ExternalReferenceCategory::SourceRepository,
+                    category: agent_skill_guard_core::ExternalReferenceCategory::SourceRepository,
                     service_kind: agent_skill_guard_core::ExternalServiceKind::SourceCodeHost,
-                    reputation:
-                        agent_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
+                    reputation: agent_skill_guard_core::ExternalReferenceReputation::KnownPlatform,
                     risk_signals: Vec::new(),
                     locations: Vec::new(),
                     evidence_excerpt: "https://github.com/example/project".to_string(),
@@ -1154,11 +1207,10 @@ mod tests {
                         asset_sources: vec!["api-taxonomy-v2.yaml".to_string()],
                     },
                 }],
-                    openclaw_config_audit_summary:
-                    agent_skill_guard_core::OpenClawConfigAuditSummary {
-                        summary: "config summary".to_string(),
-                        ..Default::default()
-                    },
+                openclaw_config_audit_summary: agent_skill_guard_core::OpenClawConfigAuditSummary {
+                    summary: "config summary".to_string(),
+                    ..Default::default()
+                },
                 capability_manifest: agent_skill_guard_core::CapabilityManifestSummary {
                     summary: "capability summary".to_string(),
                     ..Default::default()

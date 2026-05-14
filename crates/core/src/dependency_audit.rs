@@ -645,16 +645,16 @@ fn analyze_install_chain_dependency_risk(install: &InstallAnalysis) -> Vec<Findi
         ) {
             findings.push(make_dependency_finding(
                 "dependency.install_chain_pull_risk",
-                "Install chain pulls mutable package-manager dependencies",
+                "Install chain pulls package-manager dependencies",
                 if spec.auto_install {
-                    FindingSeverity::High
-                } else {
                     FindingSeverity::Medium
+                } else {
+                    FindingSeverity::Low
                 },
                 &spec.source_path,
                 1,
                 &spec.raw,
-                "The install chain relies on package-manager dependency retrieval as part of setup.",
+                "The install chain uses package-manager dependency retrieval as part of setup. This is common, but still needs review for source and version reproducibility.",
                 vec![format!(
                     "Install spec kind `{:?}` pulls package `{}`.",
                     spec.kind,
@@ -778,7 +778,7 @@ fn make_dependency_finding(
         id: id.to_string(),
         title: title.to_string(),
         issue_code: None,
-        title_zh: None,
+        title_zh: Some(dependency_title_zh(id, title).to_string()),
         category: id.to_string(),
         severity,
         confidence: FindingConfidence::Medium,
@@ -800,13 +800,70 @@ fn make_dependency_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
-        explanation_zh: None,
+        explanation_zh: Some(dependency_explanation_zh(id).to_string()),
         why_openclaw_specific: "Dependency retrieval and install-chain source selection can turn package metadata into real host-side setup risk inside OpenClaw skill workflows.".to_string(),
         prerequisite_context: vec!["The dependency signal was extracted from a supported manifest, lockfile, or install-chain artifact.".to_string()],
         analyst_notes,
         remediation: "Pin reviewed versions, prefer default registries, and avoid direct URL or unpinned VCS dependency sources where practical.".to_string(),
-        recommendation_zh: None,
+        recommendation_zh: Some(dependency_recommendation_zh(id).to_string()),
         suppression_status: "not_suppressed".to_string(),
+    }
+}
+
+fn dependency_title_zh(id: &str, fallback: &str) -> &'static str {
+    match id {
+        "dependency.unpinned_requirement" => "依赖版本未完全固定",
+        "dependency.remote_source" => "依赖来自非默认来源",
+        "dependency.unpinned_vcs_source" => "VCS 依赖未固定到明确版本",
+        "dependency.non_default_registry" => "依赖使用非默认 registry 或本地来源",
+        "dependency.install_chain_pull_risk" => "安装链会拉取依赖",
+        "dependency.lockfile_gap" => "缺少 lockfile，依赖结果不够可复现",
+        _ => {
+            let _ = fallback;
+            "依赖审计提示"
+        }
+    }
+}
+
+fn dependency_explanation_zh(id: &str) -> &'static str {
+    match id {
+        "dependency.install_chain_pull_risk" => {
+            "这是常见的包管理器安装行为，单独不等于漏洞；扫描器会保留为复核提示，只有和不可信来源、敏感数据或执行能力组合时才会明显升级。"
+        }
+        "dependency.unpinned_requirement" => {
+            "依赖版本允许漂移或没有完全固定，后续安装结果可能和当前审查时不同。"
+        }
+        "dependency.remote_source" => {
+            "依赖不是来自默认包仓库，或使用了直接 URL、本地文件、备用来源；需要确认来源是否可信和可复现。"
+        }
+        "dependency.unpinned_vcs_source" => {
+            "依赖来自 Git/VCS，但没有固定到明确 commit/rev；后续内容可能变化。"
+        }
+        "dependency.non_default_registry" => {
+            "依赖解析使用了非默认 registry、custom index 或本地路径，需要确认是否符合预期。"
+        }
+        "dependency.lockfile_gap" => {
+            "发现依赖清单但缺少对应 lockfile，安装结果不够稳定，建议补充锁定文件。"
+        }
+        _ => "依赖审计发现需要人工复核的供应链线索。",
+    }
+}
+
+fn dependency_recommendation_zh(id: &str) -> &'static str {
+    match id {
+        "dependency.install_chain_pull_risk" => {
+            "确认包名、版本和 registry；正常安装可以保留，但建议补充固定版本或 lockfile。"
+        }
+        "dependency.remote_source" | "dependency.unpinned_vcs_source" => {
+            "优先使用默认 registry 和固定版本；必须使用远程/VCS 来源时，请固定 commit 并说明原因。"
+        }
+        "dependency.non_default_registry" => {
+            "说明非默认 registry 或本地路径的用途，并确认它不是意外来源。"
+        }
+        "dependency.lockfile_gap" | "dependency.unpinned_requirement" => {
+            "固定版本并提交 lockfile，让审查和安装结果可复现。"
+        }
+        _ => "补充依赖来源、版本和复现说明。",
     }
 }
 

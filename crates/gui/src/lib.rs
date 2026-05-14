@@ -65,7 +65,7 @@ impl UiTab {
             UiTab::Context => "上下文",
             UiTab::Paths => "攻击路径",
             UiTab::Validation => "运行时验证",
-            UiTab::Audit => "审计",
+            UiTab::Audit => "证据与依据",
             UiTab::RawJson => "原始 JSON",
         }
     }
@@ -107,10 +107,10 @@ impl ExportFormat {
 
     pub fn default_file_name(self) -> &'static str {
         match self {
-        ExportFormat::Json => "agent-skill-guard-report.json",
-        ExportFormat::Sarif => "agent-skill-guard-report.sarif",
-        ExportFormat::Markdown => "agent-skill-guard-report.md",
-        ExportFormat::Html => "agent-skill-guard-report.html",
+            ExportFormat::Json => "agent-skill-guard-report.json",
+            ExportFormat::Sarif => "agent-skill-guard-report.sarif",
+            ExportFormat::Markdown => "agent-skill-guard-report.md",
+            ExportFormat::Html => "agent-skill-guard-report.html",
         }
     }
 }
@@ -136,8 +136,8 @@ pub fn run_gui_with_state(
         options,
         Box::new(move |_cc| {
             let app = match initial_scan.clone() {
-        Some(completed) => AgentSkillGuardApp::with_completed_scan(completed, initial_tab),
-        None => AgentSkillGuardApp::default(),
+                Some(completed) => AgentSkillGuardApp::with_completed_scan(completed, initial_tab),
+                None => AgentSkillGuardApp::default(),
             };
             Ok(Box::new(app))
         }),
@@ -303,7 +303,7 @@ mod tests {
 
         assert_eq!(
             completed.report.verdict,
-        agent_skill_guard_core::Verdict::Allow
+            agent_skill_guard_core::Verdict::Allow
         );
         assert!(completed.raw_json.contains("\"findings\""));
     }
@@ -314,8 +314,8 @@ mod tests {
 
         assert!(!completed.report.findings.is_empty());
         assert!(
-        completed.report.verdict == agent_skill_guard_core::Verdict::Warn
-            || completed.report.verdict == agent_skill_guard_core::Verdict::Block
+            completed.report.verdict == agent_skill_guard_core::Verdict::Warn
+                || completed.report.verdict == agent_skill_guard_core::Verdict::Block
         );
     }
 

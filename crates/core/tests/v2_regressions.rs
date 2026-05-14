@@ -6,9 +6,7 @@ use agent_skill_guard_core::corpus::load_builtin_corpora;
 use agent_skill_guard_core::dependency_audit::analyze_dependency_audit;
 use agent_skill_guard_core::install::InstallAnalysis;
 use agent_skill_guard_core::scan_path;
-use agent_skill_guard_core::types::{
-    ExternalReferenceCategory, ExternalRiskSignal, TextArtifact,
-};
+use agent_skill_guard_core::types::{ExternalReferenceCategory, ExternalRiskSignal, TextArtifact};
 use agent_skill_guard_core::url_classification::analyze_external_references;
 use walkdir::WalkDir;
 

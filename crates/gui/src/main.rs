@@ -53,8 +53,8 @@ fn main() {
     }
 
     if smoke_test {
-    let _ = AgentSkillGuardApp::default();
-    println!("agent-skill-guard-gui smoke test ok");
+        let _ = AgentSkillGuardApp::default();
+        println!("agent-skill-guard-gui smoke test ok");
         return;
     }
 

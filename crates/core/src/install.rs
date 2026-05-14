@@ -47,7 +47,7 @@ fn analyze_metadata_install_specs(skill: &ParsedSkill, specs: &[InstallSpec]) ->
                 "context.install.origin_integrity",
                 "Download install spec without integrity control",
                 "origin_integrity_risk",
-                FindingSeverity::High,
+                FindingSeverity::Medium,
                 FindingConfidence::High,
                 false,
                 &skill.skill_file,
@@ -85,7 +85,7 @@ fn analyze_metadata_install_specs(skill: &ParsedSkill, specs: &[InstallSpec]) ->
                 "context.install.supply_chain",
                 "Installer metadata pulls an external package dependency",
                 "supply_chain_risk",
-                FindingSeverity::Medium,
+                FindingSeverity::Low,
                 FindingConfidence::Medium,
                 false,
                 &skill.skill_file,
@@ -179,7 +179,7 @@ fn analyze_manual_specs(skill: &ParsedSkill, specs: &[InstallSpec]) -> Vec<Findi
                 "context.install.manual_supply_chain",
                 "Manual package-manager install instruction",
                 "supply_chain_risk",
-                FindingSeverity::Medium,
+                FindingSeverity::Low,
                 FindingConfidence::Medium,
                 false,
                 &skill.skill_file,
@@ -261,7 +261,16 @@ fn make_install_finding(
         id: id.to_string(),
         title: title.to_string(),
         issue_code: None,
-        title_zh: None,
+        title_zh: Some(match id {
+            "context.install.origin_integrity" => "下载型安装缺少完整性校验",
+            "context.install.auto_remote_execution" => "安装配置会下载并执行远程内容",
+            "context.install.manual_remote_execution" => "手动安装说明包含远程下载后执行",
+            "context.install.supply_chain" | "context.install.manual_supply_chain" => {
+                "安装依赖需要复核"
+            }
+            _ => title,
+        }
+        .to_string()),
         category: category.to_string(),
         severity,
         confidence,
@@ -283,12 +292,36 @@ fn make_install_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
-        explanation_zh: None,
+        explanation_zh: Some(match id {
+            "context.install.origin_integrity" => {
+                "安装配置包含下载步骤，但没有看到校验和、摘要或签名说明；这通常需要复核来源和完整性。"
+            }
+            "context.install.auto_remote_execution" => {
+                "安装配置会下载内容并继续执行，这是强风险链路，安装前应替换为已审查的本地脚本或带签名的发布物。"
+            }
+            "context.install.manual_remote_execution" => {
+                "文档中的命令会把远程下载内容直接交给 shell 或解释器执行，这属于高风险安装方式。"
+            }
+            "context.install.supply_chain" | "context.install.manual_supply_chain" => {
+                "这是常见的包管理器安装步骤，单独不等于漏洞；但仍建议确认包名、版本、来源和是否需要锁定。"
+            }
+            _ => explanation,
+        }
+        .to_string()),
         why_openclaw_specific: why_openclaw_specific.to_string(),
         prerequisite_context: vec!["The install signal was extracted from structured metadata or high-confidence setup instructions.".to_string()],
         analyst_notes: vec!["Install-chain analysis distinguishes metadata-driven install behavior from manual copy-paste setup guidance.".to_string()],
         remediation: remediation.to_string(),
-        recommendation_zh: None,
+        recommendation_zh: Some(match id {
+            "context.install.auto_remote_execution" | "context.install.manual_remote_execution" => {
+                "移除远程下载后执行；改用已审查的本地脚本、固定版本或带完整性校验的发布物。"
+            }
+            "context.install.supply_chain" | "context.install.manual_supply_chain" => {
+                "保留正常安装说明时，请写清包名、版本、来源；能固定版本时优先固定。"
+            }
+            _ => "补充来源说明、版本固定或完整性校验，方便安装前复核。",
+        }
+        .to_string()),
         suppression_status: "not_suppressed".to_string(),
     }
 }
@@ -316,5 +349,24 @@ mod tests {
             .findings
             .iter()
             .any(|finding| finding.id == "context.install.auto_remote_execution"));
+    }
+
+    #[test]
+    fn normal_package_manager_install_is_review_signal() {
+        let skill = parse_skill_file(
+            Path::new("demo/SKILL.md"),
+            "---\nname: Demo\n---\nInstall with `npm install convex` before using this skill.",
+            Vec::new(),
+        );
+
+        let analysis = analyze_install_chain(&skill);
+        let finding = analysis
+            .findings
+            .iter()
+            .find(|finding| finding.id == "context.install.manual_supply_chain")
+            .expect("normal npm install should be retained as a review signal");
+
+        assert_eq!(finding.severity, crate::types::FindingSeverity::Low);
+        assert_eq!(finding.title_zh.as_deref(), Some("安装依赖需要复核"));
     }
 }

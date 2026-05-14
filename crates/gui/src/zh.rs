@@ -17,6 +17,11 @@ pub fn display_text_zh(input: &str) -> String {
         return "无可展示内容。".to_string();
     }
 
+    let shared = agent_skill_guard_core::localization::zh_text(trimmed);
+    if shared != trimmed {
+        return shared;
+    }
+
     let exact = match trimmed {
         "No findings." => Some("未发现需要展示的风险项。"),
         "No attack paths." => Some("未形成达到阈值的攻击路径。"),

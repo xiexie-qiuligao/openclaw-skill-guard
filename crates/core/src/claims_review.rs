@@ -206,7 +206,7 @@ fn build_findings(mismatches: &[ClaimObservation]) -> Vec<Finding> {
                 mismatch.claim, mismatch.observed_signal
             ),
             explanation_zh: Some(format!(
-                "声明 `{}` 与实际证据 `{}` 不一致，需要安装前复核。",
+                "声明 `{}` 与实际证据 `{}` 不一致。这不一定代表恶意，但安装前需要确认文档、权限、安装来源是否说清楚。",
                 mismatch.claim, mismatch.observed_signal
             )),
             why_openclaw_specific:

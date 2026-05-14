@@ -52,10 +52,18 @@ pub fn analyze_openclaw_config(documents: &[TextArtifact]) -> OpenClawConfigAudi
                 let plaintext_like = !trimmed.to_ascii_lowercase().contains("secretref")
                     && !trimmed.contains("${")
                     && !trimmed.contains("<");
-                let severity = if plaintext_like {
+                let documentation_context = is_documentation_context(&document.path, trimmed);
+                let severity = if documentation_context {
+                    FindingSeverity::Low
+                } else if plaintext_like {
                     FindingSeverity::High
                 } else {
                     FindingSeverity::Medium
+                };
+                let confidence = if documentation_context {
+                    FindingConfidence::Low
+                } else {
+                    FindingConfidence::High
                 };
                 explicit_dependencies
                     .push(format!("{}: skills.entries apiKey binding", document.path));
@@ -72,7 +80,7 @@ pub fn analyze_openclaw_config(documents: &[TextArtifact]) -> OpenClawConfigAudi
                         "OpenClaw skill config declares an apiKey binding"
                     },
                     severity,
-                    FindingConfidence::High,
+                    confidence,
                     document,
                     line_number,
                     trimmed,
@@ -283,6 +291,20 @@ fn contains_config_mutation_instruction(line: &str) -> bool {
     mentions_control_plane && mutates
 }
 
+fn is_documentation_context(path: &str, line: &str) -> bool {
+    let path = path.replace('\\', "/").to_ascii_lowercase();
+    let line = line.to_ascii_lowercase();
+    path.contains("/docs/")
+        || path.contains("/references/")
+        || path.contains("/examples/")
+        || path.contains("readme")
+        || line.contains("example")
+        || line.contains("your api")
+        || line.contains("<api")
+        || line.contains("placeholder")
+        || line.contains("sample")
+}
+
 fn make_config_finding(
     id: &str,
     title: &str,
@@ -317,7 +339,22 @@ fn make_config_finding(
             direct: true,
         }],
         explanation: explanation.to_string(),
-        explanation_zh: None,
+        explanation_zh: Some(match id {
+            "openclaw_config.plaintext_api_key" | "openclaw_config.api_key_binding" => {
+                if confidence == FindingConfidence::Low {
+                    "文档中提到了 apiKey/env 绑定形式，看起来更像示例或说明；保留为复核提示，确认没有真实密钥即可。"
+                } else {
+                    "扫描内容提到了 apiKey/env 绑定，这可能把宿主机侧凭据注入 skill；需要确认是否为真实配置。"
+                }
+            }
+            "openclaw_config.secret_binding" => {
+                "扫描内容提到了 env 绑定，这可能把宿主机环境变量暴露给 skill；需要确认是否必要。"
+            }
+            "openclaw_config.sandbox_disabled" => "扫描内容暗示沙箱可能被关闭或绕过，需要确认运行边界。",
+            "openclaw_config.elevated_execution" => "扫描内容提到了提权或 unsafe 执行，会改变宿主机侧影响。",
+            _ => explanation,
+        }
+        .to_string()),
         why_openclaw_specific: "OpenClaw config can grant host env/API key access, alter skill loading, or change sandbox/tool authority outside the visible SKILL.md body.".to_string(),
         prerequisite_context: vec![
             "The signal came from local scanned text or config evidence.".to_string(),
@@ -328,7 +365,14 @@ fn make_config_finding(
             "If operational, correlate this binding with reachable tools, external references, and host-vs-sandbox consequence.".to_string(),
         ],
         remediation: remediation.to_string(),
-        recommendation_zh: None,
+        recommendation_zh: Some(match id {
+            "openclaw_config.plaintext_api_key" | "openclaw_config.api_key_binding" => {
+                "如果只是示例，请使用占位符；如果是真实配置，请改用密钥引用并确认最小权限。"
+            }
+            "openclaw_config.secret_binding" => "只绑定必要环境变量，并在文档中说明用途和权限边界。",
+            _ => "复核该配置是否会扩大 skill 权限或改变运行边界。",
+        }
+        .to_string()),
         suppression_status: "not_suppressed".to_string(),
     }
 }

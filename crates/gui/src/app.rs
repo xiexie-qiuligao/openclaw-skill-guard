@@ -5,12 +5,12 @@ use std::sync::mpsc::{self, Receiver};
 use std::thread;
 use std::time::Instant;
 
-use eframe::egui::{
-    self, Align, Color32, ComboBox, Frame, Layout, RichText, ScrollArea, Stroke, TextEdit, Ui,
-};
 use agent_skill_guard_core::{
     AttackPath, ExternalReference, ExternalReferenceReputation, Finding, FindingConfidence,
     FindingSeverity, PathValidationDisposition, ScanReport, ValidationExecutionMode, Verdict,
+};
+use eframe::egui::{
+    self, Align, Color32, ComboBox, Frame, Layout, RichText, ScrollArea, Stroke, TextEdit, Ui,
 };
 use rfd::FileDialog;
 
@@ -1260,8 +1260,8 @@ impl AgentSkillGuardApp {
     }
 
     fn render_validation_tab(&self, ui: &mut Ui, report: &ScanReport) {
-        ui.heading("运行时验证");
-        ui.label("把运行时验证、环境阻断/放大和影响模型集中起来读。");
+        ui.heading("运行环境判断");
+        ui.label("这里说明当前环境会放大风险、限制风险，还是仍然需要人工确认。");
         ui.add_space(8.0);
 
         ui.columns(2, |columns| {
@@ -1270,18 +1270,22 @@ impl AgentSkillGuardApp {
                 "验证与环境摘要",
                 "先判断是环境阻断了风险，还是环境放大了风险。",
                 |ui| {
-                    self.key_value(ui, "运行时 manifest", &report.runtime_manifest_summary);
+                    self.key_value(ui, "运行环境说明", &report.runtime_manifest_summary);
                     self.key_value(ui, "验证计划", &report.validation_plan.summary);
-                    self.key_value(ui, "受保护运行时验证", &report.guarded_validation.summary);
-                    self.key_value(ui, "影响模型", &report.consequence_summary.summary);
-                    self.key_value(ui, "宿主 / 沙箱", &report.host_vs_sandbox_split.summary);
+                    self.key_value(ui, "安全验证结果", &report.guarded_validation.summary);
+                    self.key_value(ui, "可能影响范围", &report.consequence_summary.summary);
+                    self.key_value(
+                        ui,
+                        "宿主机 / 沙箱边界",
+                        &report.host_vs_sandbox_split.summary,
+                    );
                 },
             );
 
             Self::section_card_in(
                 &mut columns[1],
-                "环境调节项",
-                "查看 block / amplify / score adjustment 如何改变结论。",
+                "环境影响项",
+                "查看哪些环境事实会阻断、放大或改变风险判断。",
                 |ui| {
                     self.string_list_from_validated(
                         ui,
@@ -1331,15 +1335,15 @@ impl AgentSkillGuardApp {
     }
 
     fn render_audit_tab(&mut self, ui: &mut Ui, report: &ScanReport) {
-        ui.heading("审计");
-        ui.label("这里集中看 suppression、评分理由、confidence、provenance 和误报修正。");
+        ui.heading("证据与依据");
+        ui.label("这里集中查看评分依据、证据来源、例外规则和原始详情。");
         ui.add_space(8.0);
 
         if let Some(subject_id) = self.selected_subject_id.clone() {
             Self::section_card(
                 ui,
                 "当前焦点",
-                "你是从某个 finding / path / reference 跳转过来的。",
+                "你是从某个发现项、路径或外部引用跳转过来的。",
                 |ui| {
                     ui.horizontal_wrapped(|ui| {
                         ui.label(format!("当前聚焦：{subject_id}"));
@@ -1354,13 +1358,13 @@ impl AgentSkillGuardApp {
         ui.columns(2, |columns| {
             Self::section_card_in(
                 &mut columns[0],
-                "抑制与审计摘要",
-                "确保例外处理可见，而不是静默消失。",
+                "例外规则与审计摘要",
+                "确保被忽略或例外处理的内容仍然可见。",
                 |ui| {
                     self.key_value(ui, "审计摘要", &report.audit_summary.summary);
                     self.key_value(
                         ui,
-                        "高风险 suppression 数量",
+                        "高风险例外数量",
                         &report.audit_summary.high_risk_suppressions.to_string(),
                     );
 
@@ -1378,7 +1382,7 @@ impl AgentSkillGuardApp {
                             )
                         })
                         .collect::<Vec<_>>();
-                    self.string_list_from_validated(ui, "命中的 suppression", &suppression_items);
+                    self.string_list_from_validated(ui, "命中的例外规则", &suppression_items);
 
                     let expired_items = report
                         .audit_summary
@@ -1389,14 +1393,14 @@ impl AgentSkillGuardApp {
                             format!("{} | {} | {}", item.target_id, item.expires_on, item.note)
                         })
                         .collect::<Vec<_>>();
-                    self.string_list_from_validated(ui, "过期 suppression", &expired_items);
+                    self.string_list_from_validated(ui, "已过期例外规则", &expired_items);
                 },
             );
 
             Self::section_card_in(
                 &mut columns[1],
-                "解释层",
-                "把评分、confidence、provenance 和 false-positive shaping 放到一起。",
+                "评分依据",
+                "把扣分原因、可信度变化和误报修正放到一起。",
                 |ui| {
                     let score_items = report
                         .scoring_summary
@@ -1417,7 +1421,7 @@ impl AgentSkillGuardApp {
                             format!("{} | {} | {}", item.subject_id, item.delta, item.rationale)
                         })
                         .collect::<Vec<_>>();
-                    self.string_list_from_validated(ui, "置信度因子", &confidence_items);
+                    self.string_list_from_validated(ui, "可信度变化", &confidence_items);
 
                     let mitigation_items = report
                         .false_positive_mitigations
@@ -1434,7 +1438,7 @@ impl AgentSkillGuardApp {
 
         Self::section_card(
             ui,
-            "Provenance 与审计记录",
+            "证据来源与审计记录",
             "适合审查“为什么系统相信这条结论”。",
             |ui| {
                 let provenance_items = report
@@ -1472,7 +1476,7 @@ impl AgentSkillGuardApp {
                     && validation_notes.is_empty()
                     && audit_items.is_empty()
                 {
-                    ui.label("当前焦点下没有额外的 provenance 或审计记录。");
+                    ui.label("当前焦点下没有额外的证据来源或审计记录。");
                 }
             },
         );
@@ -1524,14 +1528,6 @@ impl AgentSkillGuardApp {
                         ui,
                         &format!("严重级别：{}", severity_text(finding.severity)),
                     );
-                    self.small_badge(
-                        ui,
-                        &format!("置信度：{}", confidence_text(finding.confidence)),
-                    );
-                    self.small_badge(ui, &format!("分类：{}", finding.category));
-                    if let Some(code) = &finding.issue_code {
-                        self.small_badge(ui, &format!("问题编号：{code}"));
-                    }
                 });
 
                 if let Some(location) = &finding.location {
@@ -1547,14 +1543,6 @@ impl AgentSkillGuardApp {
                     .as_deref()
                     .unwrap_or(&finding.explanation);
                 self.render_expandable_text(ui, "风险解释", explanation, 280);
-                if !finding.why_openclaw_specific.is_empty() {
-                    self.render_expandable_text(
-                        ui,
-                        "为什么这是 OpenClaw 特有风险",
-                        &finding.why_openclaw_specific,
-                        260,
-                    );
-                }
                 if !finding.evidence.is_empty() {
                     let evidence = finding
                         .evidence
@@ -1568,11 +1556,24 @@ impl AgentSkillGuardApp {
                 if !finding.analyst_notes.is_empty() {
                     self.render_expandable_text(
                         ui,
-                        "分析说明",
+                        "证据详情",
                         &finding.analyst_notes.join("\n"),
                         260,
                     );
                 }
+                let mut advanced = Vec::new();
+                advanced.push(format!("内部分类：{}", finding.category));
+                advanced.push(format!("置信度：{}", confidence_text(finding.confidence)));
+                if let Some(code) = &finding.issue_code {
+                    advanced.push(format!("问题编号：{code}"));
+                }
+                if !finding.why_openclaw_specific.is_empty() {
+                    advanced.push(format!(
+                        "OpenClaw 相关性：{}",
+                        display_text_zh(&finding.why_openclaw_specific)
+                    ));
+                }
+                self.render_expandable_text(ui, "高级详情", &advanced.join("\n"), 180);
                 if !finding.prerequisite_context.is_empty() {
                     self.render_expandable_text(
                         ui,
@@ -1598,7 +1599,7 @@ impl AgentSkillGuardApp {
                         self.selected_path_id = Some(related_paths[0].clone());
                         self.active_tab = UiTab::Paths;
                     }
-                    if ui.button("查看来源 / 评分说明").clicked() {
+                    if ui.button("查看证据与依据").clicked() {
                         self.selected_subject_id = Some(finding.id.clone());
                         self.active_tab = UiTab::Audit;
                     }
@@ -1852,14 +1853,15 @@ impl AgentSkillGuardApp {
             return;
         }
         let translated = display_text_zh(text);
-        let preview = truncate_text(&translated, preview_limit);
+        let readable = readable_text(&translated);
+        let preview = truncate_text(&readable, preview_limit);
         ui.label(RichText::new(label).strong());
-        ui.label(&preview);
-        if preview != translated {
+        ui.add(egui::Label::new(preview.as_str()).wrap());
+        if preview != readable {
             egui::CollapsingHeader::new(format!("展开{label}"))
                 .default_open(false)
                 .show(ui, |ui| {
-                    ui.label(&translated);
+                    ui.add(egui::Label::new(readable.as_str()).wrap());
                 });
         }
         ui.add_space(6.0);
@@ -2002,13 +2004,15 @@ impl AgentSkillGuardApp {
 
     fn summary_line(&self, ui: &mut Ui, label: &str, value: &str) {
         ui.label(RichText::new(label).strong());
-        ui.label(display_text_zh(value));
+        let text = readable_text(&display_text_zh(value));
+        ui.add(egui::Label::new(text).wrap());
         ui.add_space(4.0);
     }
 
     fn key_value(&self, ui: &mut Ui, label: &str, value: &str) {
         ui.label(RichText::new(label).strong());
-        ui.label(display_text_zh(value));
+        let text = readable_text(&display_text_zh(value));
+        ui.add(egui::Label::new(text).wrap());
         ui.add_space(6.0);
     }
 
@@ -2026,7 +2030,8 @@ impl AgentSkillGuardApp {
         }
         ui.label(RichText::new(label).strong());
         for item in items {
-            ui.label(format!("• {}", display_text_zh(item)));
+            let text = readable_text(&display_text_zh(item));
+            ui.add(egui::Label::new(format!("• {text}")).wrap());
         }
         ui.add_space(6.0);
     }
@@ -2037,7 +2042,8 @@ impl AgentSkillGuardApp {
         }
         ui.label(RichText::new(label).strong());
         for item in items {
-            ui.label(format!("• {}", display_text_zh(item)));
+            let text = readable_text(&display_text_zh(item));
+            ui.add(egui::Label::new(format!("• {text}")).wrap());
         }
         ui.add_space(6.0);
     }
@@ -2181,6 +2187,30 @@ fn truncate_text(text: &str, limit: usize) -> String {
     } else {
         format!("{}…", chars[..limit].iter().collect::<String>())
     }
+}
+
+fn readable_text(text: &str) -> String {
+    text.split_whitespace()
+        .map(|token| {
+            if token.chars().count() > 48 {
+                chunk_long_token(token, 24)
+            } else {
+                token.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn chunk_long_token(token: &str, chunk: usize) -> String {
+    let mut out = String::new();
+    for (index, ch) in token.chars().enumerate() {
+        if index > 0 && index % chunk == 0 {
+            out.push('\u{200b}');
+        }
+        out.push(ch);
+    }
+    out
 }
 
 fn severity_text(severity: FindingSeverity) -> &'static str {
